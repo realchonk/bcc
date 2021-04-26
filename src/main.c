@@ -1,5 +1,9 @@
 #include <unistd.h>
+#include <string.h>
 #include <stdio.h>
+#include <errno.h>
+#include "parser.h"
+#include "lex.h"
 
 int main(int argc, char* argv[]) {
    const char* output_file = NULL;
@@ -16,7 +20,20 @@ int main(int argc, char* argv[]) {
       return 1;
    }
    
+   const char* filename = argv[optind++];
+   FILE* file = fopen(filename, "r");
+   if (!file) {
+      fprintf(stderr, "bcc: failed to access '%s': %s\n", filename, strerror(errno));
+      return 1;
+   }
+
+   lexer_init(file, filename);
+
+   struct statement* stmt = parse_stmt();
+   print_stmt(stdout, stmt);
    
+   free_stmt(stmt);
 
-
+   lexer_free();
+   return 0;
 }

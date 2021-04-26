@@ -1,7 +1,11 @@
+#include <stdnoreturn.h>
+#include <stdarg.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <ctype.h>
 #include <math.h>
 #include "strint.h"
+#include "error.h"
 #include "lex.h"
 #include "buf.h"
 
@@ -12,6 +16,8 @@ static struct source_pos pos;
 
 // INPUT STUFF
 
+#define input_peek() (peekd_ch ? peekd_ch : (peekd_ch = input_read()))
+#define input_skip() (peekd_ch ? peekd_ch = '\0' : (input_read(), 0))
 static int input_read(void) {
    const char ch = fgetc(file);
    if (ch == '\n') {
@@ -28,12 +34,29 @@ static int input_next(void) {
       return tmp;
    } else return input_read();
 }
-#define input_peek() (peekd_ch ? peekd_ch : (peekd_ch = input_read()))
-#define input_skip() (peekd_ch ? peekd_ch = '\0' : (input_read(), 0))
+static bool input_match(char ch) {
+   if (input_peek() == ch) return input_skip(), true;
+   else return false;
+}
+
+noreturn void lex_error(const char* fmt, ...) {
+   va_list ap;
+   va_start(ap, fmt);
+
+   print_source_pos(stderr, &pos);
+   fputs(": ", stderr);
+   vfprintf(stderr, fmt, ap);
+   fputc('\n', stderr);
+
+   va_end(ap);
+
+   exit(1);
+}
 
 // LEXER STUFF
 
 void lexer_init(FILE* f, const char* fn) {
+   token_init();
    if (file) fclose(file);
    file = f;
    peekd_ch = '\0';
@@ -42,7 +65,12 @@ void lexer_init(FILE* f, const char* fn) {
    pos.line = 0;
    pos.column = 0;
 }
-
+void lexer_free(void) {
+   if (file) {
+      fclose(file);
+      file = NULL;
+   }
+}
 static struct token lexer_impl(void);
 
 struct token lexer_peek(void) {
@@ -54,6 +82,10 @@ struct token lexer_next(void) {
       peekd_tk.type = TK_DUMMY;
       return tk;
    } else return lexer_impl();
+}
+void lexer_skip(void) {
+   if (peekd_tk.type) peekd_tk.type = TK_DUMMY;
+   else lexer_impl();
 }
 
 bool lexer_eof(void) {
@@ -70,9 +102,7 @@ bool lexer_match(enum token_type type) {
 struct token lexer_expect(enum token_type type) {
    const struct token tk = lexer_next();
    if (tk.type == type) return tk;
-   // TODO: implement error()
-   printf("expected %s got %s\n", token_type_str[type], token_type_str[tk.type]);
-   abort();
+   else lex_error("expected %s, got %s", token_type_str[type], token_type_str[tk.type]);
 }
 
 #define skip_ws() while (isspace(input_peek())) input_skip()
@@ -81,7 +111,7 @@ static int xctoi(char ch) {
    if (isdigit(ch)) return ch - '0';
    else if (ch >= 'A' && ch <= 'F') return ch - 'A' + 10;
    else if (ch >= 'a' && ch <= 'f') return ch - 'a' + 10;
-   else return -1;
+   else lex_error("expected hexadecimal digit, got '%c'", ch);
 }
 static bool isodigit(char ch) {
    return ch >= '0' && ch <= '7';
@@ -106,9 +136,6 @@ static char parse_escape_seq(void) {
    case 'x':
       result = 0;
       ch = input_next();
-      if (!isxdigit(ch)) {
-         // TODO: error()
-      }
       result = xctoi(ch);
       if (isxdigit(input_peek())) {
          result *= 16;
@@ -118,8 +145,7 @@ static char parse_escape_seq(void) {
    case '\\':  return '\\';
    case '\"':  return '\"';
    case '\'':  return '\'';
-   default:    // TODO: error()
-      return 0;
+   default:    lex_error("expected escape sequence, got '\\%c'", ch);
    }
 }
 
@@ -131,26 +157,44 @@ static struct token lexer_impl(void) {
    if (isdigit(ch)) {
       uintmax_t iVal = 0;
       while (isdigit(input_peek())) iVal = iVal * 10 + (input_next() - '0');
-      if (input_peek() == '.') {
+      if (input_match('.')) {
          fpmax_t fVal = 0.0;
-         input_skip();
          int exp = 0;
          while (isdigit(input_peek())) fVal = fVal + ((input_next() - '0') * powl(10, --exp));
-         if (input_peek() == 'e') {
-            // TODO: add scientific-notation
+         fVal += iVal;
+         if (input_match('e')) {
+            int sign = 1;
+            if (input_match('-')) sign = -1;
+            else input_match('+');
+            exp = 0;
+            if (!isdigit(input_peek())) lex_error("expected intger, got '%c'", input_peek());
+            while (isdigit(input_peek())) exp = exp * 10 + (input_next() - '0');
+            fVal *= powl(10.0, sign * exp);
          }
-         return (struct token){ TK_FLOAT, start, .fVal = iVal + fVal };
+         return (struct token){ TK_FLOAT, start, pos, .fVal = fVal };
+      } else if (input_match('e')) {
+         int sign = 1, exp = 0;
+         if (input_match('-')) sign = -1;
+         else input_match('+');
+         if (!isdigit(input_peek())) lex_error("expected intger, got '%c'", input_peek());
+         while (isdigit(input_peek())) exp = exp * 10 + (input_next() - '0');
+         return (struct token){ TK_FLOAT, start, pos, .fVal = (fpmax_t)iVal * powl(10.0, sign * exp) };
       }
-      return (struct token){ TK_INTEGER, start, .iVal = iVal };
+      return (struct token){ TK_INTEGER, start, pos, .iVal = iVal };
    } else if (isalpha(ch) || ch == '_') {
       char* buf = NULL;
       while ((ch = input_peek()) && (isalnum(ch) || ch == '_')) {
          buf_push(buf, ch);
+         input_skip();
       }
-      // TODO: implement keyword-checking
       const istr_t s = strnint(buf, buf_len(buf));
+      for (int i = TK_EOF + 1; i < NUM_TOKENS; ++i) {
+         if (s == token_type_str[i])
+            return (struct token){ i, start, pos, 0 };
+      }
+
       buf_free(buf);
-      return (struct token){ TK_NAME, start, .str = s };
+      return (struct token){ TK_NAME, start, pos, .str = s };
    } else if (ch == '"') {
       char* buf = NULL;
       input_skip();
@@ -160,21 +204,86 @@ static struct token lexer_impl(void) {
       }
       const istr_t s = strnint(buf, buf_len(buf));
       buf_free(buf);
-      return (struct token){ TK_STRING, start, .str = s };
+      return (struct token){ TK_STRING, start, pos, .str = s };
    } else if (ch == '\'') {
       input_skip();
       ch = input_next();
-      if (ch == '\''); // TODO: error()
+      if (ch == '\'') lex_error("empty character literal");
       if (ch == '\\') ch = parse_escape_seq();
-      if (input_next() != '\'') {
-         // TODO: error()
-      }
-      return (struct token){ TK_CHARACTER, start, .ch = ch };
+      if (input_next() != '\'') lex_error("missing terminating ' character");
+      return (struct token){ TK_CHARACTER, start, pos, .ch = ch };
    } else {
       input_skip();
       switch (ch) {
+      case '(':   return (struct token){ TK_LPAREN, start, pos, 0 };
+      case ')':   return (struct token){ TK_RPAREN, start, pos, 0 };
+      case '[':   return (struct token){ TK_LBRACK, start, pos, 0 };
+      case ']':   return (struct token){ TK_RBRACK, start, pos, 0 };
+      case '{':   return (struct token){ TK_CLPAREN, start, pos, 0 };
+      case '}':   return (struct token){ TK_CRPAREN, start, pos, 0 };
+      case ',':   return (struct token){ TK_COMMA, start, pos, 0 };
+      case ':':   return (struct token){ TK_COLON, start, pos, 0 };
+      case ';':   return (struct token){ TK_SEMICOLON, start, pos, 0 };
+      case '?':   return (struct token){ TK_QMARK, start, pos, 0 };
+      case '~':   return (struct token){ TK_WAVE, start, pos, 0 };
+      case '+':
+         if (input_match('+')) return (struct token){ TK_PLPL, start, pos, 0 };
+         else if (input_match('=')) return (struct token){ TK_PLEQ, start, pos, 0 };
+         else return (struct token){ TK_PLUS, start, pos, 0 };
+      case '-':
+         if (input_match('-')) return (struct token){ TK_MIMI, start, pos, 0 };
+         else if (input_match('=')) return (struct token){ TK_MIEQ, start, pos, 0 };
+         else return (struct token){ TK_MINUS, start, pos, 0 };
+      case '*':
+         if (input_match('=')) return (struct token){ TK_STEQ, start, pos, 0 };
+         else return (struct token){ TK_STAR, start, pos, 0 };
+      case '/':
+         if (input_match('=')) return (struct token){ TK_SLEQ, start, pos, 0 };
+         else if (input_match('/')) {
+            while (input_next() != '\n');
+            return lexer_impl();
+         } else if (input_match('*')) {
+            while (1) {
+               if (input_match('*') && input_match('/')) break;
+               else input_skip();
+            }
+            return lexer_impl();
+         } else return (struct token){ TK_SLASH, start, pos, 0 };
+      case '!':
+         if (input_match('=')) return (struct token){ TK_NEQ, start, pos, 0 };
+         else return (struct token){ TK_NOT, start, pos, 0 };
+      case '=':
+         if (input_match('=')) return (struct token){ TK_EQEQ, start, pos, 0 };
+         else return (struct token){ TK_EQ, start, pos, 0 };
+      case '>':
+         if (input_match('=')) return (struct token){ TK_GREQ, start, pos, 0 };
+         else if (input_match('>')) {
+            if (input_match('=')) return (struct token){ TK_GRGREQ, start, pos, 0 };
+            else return (struct token){ TK_GRGR, start, pos, 0 };
+         } else return (struct token){ TK_GR, start, pos, 0 };
+      case '<':
+         if (input_match('=')) return (struct token){ TK_LEEQ, start, pos, 0 };
+         else if (input_match('<')) {
+            if (input_match('=')) return (struct token){ TK_LELEEQ, start, pos, 0 };
+            else return (struct token){ TK_LELE, start, pos, 0 };
+         } else return (struct token){ TK_LE, start, pos, 0 };
+      case '&':
+         if (input_match('&')) return (struct token){ TK_AMPAMP, start, pos, 0 };
+         else if (input_match('=')) return (struct token){ TK_AMPEQ, start, pos, 0 };
+         else return (struct token){ TK_AMP, start, pos, 0 };
+      case '|':
+         if (input_match('|')) return (struct token){ TK_PIPI, start, pos, 0 };
+         else if (input_match('=')) return (struct token){ TK_PIPEEQ, start, pos, 0 };
+         else return (struct token){ TK_PIPE, start, pos, 0 };
+      case '^':
+         if (input_match('=')) return (struct token){ TK_XOREQ, start, pos, 0 };
+         else return (struct token){ TK_XOR, start, pos, 0 };
+      case '%':
+         if (input_match('=')) return (struct token){ TK_PERCEQ, start, pos, 0 };
+         else return (struct token){ TK_PERC, start, pos, 0 };
 
-      case EOF: return (struct token){ TK_EOF, start };
+      case EOF:   return (struct token){ TK_EOF, start, pos, 0 };
+      default:    lex_error("illegal input character '%c'", ch);
       }
    }
 }
