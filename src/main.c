@@ -3,7 +3,9 @@
 #include <stdio.h>
 #include <errno.h>
 #include "parser.h"
+#include "target.h"
 #include "lex.h"
+#include "ir.h"
 
 int main(int argc, char* argv[]) {
    const char* output_file = NULL;
@@ -29,10 +31,27 @@ int main(int argc, char* argv[]) {
 
    lexer_init(file, filename);
 
-   struct statement* stmt = parse_stmt();
-   print_stmt(stdout, stmt);
+   struct expression* e = parse_expr();
+
+   puts("expr:");
+   print_expr(stdout, e);
    
-   free_stmt(stmt);
+   puts("\nIR:");
+
+   ir_node_t* nodes = irgen_expr(e);
+
+   print_ir_nodes(stdout, nodes);
+
+   puts("\nASM:");
+
+   emit_init(stdout);
+   
+   ir_node_t* n = nodes;
+   while (n) n = emit_ir(n);
+
+   free_ir_nodes(nodes);
+
+   free_expr(e);
 
    lexer_free();
    return 0;

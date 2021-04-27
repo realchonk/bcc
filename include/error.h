@@ -3,6 +3,8 @@
 #include <stdnoreturn.h>
 #include "token.h"
 
+#define arraylen(a) (sizeof(a) / sizeof((a)[0]))
+
 noreturn void panic(const char*, ...);
 noreturn void lex_error(const char*, ...);
 noreturn void parse_error(const struct source_pos*, const char*, ...);

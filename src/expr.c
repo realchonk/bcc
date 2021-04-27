@@ -131,7 +131,7 @@ static struct expression* expr_mul(void) {
       expr->begin = left->begin;
       expr->binary.left = left;
       expr->binary.op = lexer_next();
-      expr->binary.right = expr_prim();
+      expr->binary.right = expr_unary();
       expr->end = expr->binary.right->end;
       left = expr;
    }
