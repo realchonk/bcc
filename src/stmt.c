@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "error.h"
+#include "scope.h"
 #include "stmt.h"
 #include "lex.h"
 
@@ -17,7 +18,8 @@ const char* stmt_type_str[NUM_STMTS] = {
    [STMT_WHILE]   = "while",
    [STMT_DO_WHILE]= "do-while",
    [STMT_FOR]     = "for",
-   [STMT_COMPOUND]= "compound",
+   [STMT_VARDECL] = "variable declaration",
+   [STMT_SCOPE]   = "scope/compound",
 };
 
 void free_stmt(struct statement* s) {
@@ -46,11 +48,8 @@ void free_stmt(struct statement* s) {
          free_expr(s->forloop.end);
       free_stmt(s->forloop.stmt);
       break;
-   case STMT_COMPOUND:
-      for (size_t i = 0; i < buf_len(s->stmts); ++i) {
-         free_stmt(s->stmts[i]);
-      }
-      buf_free(s->stmts);
+   case STMT_SCOPE:
+      free_scope(s->scope);
       break;
    default: break;
    }
@@ -106,12 +105,20 @@ void print_stmt(FILE* file, const struct statement* s) {
       fputs(") ", file);
       print_stmt(file, s->forloop.stmt);
       break;
-   case STMT_COMPOUND:
-      fputs("{\n", file);
-      for (size_t i = 0; i < buf_len(s->stmts); ++i) {
-         print_stmt(file, s->stmts[i]);
+   case STMT_VARDECL: {
+      const struct variable* var = &s->parent->vars[s->var_idx];
+      if (!var) panic("print_stmt(): var == NULL");
+      print_value_type(file, var->type);
+      fprintf(file, " %s", var->name);
+      if (var->init) {
+         fputs(" = ", file);
+         print_expr(file, var->init);
       }
-      fputc('}', file);
+      fputc(';', file);
+      break;
+   }
+   case STMT_SCOPE:
+      print_scope(file, s->scope);
       break;
    case NUM_STMTS: break;
    }
@@ -124,10 +131,11 @@ static struct statement* new_stmt(void) {
    else return stmt;
 }
 
-struct statement* parse_stmt(void) {
+struct statement* parse_stmt(struct scope* scope) {
    struct statement* stmt = new_stmt();
    const struct token tk = lexer_peek();
    stmt->begin = tk.begin;
+   stmt->parent = scope;
    switch (tk.type) {
    case TK_SEMICOLON:
       lexer_skip();
@@ -136,12 +144,12 @@ struct statement* parse_stmt(void) {
       break;
    case TK_CLPAREN:
       lexer_skip();
-      stmt->type = STMT_COMPOUND;
-      stmt->stmts = NULL;
-      while (!lexer_match(TK_CRPAREN)) {
-         buf_push(stmt->stmts, parse_stmt());
+      stmt->type = STMT_SCOPE;
+      stmt->scope = make_scope(scope);
+      while (!lexer_matches(TK_CRPAREN)) {
+         buf_push(stmt->scope->body, parse_stmt(stmt->scope));
       }
-      stmt->end = stmt->stmts[buf_len(stmt->stmts) - 1]->end;
+      stmt->end = lexer_expect(TK_CRPAREN).end;
       break;
    case KW_RETURN:
       lexer_skip();
@@ -155,8 +163,8 @@ struct statement* parse_stmt(void) {
       stmt->type = STMT_IF;
       stmt->ifstmt.cond = parse_expr();
       lexer_expect(TK_RPAREN);
-      stmt->ifstmt.true_case = parse_stmt();
-      stmt->ifstmt.false_case = lexer_match(KW_ELSE) ? parse_stmt() : NULL;
+      stmt->ifstmt.true_case = parse_stmt(scope);
+      stmt->ifstmt.false_case = lexer_match(KW_ELSE) ? parse_stmt(scope) : NULL;
       stmt->end = stmt->ifstmt.false_case ? stmt->ifstmt.false_case->end : stmt->ifstmt.true_case->end;
       break;
    case KW_WHILE:
@@ -165,24 +173,42 @@ struct statement* parse_stmt(void) {
       stmt->type = STMT_WHILE;
       stmt->whileloop.cond = parse_expr();
       lexer_expect(TK_RPAREN);
-      stmt->whileloop.stmt = parse_stmt();
+      stmt->whileloop.stmt = parse_stmt(scope);
       stmt->end = stmt->whileloop.stmt->end;
       break;
    case KW_DO:
       lexer_skip();
       stmt->type = STMT_DO_WHILE;
-      stmt->whileloop.stmt = parse_stmt();
+      stmt->whileloop.stmt = parse_stmt(scope);
       lexer_expect(KW_WHILE);
       lexer_expect(TK_LPAREN);
       stmt->whileloop.cond = parse_expr();
       lexer_expect(TK_RPAREN);
       stmt->end = lexer_expect(TK_SEMICOLON).end;
       break;
-   default:
-      stmt->type = STMT_EXPR;
-      stmt->expr = parse_expr();
-      stmt->end = lexer_expect(TK_SEMICOLON).end;
+   default: {
+      struct value_type* vtype = parse_value_type();
+      if (vtype) {
+         struct variable var;
+         var.type = vtype;
+         var.name = lexer_expect(TK_NAME).str;
+         var.begin = vtype->begin;
+         var.init = lexer_match(TK_EQ) ? parse_expr() : NULL;
+         var.end = lexer_expect(TK_SEMICOLON).end;
+        
+         stmt->var_idx = scope_add_var(scope, &var);
+         if (stmt->var_idx == SIZE_MAX) parse_error(&var.begin, "variable '%s' is already declared.", var.name);
+
+         stmt->type = STMT_VARDECL;
+         stmt->begin = var.begin;
+         stmt->end = var.end;
+      } else {
+         stmt->type = STMT_EXPR;
+         stmt->expr = parse_expr();
+         stmt->end = lexer_expect(TK_SEMICOLON).end;
+      }
       break;
+   }
    }
    return stmt;
 }

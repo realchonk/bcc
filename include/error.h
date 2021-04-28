@@ -8,5 +8,6 @@
 noreturn void panic(const char*, ...);
 noreturn void lex_error(const char*, ...);
 noreturn void parse_error(const struct source_pos*, const char*, ...);
+void parse_warn(const struct source_pos*, const char*, ...);
 
 #endif /* FILE_ERROR_H */

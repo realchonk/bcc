@@ -3,6 +3,7 @@
 #include <stdnoreturn.h>
 #include "expr.h"
 #include "stmt.h"
+#include "scope.h"
 
 noreturn void parse_error(const struct source_pos*, const char*, ...);
 

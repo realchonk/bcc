@@ -11,8 +11,9 @@ noreturn void panic(const char* fmt, ...) {
 
    fputs("bcc: ", stderr);
    vfprintf(stderr, fmt, ap);
-   fprintf(stderr, ": %s\n", strerror(errno));
-   
+   if (errno) fprintf(stderr, ": %s\n", strerror(errno));
+   else fputc('\n', stderr);
+
    va_end(ap);
 
    abort();
@@ -32,4 +33,15 @@ noreturn void parse_error(const struct source_pos* pos, const char* fmt, ...) {
    exit(1);
 }
 
+void parse_warn(const struct source_pos* pos, const char* fmt, ...) {
+   va_list ap;
+   va_start(ap, fmt);
+
+   print_source_pos(stderr, pos);
+   fputs(": ", stderr);
+   vfprintf(stderr, fmt, ap);
+   fputc('\n', stderr);
+
+   va_end(ap);
+}
 

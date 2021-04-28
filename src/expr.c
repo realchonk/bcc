@@ -386,7 +386,9 @@ void print_expr(FILE* file, const struct expression* e) {
    case EXPR_ASSIGN:
    case EXPR_BINARY:
       print_expr(file, e->binary.left);
+      fputc(' ', file);
       print_token(file, &e->binary.op);
+      fputc(' ', file);
       print_expr(file, e->binary.right);
       break;
    case EXPR_ADDROF:

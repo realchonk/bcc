@@ -8,27 +8,31 @@ const char* ir_size_str[NUM_IR_SIZES] = {
    [IRS_LONG]  = "long",
 };
 const char* ir_node_type_str[NUM_IR_NODES] = {
-   [IR_NOP]    = "nop",
-   [IR_MOVE]   = "move",
-   [IR_LOAD]   = "load",
-   [IR_IADD]   = "iadd",
-   [IR_ISUB]   = "isub",
-   [IR_IAND]   = "iand",
-   [IR_IOR]    = "ior",
-   [IR_IXOR]   = "ixor",
-   [IR_ILSL]   = "ilsl",
-   [IR_ILSR]   = "ilsr",
-   [IR_IASR]   = "iasr",
-   [IR_IMUL]   = "imul",
-   [IR_IDIV]   = "idiv",
-   [IR_IMOD]   = "imod",
-   [IR_UMUL]   = "umul",
-   [IR_UDIV]   = "udiv",
-   [IR_UMOD]   = "umod",
-   [IR_INEG]   = "ineg",
-   [IR_INOT]   = "inot",
-   [IR_BNOT]   = "bnot",
-   [IR_RETURN] = "return",
+   [IR_NOP]          = "nop",
+   [IR_MOVE]         = "move",
+   [IR_LOAD]         = "load",
+   [IR_IADD]         = "iadd",
+   [IR_ISUB]         = "isub",
+   [IR_IAND]         = "iand",
+   [IR_IOR]          = "ior",
+   [IR_IXOR]         = "ixor",
+   [IR_ILSL]         = "ilsl",
+   [IR_ILSR]         = "ilsr",
+   [IR_IASR]         = "iasr",
+   [IR_IMUL]         = "imul",
+   [IR_IDIV]         = "idiv",
+   [IR_IMOD]         = "imod",
+   [IR_UMUL]         = "umul",
+   [IR_UDIV]         = "udiv",
+   [IR_UMOD]         = "umod",
+   [IR_INEG]         = "ineg",
+   [IR_INOT]         = "inot",
+   [IR_BNOT]         = "bnot",
+   [IR_RET]          = "ret",
+   [IR_IRET]         = "iret",
+   [IR_LOOKUP]       = "lookup",
+   [IR_BEGIN_SCOPE]  = "begin_scope",
+   [IR_END_SCOPE]    = "end_scope",
 };
 
 ir_node_t* ir_end(ir_node_t* n) {
@@ -37,10 +41,12 @@ ir_node_t* ir_end(ir_node_t* n) {
 }
 
 ir_node_t* ir_append(ir_node_t* a, ir_node_t* b) {
+   if (!a) return b;
+   else if (!b) return a;
    ir_node_t* e = ir_end(a);
    e->next = b;
    b->prev = e;
-   return ir_end(b);
+   return a;
 }
 
 ir_node_t* ir_insert(ir_node_t* a, ir_node_t* b) {
@@ -71,6 +77,8 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
    fputs(ir_node_type_str[n->type], file);
    switch (n->type) {
    case IR_NOP:
+   case IR_BEGIN_SCOPE:
+   case IR_END_SCOPE:
    case NUM_IR_NODES:
       break;
    case IR_MOVE:
@@ -98,8 +106,12 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
    case IR_INEG:
    case IR_INOT:
    case IR_BNOT:
-   case IR_RETURN:
+   case IR_RET:
+   case IR_IRET:
       fprintf(file, ".%s R%u", ir_size_str[n->unary.size], n->unary.reg);
+      break;
+   case IR_LOOKUP:
+      fprintf(file, " R%u, %s", n->lookup.reg, n->lookup.scope->vars[n->lookup.var_idx].name);
       break;
    }
    fputc('\n', file);

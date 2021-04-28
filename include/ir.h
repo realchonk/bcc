@@ -2,6 +2,7 @@
 #define FILE_IR_H
 #include <stdint.h>
 #include <stdio.h>
+#include "value.h"
 #include "expr.h"
 #include "stmt.h"
 
@@ -26,7 +27,11 @@ enum ir_node_type {
    IR_INEG,
    IR_INOT,
    IR_BNOT,
-   IR_RETURN,
+   IR_RET,
+   IR_IRET,
+   IR_LOOKUP,
+   IR_BEGIN_SCOPE,
+   IR_END_SCOPE,
 
    NUM_IR_NODES,
 };
@@ -36,6 +41,7 @@ enum ir_value_size {
    IRS_SHORT,
    IRS_INT,
    IRS_LONG,
+   IRS_PTR,
 
    NUM_IR_SIZES,
 };
@@ -48,6 +54,7 @@ typedef struct ir_node {
    struct ir_node* prev;
    struct ir_node* next;
    union {
+      struct scope* scope;
       struct {
          ir_reg_t dest, src;
          enum ir_value_size size;
@@ -65,10 +72,15 @@ typedef struct ir_node {
          ir_reg_t reg;
          enum ir_value_size size;
       } unary;
+      struct {
+         ir_reg_t reg;
+         struct scope* scope;
+         size_t var_idx;
+      } lookup;
    };
 } ir_node_t;
 
-ir_node_t* irgen_expr(const struct expression*);
+ir_node_t* irgen_expr(struct scope*, const struct expression*);
 ir_node_t* irgen_stmt(const struct statement*);
 
 ir_node_t* ir_append(ir_node_t*, ir_node_t*);
@@ -81,5 +93,7 @@ void print_ir_nodes(FILE*, const ir_node_t*);
 
 void free_ir_node(ir_node_t*);
 void free_ir_nodes(ir_node_t*);
+
+enum ir_value_size vt2irs(const struct value_type*);
 
 #endif /* FILE_IR_H */

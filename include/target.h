@@ -12,8 +12,32 @@ struct target_info {
    size_t size_long;
    size_t size_float;
    size_t size_double;
+   size_t size_pointer;
+
+   intmax_t min_byte;
+   intmax_t max_byte;
+   uintmax_t max_ubyte;
+
+   intmax_t min_char;
+   intmax_t max_char;
+   uintmax_t max_uchar;
+
+   intmax_t min_short;
+   intmax_t max_short;
+   uintmax_t max_ushort;
+
+   intmax_t min_int;
+   intmax_t max_int;
+   uintmax_t max_uint;
+
+   intmax_t min_long;
+   intmax_t max_long;
+   uintmax_t max_ulong;
+   
+   bool unsigned_char;
 };
 
+extern const struct target_info target_info;
 extern unsigned asm_indent;
 
 void emit_init(FILE*);
