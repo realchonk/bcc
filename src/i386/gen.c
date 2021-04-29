@@ -216,6 +216,8 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    }
    case IR_PROLOGUE:
+      emit("global %s", n->func->name);
+      emit("%s:", n->func->name);
       emit("push ebp");
       emit("mov ebp, esp");
       return n->next;

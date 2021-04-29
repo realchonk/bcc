@@ -31,6 +31,7 @@ obj/%.o: src/%.c $(includes)
 
 clean:
 	rm -rf obj
+	make -C test clean
 
 todo:
 	@grep -n TODO $(sources) $(includes) || true
@@ -39,4 +40,8 @@ install:
 	install -Dm755 bcc $(DESTDIR)/$(BINDIR)/bcc
 	install -Dm644 bcc.1 $(DESTDIR)/$(MANDIR)/bcc.1
 
-.PHONY: all clean
+test: bcc
+	make -C test run
+
+
+.PHONY: all clean todo install test

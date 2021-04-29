@@ -1,3 +1,5 @@
 bcc
 obj
-test*
+test/test.asm
+test/test.o
+test/test

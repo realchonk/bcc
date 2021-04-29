@@ -167,7 +167,21 @@ static ir_node_t* ir_stmt(const struct statement* s) {
       tmp->scope = s->scope;
       return ir_append(n, tmp);
    case STMT_VARDECL:
-      n = new_node(IR_NOP);
+      if (s->parent->vars[s->var_idx].init) {
+         n = ir_expr(s->scope, s->parent->vars[s->var_idx].init);
+         tmp = new_node(IR_LOOKUP);
+         tmp->lookup.reg = creg;
+         tmp->lookup.scope = s->parent;
+         tmp->lookup.var_idx = s->var_idx;
+         ir_append(n, tmp);
+
+         tmp = new_node(IR_WRITE);
+         tmp->move.size = vt2irs(s->parent->vars[s->var_idx].type);
+         tmp->move.dest = creg;
+         tmp->move.src = creg - 1;
+         ir_append(n, tmp);
+         --creg;
+      } else n = new_node(IR_NOP);
       return n;
       
 
@@ -181,13 +195,23 @@ ir_node_t* irgen_stmt(const struct statement* s) {
 }
 
 ir_node_t* irgen_func(const struct function* f) {
+   ir_node_t* tmp;
    ir_node_t* n = new_node(IR_PROLOGUE);
    n->func = f;
+
+   tmp = new_node(IR_BEGIN_SCOPE);
+   tmp->scope = f->scope;
+   ir_append(n, tmp);
 
    for (size_t i = 0; i < buf_len(f->scope->body); ++i) {
       ir_append(n, irgen_stmt(f->scope->body[i]));
    }
-   ir_node_t* tmp = new_node(IR_EPILOGUE);
+   
+   tmp = new_node(IR_END_SCOPE);
+   tmp->scope = f->scope;
+   ir_append(n, tmp);
+
+   tmp = new_node(IR_EPILOGUE);
    tmp->func = f;
    return ir_append(n, tmp);
 }
