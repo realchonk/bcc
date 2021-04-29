@@ -28,6 +28,20 @@ enum ir_value_size vt2irs(const struct value_type* vt) {
    }
 }
 
+static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e) {
+   ir_node_t* n;
+   switch (e->type) {
+   case EXPR_NAME:
+      n = new_node(IR_LOOKUP);
+      n->lookup.reg = creg++;
+      n->lookup.var_idx = scope_find_var_idx(scope, &n->lookup.scope, e->str);
+      if (n->lookup.var_idx == SIZE_MAX)
+         parse_error(&e->begin, "undeclared variable '%s'", e->str);
+      return n;
+
+   default: panic("ir_lvalue(): unsupported expression '%s'", expr_type_str[e->type]);
+   }
+}
 static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    struct value_type* vt = get_value_type(scope, e);
    const enum ir_value_size irs = vt2irs(vt);
@@ -78,13 +92,46 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       ir_append(n, tmp);
       return n;
    case EXPR_NAME:
-      n = new_node(IR_LOOKUP);
-      n->lookup.reg = creg++;
-      n->lookup.scope = scope;
-      n->lookup.var_idx = scope_find_var_idx(scope, e->str);
-      if (n->lookup.var_idx == SIZE_MAX)
-         parse_error(&e->begin, "undeclared variable '%s'", e->str);
-      return n;
+      n = ir_lvalue(scope, e);
+      tmp = new_node(IR_READ);
+      tmp->move.dest = tmp->move.src = creg - 1;
+      tmp->move.size = irs;
+      return ir_append(n, tmp);
+   case EXPR_ASSIGN:
+      n = ir_expr(scope, e->binary.right);
+      ir_append(n, ir_lvalue(scope, e->binary.left));
+      if (e->binary.op.type != TK_EQ) {
+         tmp = new_node(IR_READ);
+         tmp->move.size = irs;
+         tmp->move.dest = creg;
+         tmp->move.src = creg;
+         ir_append(n, tmp);
+         tmp = new_node(IR_NOP);
+         tmp->binary.dest = creg - 2;
+         tmp->binary.a = creg;
+         tmp->binary.b = creg - 2;
+         tmp->binary.size = irs;
+         switch (e->binary.op.type) {
+         case TK_PLEQ:     tmp->type = IR_IADD; break;
+         case TK_MIEQ:     tmp->type = IR_ISUB; break;
+         case TK_STEQ:     tmp->type = IR_IMUL; break;
+         case TK_SLEQ:     tmp->type = IR_IDIV; break;
+         case TK_PERCEQ:   tmp->type = IR_IMOD; break;
+         case TK_AMPEQ:    tmp->type = IR_IAND; break;
+         case TK_PIPEEQ:   tmp->type = IR_IOR; break;
+         case TK_XOREQ:    tmp->type = IR_IXOR; break;
+         case TK_GRGREQ:   tmp->type = IR_ILSL; break;
+         case TK_LELEEQ:   tmp->type = IR_ILSR; break;
+         default:          parse_error(&e->binary.op.begin, "invalid assignment operator '%s'", token_type_str[e->binary.op.type]);
+         }
+         ir_append(n, tmp);
+      }
+      tmp = new_node(IR_WRITE);
+      tmp->move.size = irs;
+      tmp->move.dest = creg - 1;
+      tmp->move.src = creg - 2;
+      --creg;
+      return ir_append(n, tmp);
    default:
       panic("ir_expr(): unsupported expression '%s'", expr_type_str[e->type]);
    }
@@ -132,3 +179,16 @@ ir_node_t* irgen_stmt(const struct statement* s) {
    creg = 0;
    return ir_stmt(s);
 }
+
+ir_node_t* irgen_func(const struct function* f) {
+   ir_node_t* n = new_node(IR_PROLOGUE);
+   n->func = f;
+
+   for (size_t i = 0; i < buf_len(f->scope->body); ++i) {
+      ir_append(n, irgen_stmt(f->scope->body[i]));
+   }
+   ir_node_t* tmp = new_node(IR_EPILOGUE);
+   tmp->func = f;
+   return ir_append(n, tmp);
+}
+

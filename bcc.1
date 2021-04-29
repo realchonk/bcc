@@ -1,0 +1,64 @@
+.TH bcc 1 "2021-04-29"
+
+.SH NAME
+bcc - bad C-like compiler
+
+.SH SYNOPSIS
+.SY bcc
+.OP -i\fR|\fB-A\fR|\fB-S
+.OP -o \fIoutput\fR
+.I source
+.YS
+
+.SH DESCRIPTION
+The
+.I bcc
+compiler is a small compiler for a C-like language.
+The language currently has a minimal type-system. (SEE \fILANGUAGE\fR)
+
+.SH OPTIONS
+.B -o \fIoutput\fR
+.RE
+.RS 5
+Specify the output file (or '-' for standard output)
+The default is standard output.
+.RE
+.B -A
+.RE
+.RS 5
+Only emit the representation of the program, as interpreted by the parser.
+.RE
+.B -i
+.RE
+.RS 5
+Only emit the intermediate representation.
+.RE
+.B -S
+.RE
+.RS 5
+Emit the assembly-output. (This is the default)
+
+.SH OPERANDS
+.I output
+.RE
+.RS 5
+The output file, to which to write the resulting output.
+
+.RE
+.I source
+.RE
+.RS 5
+The source file, for which to generate the output.
+
+.SH LANGUAGE
+WIP
+
+.SH TARGETS
+Currently supported target architectures:
+.RE
+- i386
+
+.RE
+The compiler uses the System V ABI.
+
+

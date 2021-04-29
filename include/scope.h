@@ -24,7 +24,7 @@ void print_scope(FILE*, const struct scope*);
 void free_scope(struct scope*);
 
 const struct variable* scope_find_var(struct scope*, const char*);
-size_t scope_find_var_idx(struct scope*, const char*);
+size_t scope_find_var_idx(struct scope*, struct scope**, const char*);
 size_t scope_add_var(struct scope*, const struct variable*);
 
 #endif /* FILE_SCOPE_H */

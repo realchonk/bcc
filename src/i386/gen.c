@@ -14,16 +14,28 @@ static const char* regs32[] = { "eax", "ecx", "edx", "ebx", "esi", "edi" };
    case IRS_BYTE: \
    case IRS_CHAR:    dest = reg8(src); break; \
    case IRS_SHORT:   dest = reg16(src); break; \
+   case IRS_PTR: \
    case IRS_INT:     dest = reg32(src); break; \
    default:          panic("emit_ir(): unsupported operand size '%s'", ir_size_str[size]); \
    }
+
+static const char* nasm_size(enum ir_value_size s) {
+   switch (s) {
+   case IRS_BYTE:
+   case IRS_CHAR:    return "byte";
+   case IRS_SHORT:   return "word";
+   case IRS_INT:
+   case IRS_PTR:     return "dword";
+   default:          panic("nasm_size(): unsupported operand size '%s'", ir_size_str[s]);
+   }
+}
 
 ir_node_t* emit_ir(const ir_node_t* n) {
    const char* instr;
    switch (n->type) {
    case IR_NOP:
       emit("nop");
-      break;
+      return n->next;
    case IR_MOVE:
    {
       const char* dest;
@@ -168,8 +180,55 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       emit("pop edx");
       return n->next;
    }
+   case IR_BEGIN_SCOPE:
+      emit("sub esp, %zu", 4 * buf_len(n->scope->vars));
+      return n->next;
+   case IR_END_SCOPE:
+      emit("add esp, %zu", 4 * buf_len(n->scope->vars));
+      return n->next;
+   case IR_LOOKUP:
+   {
+      size_t idx = 4 + 4 * n->lookup.var_idx;
+      struct scope* scope = n->lookup.scope->parent;
+      while (scope) {
+         idx += buf_len(scope->vars);
+         scope = scope->parent;
+      }
+      emit("lea %s, [ebp - %zu]", reg32(n->lookup.reg), idx);
+      return n->next;
+   }
+   case IR_READ:
+   {
+      const char* dest;
+      const char* src;
+      reg_op(dest, n->move.dest, n->move.size);
+      reg_op(src, n->move.src, INT_INT);
+      emit("mov %s, %s [%s]", dest, nasm_size(n->move.size), src);
+      return n->next;
+   }
+   case IR_WRITE:
+   {
+      const char* dest;
+      const char* src;
+      reg_op(dest, n->move.dest, INT_INT);
+      reg_op(src, n->move.src, n->move.size);
+      emit("mov %s [%s], %s", nasm_size(n->move.size), dest, src);
+      return n->next;
+   }
+   case IR_PROLOGUE:
+      emit("push ebp");
+      emit("mov ebp, esp");
+      return n->next;
+   case IR_EPILOGUE:
+      emit(".ret:");
+      emit("leave");
+      emit("ret");
+      return n->next;
+   case IR_IRET:
+      if (n->next && n->next->type != IR_EPILOGUE)
+         emit("jmp .ret");
+      return n->next;
    default: panic("emit_ir(): unsupported ir_node type '%s'", ir_node_type_str[n->type]);
    }
-   return NULL;
 }
 

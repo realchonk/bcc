@@ -33,6 +33,10 @@ const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_LOOKUP]       = "lookup",
    [IR_BEGIN_SCOPE]  = "begin_scope",
    [IR_END_SCOPE]    = "end_scope",
+   [IR_READ]         = "read",
+   [IR_WRITE]        = "write",
+   [IR_PROLOGUE]     = "enter",
+   [IR_EPILOGUE]     = "leave",
 };
 
 ir_node_t* ir_end(ir_node_t* n) {
@@ -82,6 +86,8 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
    case NUM_IR_NODES:
       break;
    case IR_MOVE:
+   case IR_READ:
+   case IR_WRITE:
       fprintf(file, ".%s R%u, R%u", ir_size_str[n->move.size], n->move.dest, n->move.src);
       break;
    case IR_LOAD:

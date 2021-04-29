@@ -5,6 +5,7 @@
 #include "value.h"
 #include "expr.h"
 #include "stmt.h"
+#include "func.h"
 
 enum ir_node_type {
    IR_NOP,
@@ -32,6 +33,10 @@ enum ir_node_type {
    IR_LOOKUP,
    IR_BEGIN_SCOPE,
    IR_END_SCOPE,
+   IR_READ,
+   IR_WRITE,
+   IR_PROLOGUE,
+   IR_EPILOGUE,
 
    NUM_IR_NODES,
 };
@@ -54,6 +59,7 @@ typedef struct ir_node {
    struct ir_node* prev;
    struct ir_node* next;
    union {
+      const struct function* func;
       struct scope* scope;
       struct {
          ir_reg_t dest, src;
@@ -82,6 +88,7 @@ typedef struct ir_node {
 
 ir_node_t* irgen_expr(struct scope*, const struct expression*);
 ir_node_t* irgen_stmt(const struct statement*);
+ir_node_t* irgen_func(const struct function*);
 
 ir_node_t* ir_append(ir_node_t*, ir_node_t*);
 ir_node_t* ir_insert(ir_node_t*, ir_node_t*);

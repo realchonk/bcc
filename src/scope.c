@@ -31,12 +31,13 @@ void free_scope(struct scope* scope) {
 }
 
 static void print_indent(FILE* file, unsigned num) {
+   //if (num >= 10) num = 10;
    for (unsigned i = 0; i < num; ++i) fputc(' ', file);
 }
 static unsigned calculate_indent(const struct scope* scope) {
    const struct scope* s = scope;
    unsigned indent = 0;
-   s = s->parent;
+   //s = s->parent;
    while (s) {
       s = s->parent;
       indent += INDENT;
@@ -66,16 +67,22 @@ void print_scope(FILE* file, const struct scope* scope) {
 }
 
 
-size_t scope_find_var_idx(struct scope* scope, const char* name) {
+const struct variable* scope_find_var(struct scope* scope, const char* name) {
    name = strint(name);
    for (size_t i = 0; i < buf_len(scope->vars); ++i) {
-      if (name == scope->vars[i].name) return i;
+      if (name == scope->vars[i].name) return &scope->vars[i];
    }
-   return scope->parent ? scope_find_var_idx(scope->parent, name) : SIZE_MAX;
+   return scope->parent ? scope_find_var(scope->parent, name) : NULL;
 }
-const struct variable* scope_find_var(struct scope* scope, const char* name) {
-   const size_t idx = scope_find_var_idx(scope, name);
-   return idx != SIZE_MAX ? &scope->vars[idx] : NULL;
+size_t scope_find_var_idx(struct scope* scope, struct scope** parent, const char* name) {
+   name = strint(name);
+   for (size_t i = 0; i < buf_len(scope->vars); ++i) {
+      if (name == scope->vars[i].name) {
+         if (parent) *parent = scope;
+         return i;
+      }
+   }
+   return parent && scope->parent ? scope_find_var_idx(scope->parent, parent, name) : SIZE_MAX;
 }
 size_t scope_add_var(struct scope* scope, const struct variable* var) {
    for (size_t i = 0; i < buf_len(scope->vars); ++i) {

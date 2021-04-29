@@ -3,8 +3,9 @@
 #include <stdnoreturn.h>
 #include "expr.h"
 #include "stmt.h"
+#include "value.h"
 #include "scope.h"
-
-noreturn void parse_error(const struct source_pos*, const char*, ...);
+#include "func.h"
+#include "error.h"
 
 #endif /* FILE_PARSER_H */

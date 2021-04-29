@@ -7,6 +7,10 @@ LD=$(CC)
 LDFLAGS=
 LIBS=-lm
 
+DESTDIR ?= /usr/local
+BINDIR ?= bin
+MANDIR ?= share/man/man1
+
 includes=$(wildcard include/*.h)
 objects=$(patsubst src/%.c,obj/%.o,$(wildcard src/*.c)) \
 		  $(patsubst src/$(TARGET)/%.c,obj/$(TARGET)/%.o,$(wildcard src/$(TARGET)/*.c))
@@ -30,5 +34,9 @@ clean:
 
 todo:
 	@grep -n TODO $(sources) $(includes) || true
+
+install:
+	install -Dm755 bcc $(DESTDIR)/$(BINDIR)/bcc
+	install -Dm644 bcc.1 $(DESTDIR)/$(MANDIR)/bcc.1
 
 .PHONY: all clean
