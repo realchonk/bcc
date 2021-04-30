@@ -48,6 +48,7 @@ void emit_init(FILE*);
 void emit_free(void);
 
 void emit(const char*, ...);
+void emitraw(const char*, ...);
 
 ir_node_t* emit_ir(const ir_node_t*);
 void emit_func(const struct function*, const ir_node_t*);

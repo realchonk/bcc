@@ -2,13 +2,10 @@
 all: test test.ir
 
 run: test
-	@(./$<; echo "exit code: $$?")
+	@(./$<; echo "\nexit code: $$?")
 
-test: test.o lib.o
-	gcc -m32 -o $@ $< lib.o
-
-lib.o: lib.c
-	gcc -c -m32 -o $@ $<
+test: test.o
+	gcc -m32 -o $@ $<
 
 test.o: test.asm
 	nasm -felf32 -o $@ $<
@@ -20,6 +17,6 @@ test.ir: test.c
 	../bcc -i -o $@ $<
 
 clean:
-	rm -f test test.o test.asm test.ir lib.o
+	rm -f test test.o test.asm test.ir
 
 .PHONY: all run clean

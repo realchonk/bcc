@@ -40,6 +40,7 @@ const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_IICAST]       = "iicast",
    [IR_IFCALL]       = "ifcall",
    [IR_FPARAM]       = "fparam",
+   [IR_LSTR]         = "lstr",
 };
 
 ir_node_t* ir_end(ir_node_t* n) {
@@ -135,6 +136,9 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
       break;
    case IR_FPARAM:
       fprintf(file, " R%u, %s", n->fparam.reg, n->fparam.func->params[n->fparam.idx].name);
+      break;
+   case IR_LSTR:
+      fprintf(file, " R%u, '%s'", n->lstr.reg, n->lstr.str);
       break;
    }
    fputc('\n', file);

@@ -40,6 +40,7 @@ enum ir_node_type {
    IR_IICAST,
    IR_IFCALL,
    IR_FPARAM,
+   IR_LSTR,
 
    NUM_IR_NODES,
 };
@@ -100,6 +101,10 @@ typedef struct ir_node {
          struct function* func;
          size_t idx;
       } fparam;
+      struct {
+         ir_reg_t reg;
+         istr_t str;
+      } lstr;
    };
 } ir_node_t;
 

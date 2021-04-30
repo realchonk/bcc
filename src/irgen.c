@@ -171,6 +171,11 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          --creg;
       }
       return n;
+   case EXPR_STRING:
+      n = new_node(IR_LSTR);
+      n->lstr.reg = creg++;
+      n->lstr.str = e->str;
+      return n;
    default:
       panic("ir_expr(): unsupported expression '%s'", expr_type_str[e->type]);
    }

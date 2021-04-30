@@ -83,8 +83,8 @@ int main(int argc, char* argv[]) {
    }
    lexer_free();
    int ec = 0;
+   if (level == 'S' || level == 'c') emit_free();
    if (level == 'c') {
-      fclose(asm_file);
       ec = assemble(asm_filename, output_file);
       if (ec != 0) panic("assembler returned: %d");
    }

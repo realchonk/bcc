@@ -1,7 +1,8 @@
 int main() {
-   int a = 32;
-   puti(a);
-   return a;
+   srand(time(0));
+   const char* s = "Hello World";
+   printf("My string is: '%s'\n", s);
+   return rand();
 }
 
 

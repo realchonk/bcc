@@ -9,13 +9,25 @@ unsigned asm_indent = 0;
 void emit_init(FILE* f) {
    file = f;
    asm_indent = 0;
+   emit_begin();
 }
 
 void emit_free(void) {
+   emit_end();
    if (file) fclose(file);
    file = NULL;
 }
 
+void emitraw(const char* fmt, ...) {
+   va_list ap;
+   va_start(ap, fmt);
+
+   for (unsigned i = 0; i < asm_indent; ++i)
+      fputc(ASM_INDENT, file);
+   vfprintf(file, fmt, ap);
+
+   va_end(ap);
+}
 void emit(const char* fmt, ...) {
    va_list ap;
    va_start(ap, fmt);

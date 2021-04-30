@@ -1,5 +1,7 @@
+#include <ctype.h>
 #include "target.h"
 #include "error.h"
+#include "strdb.h"
 
 static const char* regs8[] =  {  "al",  "ah",  "cl",  "ch",  "dl",  "dh",  "bl",  "bh" };
 static const char* regs16[] = {  "ax",  "cx",  "dx",  "bx",  "si",  "di" };
@@ -33,6 +35,7 @@ static const char* nasm_size(enum ir_value_size s) {
 static const struct function* cur_func;
 static uint32_t esp = 0;
 static istr_t* unresolved = NULL;
+static istr_t* defined = NULL;
 
 void emit_func(const struct function* func, const ir_node_t* n) {
    cur_func = func;
@@ -41,11 +44,53 @@ void emit_func(const struct function* func, const ir_node_t* n) {
 }
 
 void emit_begin(void) {
+   strdb_init();
    if (unresolved) buf_free(unresolved);
+   if (defined) buf_free(defined);
    emit("section .text");
 }
 void emit_end(void) {
-   
+   for (size_t i = 0; i < buf_len(unresolved); ++i) {
+      bool is_defined = false;
+      for (size_t j = 0; j < buf_len(defined); ++j) {
+         if (unresolved[i] == defined[j]) {
+            is_defined = true;
+            break;
+         }
+      }
+      if (!is_defined) emit("extern %s", unresolved[i]);
+   }
+
+   asm_indent = 0;
+   if (strdb) {
+      emit("\nsection .data\n__strings:");
+      size_t i = 0;
+      while (i < buf_len(strdb)) {
+         if (!strdb[i]) {
+            emit("db 0");
+            ++i;
+            continue;
+         }
+         emitraw("db ");
+         while (strdb[i]) {
+            if (isprint(strdb[i])) {
+               emitraw("\"");
+               while (isprint(strdb[i])) {
+                  emitraw("%c", strdb[i++]);
+               }
+               emitraw("\"");
+            } else {
+               emitraw("%u", strdb[i++]);
+            }
+            emitraw(", ");
+         }
+         emit("0");
+         ++i;
+      }
+   }
+
+   buf_free(unresolved);
+   buf_free(defined);
 }
 
 ir_node_t* emit_ir(const ir_node_t* n) {
@@ -237,6 +282,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    }
    case IR_PROLOGUE:
+      buf_push(defined, n->func->name);
       emit("global %s", n->func->name);
       emit("%s:", n->func->name);
       emit("push ebp");
@@ -299,12 +345,12 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       uint32_t padding = 16 - ((esp + np * 4) % 16);
       if (padding == 16) padding = 0;
       if (padding) emit("sub esp, %u", padding);
-      for (size_t i = 0; i < np; ++i) {
-         ir_node_t* tmp = n->ifcall.params[i];
+      for (size_t i = np; i != 0; --i) {
+         ir_node_t* tmp = n->ifcall.params[i - 1];
          while ((tmp = emit_ir(tmp)) != NULL);
          emit("push %s", reg32(n->ifcall.dest + 1u));
       }
-      emit("extern %s", n->ifcall.name);
+      buf_push(unresolved, n->ifcall.name);
       emit("call %s", n->ifcall.name);
       emit("add esp, %u", padding + 4 * np);
       if (n->ifcall.dest != 0) {
@@ -314,7 +360,14 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    }
    case IR_FPARAM:
    {
-      emit("lea %s, [ebp - %u]", reg32(n->fparam.reg), 4 * n->fparam.idx);
+      emit("lea %s, [ebp + %u]", reg32(n->fparam.reg), 4 * n->fparam.idx + 8);
+      return n->next;
+   }
+   case IR_LSTR:
+   {
+      const struct strdb_ptr* ptr;
+      strdb_add(n->lstr.str, &ptr);
+      emit("lea %s, [__strings + %u]", reg32(n->lstr.reg), ptr->idx);
       return n->next;
    }
    default: panic("emit_ir(): unsupported ir_node type '%s'", ir_node_type_str[n->type]);

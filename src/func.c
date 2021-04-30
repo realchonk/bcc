@@ -25,7 +25,7 @@ struct function* parse_func(void) {
                parse_error(&var.begin, "parameter '%s' is already declared", var.name);
          }
          buf_push(func->params, var);
-      } while (lexer_match(TK_SEMICOLON));
+      } while (lexer_match(TK_COMMA));
    }
    lexer_expect(TK_RPAREN);
 
