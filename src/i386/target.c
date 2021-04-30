@@ -1,4 +1,9 @@
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <stdio.h>
 #include "target.h"
+#include "error.h"
 
 const struct target_info target_info = {
    .name = "i386",
@@ -33,7 +38,25 @@ const struct target_info target_info = {
    .max_ulong  = UINT64_MAX,
 
    .unsigned_char = false,
+
+   .fend_asm = "asm",
+   .fend_obj = "o",
 };
+
+int assemble(const char* source, const char* output) {
+   const pid_t pid = fork();
+   if (pid < 0) panic("failed to fork");
+   if (pid == 0) {
+      execlp("nasm", "nasm", "-f", "elf32", "-o", output, source, NULL);
+      perror("bcc: failed to invoke nasm");
+      _exit(1);
+   } else {
+      int wstatus;
+      waitpid(pid, &wstatus, 0);
+      if (WIFEXITED(wstatus)) return WEXITSTATUS(wstatus);
+      panic("failed to wait for nasm");
+   }
+}
 
 
 

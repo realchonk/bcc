@@ -83,6 +83,8 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
    case IR_NOP:
    case IR_BEGIN_SCOPE:
    case IR_END_SCOPE:
+   case IR_PROLOGUE:
+   case IR_EPILOGUE:
    case NUM_IR_NODES:
       break;
    case IR_MOVE:

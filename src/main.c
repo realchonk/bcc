@@ -7,13 +7,27 @@
 #include "lex.h"
 #include "ir.h"
 
+static char* replace_ending(const char* s, const char* end) {
+   const size_t len_end = strlen(end);
+   const char* dot = strrchr(s, '.');
+   char* new_str;
+   const size_t len_s = dot ? (size_t)(dot - s) : strlen(s);
+   new_str = malloc(len_s + len_end + 2);
+   if (!new_str) panic("failed to allocate buffer");
+   strncpy(new_str, s, len_s);
+   strncat(new_str, ".", 1);
+   strncat(new_str, end, len_end);
+   return new_str;
+}
+
 int main(int argc, char* argv[]) {
    const char* output_file = NULL;
-   int level = 'S';
+   int level = 'c';
    int option;
-   while ((option = getopt(argc, argv, ":iSAo:")) != -1) {
+   while ((option = getopt(argc, argv, ":ciSAo:")) != -1) {
       switch (option) {
       case 'o': output_file = optarg; break;
+      case 'c':
       case 'i':
       case 'S':
       case 'A':
@@ -27,44 +41,52 @@ int main(int argc, char* argv[]) {
       fputs("Usage: bcc [-iAS] [-o output] input\n", stderr);
       return 1;
    }
+   const char* source_file = argv[optind];
+   FILE* source = fopen(source_file, "r");
+   if (!source) panic("failed to access '%s'", source_file);
    
-   const char* filename = argv[optind++];
-   FILE* file = fopen(filename, "r");
-   if (!file) {
-      fprintf(stderr, "bcc: failed to access '%s': %s\n", filename, strerror(errno));
-      return 1;
+   if (!output_file) {
+      switch (level) {
+      case 'c':   output_file = replace_ending(source_file, target_info.fend_obj); break;
+      case 'S':   output_file = replace_ending(source_file, target_info.fend_asm); break;
+      case 'i':   output_file = replace_ending(source_file, "ir"); break;
+      case 'A':   output_file = "-"; break;
+      }
    }
    FILE* output;
-   if (output_file && strcmp(output_file, "-") != 0) output = fopen(output_file, "w");
-   else output = stdout;
-   if (!output) {
-      fprintf(stderr, "bcc: failed to access '%s': %s\n", output_file, strerror(errno));
-      return 1;
+   if (level != 'c') {
+      if (strcmp(output_file, "-") == 0) output = stdout;
+      else output = fopen(output_file, "w");
    }
 
-   lexer_init(file, filename);
+   const char* asm_filename;
+   FILE* asm_file;
+   if (level == 'c') {
+      asm_filename = tmpnam(NULL);
+      asm_file = fopen(asm_filename, "w");
+   } else asm_file = output;
 
+   lexer_init(source, source_file);
    while (!lexer_match(TK_EOF)) {
       struct function* func = parse_func();
-
-      if (level == 'A') {
-         print_func(output, func);
-      } else {
+      if (level == 'A') print_func(output, func);
+      else {
          ir_node_t* ir = irgen_func(func);
-         if (level == 'i') {
-            print_ir_nodes(output, ir);
-         } else {
-            emit_init(output);
+         if (level == 'i') print_ir_nodes(output, ir);
+         else {
+            emit_init(asm_file);
             while ((ir = emit_ir(ir)) != NULL);
          }
          free_ir_nodes(ir);
       }
-
       free_func(func);
    }
-
-
    lexer_free();
-   if (output != stdout) fclose(output);
-   return 0;
+   int ec = 0;
+   if (level == 'c') {
+      fclose(asm_file);
+      ec = assemble(asm_filename, output_file);
+      if (ec != 0) panic("assembler returned: %d");
+   }
+   return ec;
 }

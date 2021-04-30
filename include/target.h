@@ -35,6 +35,9 @@ struct target_info {
    uintmax_t max_ulong;
    
    bool unsigned_char;
+
+   const char* fend_asm;
+   const char* fend_obj;
 };
 
 extern const struct target_info target_info;
@@ -46,5 +49,7 @@ void emit_free(void);
 void emit(const char*, ...);
 
 ir_node_t* emit_ir(const ir_node_t*);
+
+int assemble(const char* source, const char* output);
 
 #endif /* FILE_TARGET_H */
