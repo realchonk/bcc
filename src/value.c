@@ -30,6 +30,9 @@ void print_value_type(FILE* file, const struct value_type* val) {
       print_value_type(file, val->pointer.type);
       fputc('*', file);
       break;
+   case VAL_VOID:
+      fputs("void", file);
+      break;
    default: panic("print_value_type(): invalid value type '%d'", val->type);
    }
    if (val->is_const) fputs(" const", file);
@@ -53,6 +56,7 @@ struct value_type* parse_value_type(void) {
    struct value_type* vt = new_vt();
    vt->type = NUM_VALS;
    vt->integer.is_unsigned = false;
+   vt->is_const = false;
 
    while (lexer_matches(KW_CONST) || lexer_matches(KW_SIGNED) || lexer_matches(KW_UNSIGNED)) {
       const struct token tk = lexer_next();
@@ -120,6 +124,11 @@ struct value_type* parse_value_type(void) {
       if (vt->type != NUM_VALS) parse_error(&tk.begin, "invalid combination of signed or unsigned and double");
       vt->type = VAL_FLOAT;
       vt->fp.size = FP_DOUBLE;
+      break;
+   case KW_VOID:
+      lexer_skip();
+      if (vt->type != NUM_VALS) parse_error(&tk.begin, "invalid combination of signed or unsigned and void");
+      vt->type = VAL_VOID;
       break;
    default: break;
    }
@@ -273,7 +282,13 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
       type->is_const = true;
       return type;
    case EXPR_CAST:
+   {
+      struct value_type* old = get_value_type(scope, e->cast.expr);
+      if (!is_castable(old, e->cast.type, false))
+         parse_error(&e->begin, "invalid cast");
+      free_value_type(old);
       return copy_value_type(e->cast.type);
+   }
    case EXPR_FCALL:
       // TODO
       type = new_vt();
@@ -303,7 +318,61 @@ struct value_type* copy_value_type(const struct value_type* vt) {
    case VAL_POINTER:
       copy->pointer.type = copy_value_type(vt->pointer.type);
       break;
+   case VAL_VOID:
+      break;
    default: panic("copy_value_type(): unsupported value type '%d'", vt->type);
    }
    return copy;
+}
+
+#define warn_implicit(f, t) parse_warn(&old->begin, "implicit conversion from %s to %s", f, t)
+
+static bool ptreq(const struct value_type* a, const struct value_type* b) {
+   if (a->type != b->type) return false;
+   switch (a->type) {
+   case VAL_INT:     return (a->integer.is_unsigned == b->integer.is_unsigned) && (a->integer.size == b->integer.size);
+   case VAL_FLOAT:   return a->fp.size == b->fp.size;
+   case VAL_POINTER: return ptreq(a->pointer.type, b->pointer.type);
+   default:          panic("ptreq(): invalid value type '%u'", a->type);
+   }
+}
+
+bool is_castable(const struct value_type* old, const struct value_type* type, bool implicit) {
+   if (old->type == VAL_VOID || type->type == VAL_VOID) return false;
+   switch (old->type) {
+   case VAL_INT:
+      switch (type->type) {
+      case VAL_INT:
+      case VAL_FLOAT:
+         return true;
+      case VAL_POINTER:
+         return !implicit;
+      default: panic("is_castable(): invalid value type '%u'", type->type);
+      }
+   case VAL_FLOAT:
+      switch (type->type) {
+      case VAL_INT:
+         if (implicit) warn_implicit(fp_size_str[old->fp.size], integer_size_str[type->integer.size]);
+         fallthrough;
+      case VAL_FLOAT:
+         return true;
+      case VAL_POINTER:
+         return false;
+      default: panic("is_castable(): invalid value type '%u'", type->type);
+      }
+   case VAL_POINTER:
+      switch (type->type) {
+      case VAL_INT:
+         return !implicit;
+      case VAL_POINTER:
+         if (old->pointer.type->is_const && !type->pointer.type->is_const && implicit)
+            warn_implicit("const pointer", "non-const pointer");
+         if (old->pointer.type->type == VAL_VOID || type->pointer.type->type == VAL_VOID) return true;
+         if (!ptreq(old->pointer.type, type->pointer.type) && implicit)
+            parse_warn(&old->begin, "implicit pointer conversion");
+         return true;
+      default: panic("is_castable(): invalid value type '%u'", type->type);
+      }
+   default: panic("is_castable(): invalid value type '%u'", type->type);
+   }
 }

@@ -1,14 +1,7 @@
 #include <stdlib.h>
 #include "error.h"
-#include "scope.h"
-#include "stmt.h"
+#include "parser.h"
 #include "lex.h"
-
-#if defined(__GNUC__)
-#define fallthrough __attribute__((fallthrough))
-#else
-#define fallthough
-#endif
 
 const char* stmt_type_str[NUM_STMTS] = {
    [STMT_NOP]     = "empty",
@@ -155,7 +148,15 @@ struct statement* parse_stmt(struct scope* scope) {
    case KW_RETURN:
       lexer_skip();
       stmt->type = STMT_RETURN;
-      stmt->expr = parse_expr();
+      stmt->expr = lexer_matches(TK_SEMICOLON) ? NULL : parse_expr();
+      struct function* f = stmt->parent->func;
+      if (stmt->expr) {
+         if (f->type->type == VAL_VOID) parse_error(&stmt->expr->begin, "return a value in a void-function");
+         struct value_type* old = get_value_type(stmt->parent, stmt->expr);
+         if (!is_castable(old, f->type, true))
+            parse_error(&stmt->expr->begin, "invalid return type");
+         free_value_type(old);
+      } else if (f->type->type != VAL_VOID) parse_error(&stmt->end, "expected return value");
       stmt->end = lexer_expect(TK_SEMICOLON).end;
       break;
    case KW_IF:
@@ -190,6 +191,8 @@ struct statement* parse_stmt(struct scope* scope) {
    default: {
       struct value_type* vtype = parse_value_type();
       if (vtype) {
+         if (vtype->type == VAL_VOID)
+            parse_error(&vtype->begin, "invalid use of incomplete type void");
          struct variable var;
          var.type = vtype;
          var.name = lexer_expect(TK_NAME).str;
@@ -199,6 +202,13 @@ struct statement* parse_stmt(struct scope* scope) {
         
          stmt->var_idx = scope_add_var(scope, &var);
          if (stmt->var_idx == SIZE_MAX) parse_error(&var.begin, "variable '%s' is already declared.", var.name);
+
+         if (var.init) {
+            struct value_type* old = get_value_type(scope, var.init);
+            if (!is_castable(old, var.type, true))
+               parse_error(&var.init->begin, "incompatible init value type");
+            free_value_type(old);
+         }
 
          stmt->type = STMT_VARDECL;
          stmt->begin = var.begin;

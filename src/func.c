@@ -11,7 +11,7 @@ struct function* parse_func(void) {
    func->params = NULL;
    lexer_expect(TK_LPAREN);
 
-   if (!lexer_matches(TK_RPAREN)) {
+   if (!lexer_match(KW_VOID) && !lexer_matches(TK_RPAREN)) {
       do {
          struct variable var;
          var.type = parse_value_type();

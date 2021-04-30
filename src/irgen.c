@@ -113,6 +113,13 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       tmp->move.size = irs;
       return ir_append(n, tmp);
    case EXPR_ASSIGN:
+      {
+         struct value_type* vl = get_value_type(scope, e->binary.left);     
+         struct value_type* vr = get_value_type(scope, e->binary.right);     
+         if (!is_castable(vr, vl, true)) parse_error(&e->binary.op.begin, "incompatible types");
+         free_value_type(vl);
+         free_value_type(vr);
+      }
       n = ir_expr(scope, e->binary.right);
       ir_append(n, ir_lvalue(scope, e->binary.left));
       if (e->binary.op.type != TK_EQ) {
@@ -212,7 +219,9 @@ static ir_node_t* ir_stmt(const struct statement* s) {
       return ir_append(n, tmp);
    case STMT_VARDECL:
       if (s->parent->vars[s->var_idx].init) {
-         n = ir_expr(s->parent, s->parent->vars[s->var_idx].init);
+         const struct variable* var = &s->parent->vars[s->var_idx];
+         struct expression* init = var->init;
+         n = ir_expr(s->parent, init);
          tmp = new_node(IR_LOOKUP);
          tmp->lookup.reg = creg;
          tmp->lookup.scope = s->parent;
@@ -220,7 +229,7 @@ static ir_node_t* ir_stmt(const struct statement* s) {
          ir_append(n, tmp);
 
          tmp = new_node(IR_WRITE);
-         tmp->move.size = vt2irs(s->parent->vars[s->var_idx].type);
+         tmp->move.size = vt2irs(var->type);
          tmp->move.dest = creg;
          tmp->move.src = creg - 1;
          ir_append(n, tmp);

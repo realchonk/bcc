@@ -8,6 +8,7 @@ enum value_base_type {
    VAL_INT,
    VAL_FLOAT,
    VAL_POINTER,
+   VAL_VOID,
 
    NUM_VALS,
 };
@@ -57,5 +58,7 @@ struct value_type* get_value_type(struct scope*, const struct expression*);
 struct value_type* common_value_type_free(struct value_type*, struct value_type*, bool);
 struct value_type* common_value_type(const struct value_type*, const struct value_type*, bool);
 struct value_type* copy_value_type(const struct value_type*);
+
+bool is_castable(const struct value_type* old, const struct value_type* type, bool implicit);
 
 #endif /* FILE_VALUE_H */

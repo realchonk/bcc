@@ -89,6 +89,7 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
    case IR_END_SCOPE:
    case IR_PROLOGUE:
    case IR_EPILOGUE:
+   case IR_RET:
    case NUM_IR_NODES:
       break;
    case IR_MOVE:
@@ -118,7 +119,6 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
    case IR_INEG:
    case IR_INOT:
    case IR_BNOT:
-   case IR_RET:
    case IR_IRET:
       fprintf(file, ".%s R%u", ir_size_str[n->unary.size], n->unary.reg);
       break;

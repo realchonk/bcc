@@ -33,6 +33,7 @@ static struct expression* new_expr(void) {
 }
 
 static struct expression* expr_assign(void);
+static struct expression* expr_unary(void);
 static struct expression* expr_prim(void) {
    const struct token tk = lexer_next();
    struct expression* expr = new_expr();
@@ -75,9 +76,11 @@ static struct expression* expr_prim(void) {
    case TK_LPAREN:
       expr->cast.type = parse_value_type();
       if (expr->cast.type) {
+         if (expr->cast.type->type == VAL_VOID)
+            parse_error(&expr->begin, "cast to incomplete type void");
          expr->type = EXPR_CAST;
          lexer_expect(TK_RPAREN);
-         expr->cast.expr = expr_prim();
+         expr->cast.expr = expr_unary();
          expr->end = expr->cast.expr->end;
       } else {
          expr->type = EXPR_PAREN;

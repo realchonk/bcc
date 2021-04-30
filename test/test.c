@@ -1,8 +1,10 @@
-int main() {
-   srand(time(0));
-   const char* s = "Hello World";
-   printf("My string is: '%s'\n", s);
-   return rand();
+
+void f() {
+   return ;
 }
 
+int main(void) {
+   const char* s = "Hello World";
+   return *(s + 0);
+}
 

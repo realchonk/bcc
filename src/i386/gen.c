@@ -295,7 +295,16 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       emit("ret");
       return n->next;
    case IR_IRET:
-      if (n->next && n->next->type != IR_EPILOGUE)
+      if (n->unary.reg != 0) {
+         const char* reg;
+         const char* eax;
+         reg_op(reg, n->unary.reg, n->unary.size);
+         reg_op(eax, 0, n->unary.size);
+         emit("mov %s, %s", eax, reg);
+      }
+      fallthrough;
+   case IR_RET:
+      if (n->next && n->next->type != IR_END_SCOPE && n->next->next && n->next->next->type == IR_EPILOGUE)
          emit("jmp .ret");
       return n->next;
    case IR_IICAST:
