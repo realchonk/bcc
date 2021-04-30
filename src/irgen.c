@@ -28,6 +28,7 @@ enum ir_value_size vt2irs(const struct value_type* vt) {
    }
 }
 
+static ir_node_t* ir_expr(struct scope* scope, const struct expression* e);
 static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e) {
    ir_node_t* n;
    switch (e->type) {
@@ -37,6 +38,9 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e) {
       n->lookup.var_idx = scope_find_var_idx(scope, &n->lookup.scope, e->str);
       if (n->lookup.var_idx == SIZE_MAX)
          parse_error(&e->begin, "undeclared variable '%s'", e->str);
+      return n;
+   case EXPR_INDIRECT:
+      n = ir_expr(scope, e->expr);
       return n;
 
    default: panic("ir_lvalue(): unsupported expression '%s'", expr_type_str[e->type]);
@@ -92,6 +96,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       ir_append(n, tmp);
       return n;
    case EXPR_NAME:
+   case EXPR_INDIRECT:
       n = ir_lvalue(scope, e);
       tmp = new_node(IR_READ);
       tmp->move.dest = tmp->move.src = creg - 1;
@@ -104,7 +109,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          tmp = new_node(IR_READ);
          tmp->move.size = irs;
          tmp->move.dest = creg;
-         tmp->move.src = creg;
+         tmp->move.src = creg - 1;
          ir_append(n, tmp);
          tmp = new_node(IR_NOP);
          tmp->binary.dest = creg - 2;
@@ -132,6 +137,19 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       tmp->move.src = creg - 2;
       --creg;
       return ir_append(n, tmp);
+   case EXPR_ADDROF:
+      return ir_lvalue(scope, e->expr);
+   case EXPR_CAST:
+   {
+      struct value_type* svt = get_value_type(scope, e->cast.expr);
+      n = ir_expr(scope, e->cast.expr);
+      tmp = new_node(IR_IICAST);
+      tmp->iicast.dest = tmp->iicast.src = creg - 1;
+      tmp->iicast.ds = irs;
+      tmp->iicast.ss = vt2irs(svt);
+      free_value_type(svt);
+      return ir_append(n, tmp);
+   }
    default:
       panic("ir_expr(): unsupported expression '%s'", expr_type_str[e->type]);
    }
@@ -168,7 +186,7 @@ static ir_node_t* ir_stmt(const struct statement* s) {
       return ir_append(n, tmp);
    case STMT_VARDECL:
       if (s->parent->vars[s->var_idx].init) {
-         n = ir_expr(s->scope, s->parent->vars[s->var_idx].init);
+         n = ir_expr(s->parent, s->parent->vars[s->var_idx].init);
          tmp = new_node(IR_LOOKUP);
          tmp->lookup.reg = creg;
          tmp->lookup.scope = s->parent;

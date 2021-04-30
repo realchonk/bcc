@@ -5,7 +5,7 @@ bcc - bad C-like compiler
 
 .SH SYNOPSIS
 .SY bcc
-.OP -i\fR|\fB-A\fR|\fB-S
+.OP -c\fR|\fB-i\fR|\fB-A\fR|\fB-S
 .OP -o \fIoutput\fR
 .I source
 .YS
@@ -23,6 +23,11 @@ The language currently has a minimal type-system. (SEE \fILANGUAGE\fR)
 Specify the output file (or '-' for standard output)
 The default is standard output.
 .RE
+.B -c
+.RE
+.RS 5
+Compile and assemble the program. (This is the default)
+.RE
 .B -A
 .RE
 .RS 5
@@ -36,7 +41,7 @@ Only emit the intermediate representation.
 .B -S
 .RE
 .RS 5
-Emit the assembly-output. (This is the default)
+Emit the assembly-output.
 
 .SH OPERANDS
 .I output

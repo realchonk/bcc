@@ -37,6 +37,7 @@ const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_WRITE]        = "write",
    [IR_PROLOGUE]     = "enter",
    [IR_EPILOGUE]     = "leave",
+   [IR_IICAST]       = "iicast",
 };
 
 ir_node_t* ir_end(ir_node_t* n) {
@@ -120,6 +121,9 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
       break;
    case IR_LOOKUP:
       fprintf(file, " R%u, %s", n->lookup.reg, n->lookup.scope->vars[n->lookup.var_idx].name);
+      break;
+   case IR_IICAST:
+      fprintf(file, ".%s R%u, %s R%u", ir_size_str[n->iicast.ds], n->iicast.dest, ir_size_str[n->iicast.ss], n->iicast.src);
       break;
    }
    fputc('\n', file);

@@ -37,6 +37,7 @@ enum ir_node_type {
    IR_WRITE,
    IR_PROLOGUE,
    IR_EPILOGUE,
+   IR_IICAST,
 
    NUM_IR_NODES,
 };
@@ -83,6 +84,10 @@ typedef struct ir_node {
          struct scope* scope;
          size_t var_idx;
       } lookup;
+      struct {
+         ir_reg_t dest, src;
+         enum ir_value_size ds, ss;
+      } iicast;
    };
 } ir_node_t;
 

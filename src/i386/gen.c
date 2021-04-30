@@ -230,6 +230,47 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       if (n->next && n->next->type != IR_EPILOGUE)
          emit("jmp .ret");
       return n->next;
+   case IR_IICAST:
+   {
+      if (n->iicast.ds < n->iicast.ss) {
+         if (n->iicast.dest != n->iicast.src) {
+            const char* dest;
+            const char* src;
+            reg_op(dest, n->iicast.dest, n->iicast.ds);
+            reg_op(src, n->iicast.src, n->iicast.ds);
+            emit("mov %s, %s", dest, src);
+         } else {
+            uint32_t mask;
+            switch (n->iicast.ds) {
+            case IRS_BYTE:
+            case IRS_CHAR:    mask = 0x000000ff; break;
+            case IRS_SHORT:   mask = 0x0000ffff; break;
+            default:          mask = 0;
+            }
+            if (mask) emit("and %s, 0x%jx", reg32(n->iicast.dest), (uintmax_t)mask);
+         }
+      } else if (n->iicast.ds > n->iicast.ss) {
+         if (n->iicast.dest != n->iicast.src) {
+            const char* tmp_dest;
+            const char* dest;
+            const char* src;
+            reg_op(tmp_dest, n->iicast.dest, n->iicast.ds);
+            reg_op(dest, n->iicast.dest, n->iicast.ss);
+            reg_op(src, n->iicast.src, n->iicast.ss);
+            emit("xor %s, %s", tmp_dest, tmp_dest);
+            emit("mov %s, %s", dest, src);
+         }
+      } else {
+         if (n->iicast.dest != n->iicast.src) {
+            const char* dest;
+            const char* src;
+            reg_op(dest, n->iicast.dest, n->iicast.ds);
+            reg_op(src, n->iicast.src, n->iicast.ds);
+            emit("mov %s, %s", dest, src);
+         }
+      }
+      return n->next;
+   }
    default: panic("emit_ir(): unsupported ir_node type '%s'", ir_node_type_str[n->type]);
    }
 }

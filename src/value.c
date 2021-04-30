@@ -271,6 +271,8 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
       if (e->unary.op.type == TK_MINUS) parse_warn(&e->begin, "negating an unsigned integer");
       type->is_const = true;
       return type;
+   case EXPR_CAST:
+      return copy_value_type(e->cast.type);
    default: panic("get_value_type(): unsupported expression '%s'", expr_type_str[e->type]);
    }
 }

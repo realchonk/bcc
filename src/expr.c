@@ -22,6 +22,7 @@ const char* expr_type_str[NUM_EXPRS] = {
    [EXPR_TERNARY] = "ternary",
    [EXPR_ASSIGN]  = "assignment",
    [EXPR_COMMA]   = "comma",
+   [EXPR_CAST]    = "cast",
 };
 
 static struct expression* new_expr(void) {
@@ -62,9 +63,17 @@ static struct expression* expr_prim(void) {
       }
       break;
    case TK_LPAREN:
-      expr->type = EXPR_PAREN;
-      expr->expr = parse_expr();
-      lexer_expect(TK_RPAREN);
+      expr->cast.type = parse_value_type();
+      if (expr->cast.type) {
+         expr->type = EXPR_CAST;
+         lexer_expect(TK_RPAREN);
+         expr->cast.expr = expr_prim();
+         expr->end = expr->cast.expr->end;
+      } else {
+         expr->type = EXPR_PAREN;
+         expr->expr = parse_expr();
+         lexer_expect(TK_RPAREN);
+      }
       break;
    default:
       parse_error(&tk.begin, "expected expression, got %s\n", token_type_str[tk.type]);
@@ -338,6 +347,10 @@ void free_expr(struct expression* e) {
          free_expr(e->comma[i]);
       buf_free(e->comma);
       break;
+   case EXPR_CAST:
+      free_value_type(e->cast.type);
+      free_expr(e->cast.expr);
+      break;
    case EXPR_INT:
    case EXPR_UINT:
    case EXPR_STRING:
@@ -412,6 +425,12 @@ void print_expr(FILE* file, const struct expression* e) {
       print_expr(file, e->ternary.true_case);
       fputs(" : ", file);
       print_expr(file, e->ternary.false_case);
+      break;
+   case EXPR_CAST:
+      fputc('(', file);
+      print_value_type(file, e->cast.type);
+      fputc(')', file);
+      print_expr(file, e->cast.expr);
       break;
 
 

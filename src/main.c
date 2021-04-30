@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
    }
    if ((argc - optind) != 1) {
    print_usage:
-      fputs("Usage: bcc [-iAS] [-o output] input\n", stderr);
+      fputs("Usage: bcc [-ciAS] [-o output] input\n", stderr);
       return 1;
    }
    const char* source_file = argv[optind];

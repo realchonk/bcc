@@ -21,10 +21,12 @@ enum expression_type {
    EXPR_TERNARY,
    EXPR_ASSIGN,
    EXPR_COMMA,
+   EXPR_CAST,
 
    NUM_EXPRS,
 };
 extern const char* expr_type_str[NUM_EXPRS];
+struct value_type;
 
 struct expression {
    enum expression_type type;
@@ -51,6 +53,10 @@ struct expression {
          struct expression* true_case;
          struct expression* false_case;
       } ternary;
+      struct {
+         struct value_type* type;
+         struct expression* expr;
+      } cast;
    };
 };
 
