@@ -8,6 +8,7 @@ struct function* parse_func(void) {
    if (!func) panic("parse_func(): failed to allocate function");
    func->type = parse_value_type();
    func->name = lexer_expect(TK_NAME).str;
+   func->params = NULL;
    lexer_expect(TK_LPAREN);
 
    if (!lexer_matches(TK_RPAREN)) {
@@ -29,7 +30,7 @@ struct function* parse_func(void) {
    lexer_expect(TK_RPAREN);
 
    func->begin = func->type->begin;
-   func->scope = make_scope(NULL);
+   func->scope = make_scope(NULL, func);
    lexer_expect(TK_CLPAREN);
    while (!lexer_matches(TK_CRPAREN)) {
       buf_push(func->scope->body, parse_stmt(func->scope));
@@ -66,3 +67,15 @@ void free_func(struct function* func) {
    buf_free(func->params);
    free(func);
 }
+size_t func_find_var_idx(const struct function* func, const char* name) {
+   name = strint(name);
+   for (size_t i = 0; i < buf_len(func->params); ++i) {
+      if (name == func->params[i].name) return i;
+   }
+   return SIZE_MAX;
+}
+const struct variable* func_find_var(const struct function* func, const char* name) {
+   const size_t i = func_find_var_idx(func, name);
+   return i == SIZE_MAX ? NULL : &func->params[i];
+}
+

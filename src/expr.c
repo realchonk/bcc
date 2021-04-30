@@ -23,6 +23,7 @@ const char* expr_type_str[NUM_EXPRS] = {
    [EXPR_ASSIGN]  = "assignment",
    [EXPR_COMMA]   = "comma",
    [EXPR_CAST]    = "cast",
+   [EXPR_FCALL]   = "function call",
 };
 
 static struct expression* new_expr(void) {
@@ -31,6 +32,7 @@ static struct expression* new_expr(void) {
    else return expr;
 }
 
+static struct expression* expr_assign(void);
 static struct expression* expr_prim(void) {
    const struct token tk = lexer_next();
    struct expression* expr = new_expr();
@@ -55,11 +57,19 @@ static struct expression* expr_prim(void) {
       expr->ch = tk.ch;
       break;
    case TK_NAME:
-      expr->type = EXPR_NAME;
-      expr->str = tk.str;
       if (lexer_match(TK_LPAREN)) {
-         // TODO: function calls
-
+         expr->type = EXPR_FCALL;
+         expr->fcall.name = tk.str;
+         expr->fcall.params = NULL;
+         if (!lexer_matches(TK_RPAREN)) {
+            do {
+               buf_push(expr->fcall.params, expr_assign());
+            } while (lexer_match(TK_COMMA));
+         }
+         lexer_expect(TK_RPAREN);
+      } else {
+         expr->type = EXPR_NAME;
+         expr->str = tk.str;
       }
       break;
    case TK_LPAREN:
@@ -351,6 +361,11 @@ void free_expr(struct expression* e) {
       free_value_type(e->cast.type);
       free_expr(e->cast.expr);
       break;
+   case EXPR_FCALL:
+      for (size_t i = 0; i < buf_len(e->fcall.params); ++i)
+         free_expr(e->fcall.params[i]);
+      buf_free(e->fcall.params);
+      break;
    case EXPR_INT:
    case EXPR_UINT:
    case EXPR_STRING:
@@ -431,6 +446,17 @@ void print_expr(FILE* file, const struct expression* e) {
       print_value_type(file, e->cast.type);
       fputc(')', file);
       print_expr(file, e->cast.expr);
+      break;
+   case EXPR_FCALL:
+      fprintf(file, "%s(", e->fcall.name);
+      if (e->fcall.params) {
+         print_expr(file, e->fcall.params[0]);
+         for (size_t i = 1; i < buf_len(e->fcall.params); ++i) {
+            fputs(", ", file);
+            print_expr(file, e->fcall.params[i]);
+         }
+      }
+      fputc(')', file);
       break;
 
 

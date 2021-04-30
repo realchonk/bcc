@@ -229,6 +229,7 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
       return type;
    case EXPR_NAME: {
       const struct variable* var = scope_find_var(scope, e->str);
+      if (!var) var = func_find_var(scope->func, e->str);
       if (!var) parse_error(&e->begin, "undeclared variable '%s'", e->str);
       return copy_value_type(var->type);
    }
@@ -273,6 +274,14 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
       return type;
    case EXPR_CAST:
       return copy_value_type(e->cast.type);
+   case EXPR_FCALL:
+      // TODO
+      type = new_vt();
+      type->is_const = true;
+      type->type = VAL_INT;
+      type->integer.is_unsigned = false;
+      type->integer.size = INT_INT;
+      return type;
    default: panic("get_value_type(): unsupported expression '%s'", expr_type_str[e->type]);
    }
 }

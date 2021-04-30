@@ -38,6 +38,8 @@ const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_PROLOGUE]     = "enter",
    [IR_EPILOGUE]     = "leave",
    [IR_IICAST]       = "iicast",
+   [IR_IFCALL]       = "ifcall",
+   [IR_FPARAM]       = "fparam",
 };
 
 ir_node_t* ir_end(ir_node_t* n) {
@@ -125,11 +127,24 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
    case IR_IICAST:
       fprintf(file, ".%s R%u, %s R%u", ir_size_str[n->iicast.ds], n->iicast.dest, ir_size_str[n->iicast.ss], n->iicast.src);
       break;
+   case IR_IFCALL:
+      fprintf(file, " %s, R%u", n->ifcall.name, n->ifcall.dest);
+      /*for (size_t i = 0; i < buf_len(n->ifcall.params); ++i)
+         fprintf(file, ", R%u", n->ifcall.params[i]);
+      */
+      break;
+   case IR_FPARAM:
+      fprintf(file, " R%u, %s", n->fparam.reg, n->fparam.func->params[n->fparam.idx].name);
+      break;
    }
    fputc('\n', file);
 }
 void free_ir_node(ir_node_t* n) {
-   //switch (n->type) {}
+   if (n->type == IR_IFCALL) {
+      for (size_t i = 0; i < buf_len(n->ifcall.params); ++i)
+         free_ir_nodes(n->ifcall.params[i]);
+      buf_free(n->ifcall.params);
+   }
    free(n);
 }
 void free_ir_nodes(ir_node_t* n) {

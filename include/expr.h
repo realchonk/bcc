@@ -22,6 +22,7 @@ enum expression_type {
    EXPR_ASSIGN,
    EXPR_COMMA,
    EXPR_CAST,
+   EXPR_FCALL,
 
    NUM_EXPRS,
 };
@@ -57,6 +58,10 @@ struct expression {
          struct value_type* type;
          struct expression* expr;
       } cast;
+      struct {
+         const char* name;
+         struct expression** params;
+      } fcall;
    };
 };
 

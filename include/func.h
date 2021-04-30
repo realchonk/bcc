@@ -17,4 +17,7 @@ struct function* parse_func(void);
 void print_func(FILE*, const struct function*);
 void free_func(struct function*);
 
+size_t func_find_var_idx(const struct function*, const char*);
+const struct variable* func_find_var(const struct function*, const char*);
+
 #endif /* FILE_FUNC_H */

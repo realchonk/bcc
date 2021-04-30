@@ -136,6 +136,7 @@ struct statement* parse_stmt(struct scope* scope) {
    const struct token tk = lexer_peek();
    stmt->begin = tk.begin;
    stmt->parent = scope;
+   stmt->func = scope->func;
    switch (tk.type) {
    case TK_SEMICOLON:
       lexer_skip();
@@ -145,7 +146,7 @@ struct statement* parse_stmt(struct scope* scope) {
    case TK_CLPAREN:
       lexer_skip();
       stmt->type = STMT_SCOPE;
-      stmt->scope = make_scope(scope);
+      stmt->scope = make_scope(scope, scope->func);
       while (!lexer_matches(TK_CRPAREN)) {
          buf_push(stmt->scope->body, parse_stmt(stmt->scope));
       }

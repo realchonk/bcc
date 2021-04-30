@@ -31,13 +31,23 @@ enum ir_value_size vt2irs(const struct value_type* vt) {
 static ir_node_t* ir_expr(struct scope* scope, const struct expression* e);
 static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e) {
    ir_node_t* n;
+   size_t idx;
    switch (e->type) {
    case EXPR_NAME:
       n = new_node(IR_LOOKUP);
-      n->lookup.reg = creg++;
-      n->lookup.var_idx = scope_find_var_idx(scope, &n->lookup.scope, e->str);
-      if (n->lookup.var_idx == SIZE_MAX)
-         parse_error(&e->begin, "undeclared variable '%s'", e->str);
+      idx = scope_find_var_idx(scope, &n->lookup.scope, e->str);
+      if (idx == SIZE_MAX) {
+         idx = func_find_var_idx(scope->func, e->str);
+         if (idx == SIZE_MAX)
+            parse_error(&e->begin, "undeclared variable '%s'", e->str);
+         n->type = IR_FPARAM;
+         n->fparam.reg = creg++;
+         n->fparam.func = scope->func;
+         n->fparam.idx = idx;
+      } else {
+         n->lookup.reg = creg++;
+         n->lookup.var_idx = idx;
+      }
       return n;
    case EXPR_INDIRECT:
       n = ir_expr(scope, e->expr);
@@ -150,6 +160,17 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       free_value_type(svt);
       return ir_append(n, tmp);
    }
+   case EXPR_FCALL:
+      n = new_node(IR_IFCALL);
+      n->ifcall.name = e->fcall.name;
+      n->ifcall.dest = creg++;
+      n->ifcall.params = NULL;
+
+      for (size_t i = 0; i < buf_len(e->fcall.params); ++i) {
+         buf_push(n->ifcall.params, ir_expr(scope, e->fcall.params[i]));
+         --creg;
+      }
+      return n;
    default:
       panic("ir_expr(): unsupported expression '%s'", expr_type_str[e->type]);
    }

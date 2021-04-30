@@ -17,9 +17,10 @@ struct scope {
    struct scope* parent;
    struct variable* vars;
    struct statement** body;
+   struct function* func;
 };
 
-struct scope* make_scope(struct scope* parent);
+struct scope* make_scope(struct scope* parent, struct function* func);
 void print_scope(FILE*, const struct scope*);
 void free_scope(struct scope*);
 

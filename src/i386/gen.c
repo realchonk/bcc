@@ -5,9 +5,9 @@ static const char* regs8[] =  {  "al",  "ah",  "cl",  "ch",  "dl",  "dh",  "bl",
 static const char* regs16[] = {  "ax",  "cx",  "dx",  "bx",  "si",  "di" };
 static const char* regs32[] = { "eax", "ecx", "edx", "ebx", "esi", "edi" };
 
-#define reg8(i) (i < arraylen(regs8) ? regs8[i] : (panic("emit_ir(): register out of range"), NULL))
-#define reg16(i) (i < arraylen(regs16) ? regs16[i] : (panic("emit_ir(): register out of range"), NULL))
-#define reg32(i) (i < arraylen(regs32) ? regs32[i] : (panic("emit_ir(): register out of range"), NULL))
+#define reg8(i) ((i) < arraylen(regs8) ? regs8[i] : (panic("emit_ir(): register out of range"), NULL))
+#define reg16(i) ((i) < arraylen(regs16) ? regs16[i] : (panic("emit_ir(): register out of range"), NULL))
+#define reg32(i) ((i) < arraylen(regs32) ? regs32[i] : (panic("emit_ir(): register out of range"), NULL))
 
 #define reg_op(dest, src, size) \
    switch (size) { \
@@ -30,6 +30,24 @@ static const char* nasm_size(enum ir_value_size s) {
    }
 }
 
+static const struct function* cur_func;
+static uint32_t esp = 0;
+static istr_t* unresolved = NULL;
+
+void emit_func(const struct function* func, const ir_node_t* n) {
+   cur_func = func;
+   esp = 0;
+   while ((n = emit_ir(n)) != NULL);
+}
+
+void emit_begin(void) {
+   if (unresolved) buf_free(unresolved);
+   emit("section .text");
+}
+void emit_end(void) {
+   
+}
+
 ir_node_t* emit_ir(const ir_node_t* n) {
    const char* instr;
    switch (n->type) {
@@ -50,7 +68,8 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    {
       const char* dest;
       reg_op(dest, n->load.dest, n->load.size);
-      emit("mov %s, %ju", dest, n->load.value);
+      if (n->load.value) emit("mov %s, %ju", dest, n->load.value);
+      else emit("xor %s, %s", dest, dest);
       return n->next;
    }
    case IR_IADD:
@@ -181,10 +200,12 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    }
    case IR_BEGIN_SCOPE:
-      emit("sub esp, %zu", 4 * buf_len(n->scope->vars));
+      if (n->scope->vars) emit("sub esp, %zu", 4 * buf_len(n->scope->vars));
+      esp += 4 * buf_len(n->scope->vars);
       return n->next;
    case IR_END_SCOPE:
-      emit("add esp, %zu", 4 * buf_len(n->scope->vars));
+      if (n->scope->vars) emit("add esp, %zu", 4 * buf_len(n->scope->vars));
+      esp -= 4 * buf_len(n->scope->vars);
       return n->next;
    case IR_LOOKUP:
    {
@@ -220,6 +241,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       emit("%s:", n->func->name);
       emit("push ebp");
       emit("mov ebp, esp");
+      esp = 8;
       return n->next;
    case IR_EPILOGUE:
       emit(".ret:");
@@ -269,6 +291,30 @@ ir_node_t* emit_ir(const ir_node_t* n) {
             emit("mov %s, %s", dest, src);
          }
       }
+      return n->next;
+   }
+   case IR_IFCALL:
+   {
+      const uint32_t np = buf_len(n->ifcall.params);
+      uint32_t padding = 16 - ((esp + np * 4) % 16);
+      if (padding == 16) padding = 0;
+      if (padding) emit("sub esp, %u", padding);
+      for (size_t i = 0; i < np; ++i) {
+         ir_node_t* tmp = n->ifcall.params[i];
+         while ((tmp = emit_ir(tmp)) != NULL);
+         emit("push %s", reg32(n->ifcall.dest + 1u));
+      }
+      emit("extern %s", n->ifcall.name);
+      emit("call %s", n->ifcall.name);
+      emit("add esp, %u", padding + 4 * np);
+      if (n->ifcall.dest != 0) {
+         emit("mov %s, eax", reg32(n->ifcall.dest));
+      }
+      return n->next;
+   }
+   case IR_FPARAM:
+   {
+      emit("lea %s, [ebp - %u]", reg32(n->fparam.reg), 4 * n->fparam.idx);
       return n->next;
    }
    default: panic("emit_ir(): unsupported ir_node type '%s'", ir_node_type_str[n->type]);

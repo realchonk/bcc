@@ -19,11 +19,13 @@ enum statement_type {
    NUM_STMTS,
 };
 extern const char* stmt_type_str[NUM_STMTS];
+struct function;
 
 struct statement {
    enum statement_type type;
    struct source_pos begin, end;
    struct scope* parent;
+   struct function* func;
    union {
       struct expression* expr;
       struct scope* scope;

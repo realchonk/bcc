@@ -7,10 +7,11 @@
 
 #define INDENT 3
 
-struct scope* make_scope(struct scope* parent) {
+struct scope* make_scope(struct scope* parent, struct function* func) {
    struct scope* s = malloc(sizeof(struct scope));
    if (!s) panic("make_scope(): failed to allocate scope");
    s->parent = parent;
+   s->func = func;
    s->body = NULL;
    s->vars = NULL;
    return s;

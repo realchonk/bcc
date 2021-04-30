@@ -42,6 +42,7 @@ struct target_info {
 
 extern const struct target_info target_info;
 extern unsigned asm_indent;
+struct function;
 
 void emit_init(FILE*);
 void emit_free(void);
@@ -49,7 +50,11 @@ void emit_free(void);
 void emit(const char*, ...);
 
 ir_node_t* emit_ir(const ir_node_t*);
+void emit_func(const struct function*, const ir_node_t*);
 
 int assemble(const char* source, const char* output);
+
+void emit_begin(void);
+void emit_end(void);
 
 #endif /* FILE_TARGET_H */

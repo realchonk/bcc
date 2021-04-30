@@ -67,6 +67,7 @@ int main(int argc, char* argv[]) {
    } else asm_file = output;
 
    lexer_init(source, source_file);
+   if (level == 'S' || level == 'c') emit_init(asm_file);
    while (!lexer_match(TK_EOF)) {
       struct function* func = parse_func();
       if (level == 'A') print_func(output, func);
@@ -74,8 +75,7 @@ int main(int argc, char* argv[]) {
          ir_node_t* ir = irgen_func(func);
          if (level == 'i') print_ir_nodes(output, ir);
          else {
-            emit_init(asm_file);
-            while ((ir = emit_ir(ir)) != NULL);
+            emit_func(func, ir);
          }
          free_ir_nodes(ir);
       }
