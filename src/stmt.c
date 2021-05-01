@@ -10,7 +10,6 @@ const char* stmt_type_str[NUM_STMTS] = {
    [STMT_IF]      = "if",
    [STMT_WHILE]   = "while",
    [STMT_DO_WHILE]= "do-while",
-   [STMT_FOR]     = "for",
    [STMT_VARDECL] = "variable declaration",
    [STMT_SCOPE]   = "scope/compound",
 };
@@ -32,14 +31,8 @@ void free_stmt(struct statement* s) {
    case STMT_DO_WHILE:
       free_expr(s->whileloop.cond);
       free_stmt(s->whileloop.stmt);
-      break;
-   case STMT_FOR:
-      free_stmt(s->forloop.init);
-      if (s->forloop.cond)
-         free_expr(s->forloop.cond);
-      if (s->forloop.end)
-         free_expr(s->forloop.end);
-      free_stmt(s->forloop.stmt);
+      if (s->whileloop.end)
+         free_expr(s->whileloop.end);
       break;
    case STMT_SCOPE:
       free_scope(s->scope);
@@ -52,7 +45,9 @@ void free_stmt(struct statement* s) {
 void print_stmt(FILE* file, const struct statement* s) {
    switch (s->type) {
    case STMT_RETURN:
-      fputs("return ", file);
+      fputs("return", file);
+      if (!s->expr) { fputc(';', file); break; }
+      else fputc(' ', file);
       fallthrough;
    case STMT_EXPR:
       print_expr(file, s->expr);
@@ -83,21 +78,6 @@ void print_stmt(FILE* file, const struct statement* s) {
       print_expr(file, s->whileloop.cond);
       fputs(");", file);
       break;
-   case STMT_FOR:
-      fputs("for (", file);
-      print_stmt(file, s->forloop.init);
-      if (s->forloop.cond) {
-         fputc(' ', file);
-         print_expr(file, s->forloop.cond);
-      }
-      fputc(';', file);
-      if (s->forloop.end) {
-         fputc(' ', file);
-         print_expr(file, s->forloop.end);
-      }
-      fputs(") ", file);
-      print_stmt(file, s->forloop.stmt);
-      break;
    case STMT_VARDECL: {
       const struct variable* var = &s->parent->vars[s->var_idx];
       if (!var) panic("print_stmt(): var == NULL");
@@ -112,6 +92,12 @@ void print_stmt(FILE* file, const struct statement* s) {
    }
    case STMT_SCOPE:
       print_scope(file, s->scope);
+      break;
+   case STMT_BREAK:
+      fputs("break;", file);
+      break;
+   case STMT_CONTINUE:
+      fputs("continue;", file);
       break;
    case NUM_STMTS: break;
    }
@@ -188,6 +174,52 @@ struct statement* parse_stmt(struct scope* scope) {
       lexer_expect(TK_RPAREN);
       stmt->end = lexer_expect(TK_SEMICOLON).end;
       break;
+   case KW_BREAK:
+      lexer_skip();
+      stmt->type = STMT_BREAK;
+      stmt->end = lexer_expect(TK_SEMICOLON).end;
+      break;
+   case KW_CONTINUE:
+      lexer_skip();
+      stmt->type = STMT_CONTINUE;
+      stmt->end = lexer_expect(TK_SEMICOLON).end;
+      break;
+   case KW_FOR:
+   {
+      struct statement* outer = new_stmt();
+      outer->type = STMT_SCOPE;
+      outer->scope = make_scope(scope, scope->func);
+      outer->parent = scope;
+      outer->func = scope->func;
+      outer->begin = lexer_next().begin;
+      
+      lexer_expect(TK_LPAREN);
+     
+      buf_push(outer->scope->body, parse_stmt(outer->scope));
+
+      stmt->type = STMT_WHILE;
+      stmt->parent = outer->scope;
+      struct expression* cond;
+      if (lexer_matches(TK_SEMICOLON)) {
+         cond = malloc(sizeof(struct expression));
+         if (!cond) panic("parse_stmt(): failed to allocate expression");
+         cond->type = EXPR_UINT;
+         cond->begin = cond->end = outer->begin;
+         cond->uVal = 1;
+      } else cond = parse_expr();
+      stmt->whileloop.cond = cond;
+      lexer_expect(TK_SEMICOLON);
+      
+      stmt->whileloop.end = lexer_matches(TK_RPAREN) ? NULL : parse_expr();
+      lexer_expect(TK_RPAREN);
+      stmt->whileloop.stmt = parse_stmt(outer->scope);
+      
+      buf_push(outer->scope->body, stmt);
+      outer->end = stmt->end;
+
+      stmt = outer;
+      break;
+   }
    default: {
       struct value_type* vtype = parse_value_type();
       if (vtype) {

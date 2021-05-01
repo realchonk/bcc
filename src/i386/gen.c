@@ -157,7 +157,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       const char* b;
       reg_op(dest, n->binary.dest, n->binary.size);
       reg_op(a, n->binary.a, n->binary.size);
-      reg_op(b, n->binary.b, n->binary.b);
+      reg_op(b, n->binary.b, n->binary.size);
 
       if (n->binary.dest != n->binary.a) {
          emit("mov %s, %s", dest, a);
@@ -359,7 +359,11 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          while ((tmp = emit_ir(tmp)) != NULL);
          emit("push %s", reg32(n->ifcall.dest + 1u));
       }
+      for (size_t i = 0; i < buf_len(unresolved); ++i) {
+         if (n->ifcall.name == unresolved[i]) goto skip_push;
+      }
       buf_push(unresolved, n->ifcall.name);
+   skip_push:
       emit("call %s", n->ifcall.name);
       emit("add esp, %u", padding + 4 * np);
       if (n->ifcall.dest != 0) {
@@ -379,6 +383,82 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       emit("lea %s, [__strings + %u]", reg32(n->lstr.reg), ptr->idx);
       return n->next;
    }
+   case IR_ISTEQ:
+      instr = "sete";
+      goto setcc;
+   case IR_ISTNE:
+      instr = "setne";
+      goto setcc;
+   case IR_ISTGR:
+      instr = "setg";
+      goto setcc;
+   case IR_ISTGE:
+      instr = "setge";
+      goto setcc;
+   case IR_ISTLT:
+      instr = "setl";
+      goto setcc;
+   case IR_ISTLE:
+      instr = "setle";
+      goto setcc;
+   case IR_USTGR:
+      instr = "seta";
+      goto setcc;
+   case IR_USTGE:
+      instr = "setae";
+      goto setcc;
+   case IR_USTLT:
+      instr = "setb";
+      goto setcc;
+   case IR_USTLE:
+      instr = "setbe";
+   {
+   setcc:;
+      const char* dest;
+      const char* a;
+      const char* b;
+      reg_op(dest, n->binary.dest, n->binary.size);
+      reg_op(a, n->binary.a, n->binary.size);
+      reg_op(b, n->binary.b, n->binary.size);
+
+      emit("cmp %s, %s", a, b);
+      if (n->binary.size > 1) emit("mov %s, 0", dest); // xor changes eflags
+      emit("%s %s", instr, reg8(n->binary.dest));
+      return n->next;
+      
+   }
+   case IR_LABEL:
+      emit("%s:", n->str);
+      return n->next;
+   case IR_JMP:
+      emit("jmp %s", n->str);
+      return n->next;
+   case IR_JMPIF:
+      instr = "jnz";
+      goto jmpif;
+   case IR_JMPIFN:
+      instr = "jz";
+   {
+   jmpif:;
+      const char* reg;
+      reg_op(reg, n->cjmp.reg, n->cjmp.size);
+      emit("cmp %s, 0", reg);
+      emit("%s %s", instr, n->cjmp.label);
+      return n->next;
+   }
+   case IR_IINC:
+      instr = "inc";
+      goto iinc;
+   case IR_IDEC:
+      instr = "dec";
+   {
+   iinc:;
+      const char* reg;
+      reg_op(reg, n->unary.reg, n->unary.size);
+      emit("%s %s", instr, reg);
+      return n->next;
+   }
+
    default: panic("emit_ir(): unsupported ir_node type '%s'", ir_node_type_str[n->type]);
    }
 }

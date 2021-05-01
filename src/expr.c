@@ -113,7 +113,7 @@ static struct expression* expr_unary(void) {
       expr->unary.expr = expr_unary();
       expr->begin = expr->unary.op.begin;
       expr->end = expr->unary.expr->end;
-      if (!expr_is_lvalue(expr->expr))
+      if (!expr_is_lvalue(expr->unary.expr))
          parse_error(&expr->begin, "expected lvalue, got %s", expr_type_str[expr->expr->type]);
    } else if (lexer_matches(TK_AMP)) {
       expr = new_expr();

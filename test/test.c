@@ -1,10 +1,9 @@
 
-void f() {
-   return ;
-}
 
-int main(void) {
-   const char* s = "Hello World";
-   return *(s + 0);
+int main(int argc, char** argv) {
+   for (int i = 0; i < 10; ++i) {
+      if (i == 5) continue;
+      else if (i == 7) break;
+      printf("%d\n", i);
+   }
 }
-

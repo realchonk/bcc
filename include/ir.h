@@ -41,6 +41,22 @@ enum ir_node_type {
    IR_IFCALL,
    IR_FPARAM,
    IR_LSTR,
+   IR_ISTEQ,
+   IR_ISTNE,
+   IR_ISTGR,
+   IR_ISTGE,
+   IR_ISTLT,
+   IR_ISTLE,
+   IR_USTGR,
+   IR_USTGE,
+   IR_USTLT,
+   IR_USTLE,
+   IR_JMP,
+   IR_JMPIF,
+   IR_JMPIFN,
+   IR_LABEL,
+   IR_IINC,
+   IR_IDEC,
 
    NUM_IR_NODES,
 };
@@ -65,6 +81,7 @@ typedef struct ir_node {
    union {
       const struct function* func;
       struct scope* scope;
+      istr_t str;
       struct {
          ir_reg_t dest, src;
          enum ir_value_size size;
@@ -105,6 +122,11 @@ typedef struct ir_node {
          ir_reg_t reg;
          istr_t str;
       } lstr;
+      struct {
+         istr_t label;
+         ir_reg_t reg;
+         enum ir_value_size size;
+      } cjmp;
    };
 } ir_node_t;
 

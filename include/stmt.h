@@ -12,9 +12,10 @@ enum statement_type {
    STMT_IF,
    STMT_WHILE,
    STMT_DO_WHILE,
-   STMT_FOR,
    STMT_VARDECL,
    STMT_SCOPE,
+   STMT_BREAK,
+   STMT_CONTINUE,
 
    NUM_STMTS,
 };
@@ -38,13 +39,8 @@ struct statement {
       struct {
          struct expression* cond;
          struct statement* stmt;
+         struct expression* end;
       } whileloop;
-      struct {
-         struct statement* init; // optional
-         struct expression* cond; // optional
-         struct expression* end; // optional
-         struct statement* stmt;
-      } forloop;
    };
 };
 

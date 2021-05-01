@@ -206,7 +206,6 @@ struct value_type* common_value_type_free(struct value_type* a, struct value_typ
 struct value_type* get_value_type(struct scope* scope, const struct expression* e) {
    struct value_type* type;
    switch (e->type) {
-   case EXPR_PREFIX:
    case EXPR_PAREN:
       return get_value_type(scope, e->expr);
    case EXPR_INT:
@@ -267,7 +266,7 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
    case EXPR_COMMA:
       return get_value_type(scope, e->comma[buf_len(e->comma) - 1]);
    case EXPR_SUFFIX:
-      type = get_value_type(scope, e->expr);
+      type = get_value_type(scope, e->unary.expr);
       type->is_const = true;
       return type;
    case EXPR_ASSIGN:
@@ -276,9 +275,11 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
       return common_value_type_free(get_value_type(scope, e->binary.left), get_value_type(scope, e->binary.right), true); // TODO
    case EXPR_TERNARY:
       return common_value_type_free(get_value_type(scope, e->ternary.true_case), get_value_type(scope, e->ternary.false_case), true);
+   case EXPR_PREFIX:
    case EXPR_UNARY:
       type = get_value_type(scope, e->unary.expr);
-      if (e->unary.op.type == TK_MINUS) parse_warn(&e->begin, "negating an unsigned integer");
+      if (e->unary.op.type == TK_MINUS && type->type == VAL_INT && type->integer.is_unsigned)
+         parse_warn(&e->begin, "negating an unsigned integer");
       type->is_const = true;
       return type;
    case EXPR_CAST:

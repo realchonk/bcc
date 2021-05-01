@@ -1,3 +1,4 @@
+#include <tgmath.h>
 #include "error.h"
 #include "ir.h"
 
@@ -10,6 +11,20 @@ static ir_node_t* new_node(enum ir_node_type t) {
 }
 
 static ir_reg_t creg = 0;
+static size_t clbl = 0;
+static istr_t begin_loop = NULL, end_loop = NULL;
+
+static istr_t make_label(size_t i) {
+   if (!i) return strint(".L0");
+   else if (i == 1) return strint(".L1");
+   const size_t len = log10(i) + 4;
+   char* buffer = malloc(len + 1);
+   snprintf(buffer, len, ".L%zu", i);
+   buffer[len] = '\0';
+   istr_t s = strint(buffer);
+   free(buffer);
+   return s;
+}
 
 enum ir_value_size vt2irs(const struct value_type* vt) {
    switch (vt->type) {
@@ -59,7 +74,6 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e) {
 static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    struct value_type* vt = get_value_type(scope, e);
    const enum ir_value_size irs = vt2irs(vt);
-   free_value_type(vt);
    ir_node_t* n;
    ir_node_t* tmp;
    switch (e->type) {
@@ -70,8 +84,10 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       n->load.dest = creg++;
       n->load.value = e->uVal;
       n->load.size = irs;
-      return n;
+      break;
    case EXPR_BINARY:
+   {
+      const bool is_unsigned = vt->type == VAL_POINTER || (vt->type == VAL_INT && vt->integer.is_unsigned);
       n = ir_expr(scope, e->binary.left);
       ir_append(n, ir_expr(scope, e->binary.right));
       tmp = new_node(IR_NOP);
@@ -81,19 +97,26 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       switch (e->binary.op.type) {
       case TK_PLUS:  tmp->type = IR_IADD; break;
       case TK_MINUS: tmp->type = IR_ISUB; break;
-      case TK_STAR:  tmp->type = IR_IMUL; break;
-      case TK_SLASH: tmp->type = IR_IDIV; break;
-      case TK_PERC:  tmp->type = IR_IMOD; break;
+      case TK_STAR:  tmp->type = is_unsigned ? IR_UMUL : IR_IMUL; break;
+      case TK_SLASH: tmp->type = is_unsigned ? IR_UMUL : IR_IDIV; break;
+      case TK_PERC:  tmp->type = is_unsigned ? IR_UMUL : IR_IMOD; break;
       case TK_GRGR:  tmp->type = IR_ILSL; break;
       case TK_LELE:  tmp->type = IR_ILSR; break;
+      case TK_EQEQ:  tmp->type = IR_ISTEQ; break;
+      case TK_NEQ:   tmp->type = IR_ISTNE; break;
+      case TK_GR:    tmp->type = is_unsigned ? IR_USTGR : IR_ISTGR; break;
+      case TK_GREQ:  tmp->type = is_unsigned ? IR_USTGE : IR_ISTGE; break;
+      case TK_LE:    tmp->type = is_unsigned ? IR_USTLT : IR_ISTLT; break;
+      case TK_LEEQ:  tmp->type = is_unsigned ? IR_USTLE : IR_ISTLE; break;
       default:       panic("ir_expr(): unsupported binary operator '%s'", token_type_str[e->binary.op.type]);
       }
       ir_append(n, tmp);
       --creg;
-      return n;
+      break;
+   }
    case EXPR_UNARY:
       n = ir_expr(scope, e->unary.expr);
-      if (e->unary.op.type == TK_PLUS) return n;
+      if (e->unary.op.type == TK_PLUS) break;
       tmp = new_node(IR_NOP);
       tmp->unary.size = irs;
       tmp->unary.reg = creg - 1;
@@ -104,14 +127,15 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       default:       panic("ir_expr(): unsupported unary operator '%s'", token_type_str[e->unary.op.type]);
       }
       ir_append(n, tmp);
-      return n;
+      break;
    case EXPR_NAME:
    case EXPR_INDIRECT:
       n = ir_lvalue(scope, e);
       tmp = new_node(IR_READ);
       tmp->move.dest = tmp->move.src = creg - 1;
       tmp->move.size = irs;
-      return ir_append(n, tmp);
+      ir_append(n, tmp);
+      break;
    case EXPR_ASSIGN:
       {
          struct value_type* vl = get_value_type(scope, e->binary.left);     
@@ -153,9 +177,11 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       tmp->move.dest = creg - 1;
       tmp->move.src = creg - 2;
       --creg;
-      return ir_append(n, tmp);
+      ir_append(n, tmp);
+      break;
    case EXPR_ADDROF:
-      return ir_lvalue(scope, e->expr);
+      n = ir_lvalue(scope, e->expr);
+      break;
    case EXPR_CAST:
    {
       struct value_type* svt = get_value_type(scope, e->cast.expr);
@@ -165,7 +191,8 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       tmp->iicast.ds = irs;
       tmp->iicast.ss = vt2irs(svt);
       free_value_type(svt);
-      return ir_append(n, tmp);
+      ir_append(n, tmp);
+      break;
    }
    case EXPR_FCALL:
       n = new_node(IR_IFCALL);
@@ -177,15 +204,106 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          buf_push(n->ifcall.params, ir_expr(scope, e->fcall.params[i]));
          --creg;
       }
-      return n;
+      break;
    case EXPR_STRING:
       n = new_node(IR_LSTR);
       n->lstr.reg = creg++;
       n->lstr.str = e->str;
-      return n;
+      break;
+   case EXPR_PREFIX:
+      ++creg;
+      n = ir_lvalue(scope, e->unary.expr);
+      --creg;
+
+      tmp = new_node(IR_READ);
+      tmp->move.dest = creg - 1;
+      tmp->move.src = creg;
+      tmp->move.size = irs;
+      ir_append(n, tmp);
+
+      tmp = new_node(e->unary.op.type == TK_PLPL ? IR_IINC : IR_IDEC);
+      tmp->unary.reg = creg - 1;
+      tmp->unary.size = irs;
+      ir_append(n, tmp);
+
+      tmp = new_node(IR_WRITE);
+      tmp->move.dest = creg;
+      tmp->move.src = creg - 1;
+      tmp->move.size = irs;
+      ir_append(n, tmp);
+      break;
+   case EXPR_SUFFIX:
+      ++creg;
+      n = ir_lvalue(scope, e->unary.expr);
+      --creg;
+
+      tmp = new_node(IR_READ);
+      tmp->move.dest = creg - 1;
+      tmp->move.src = creg;
+      tmp->move.size = irs;
+      ir_append(n, tmp);
+
+      tmp = new_node(e->unary.op.type == TK_PLPL ? IR_IINC : IR_IDEC);
+      tmp->unary.reg = creg - 1;
+      tmp->unary.size = irs;
+      ir_append(n, tmp);
+
+      tmp = new_node(IR_WRITE);
+      tmp->move.dest = creg;
+      tmp->move.src = creg - 1;
+      tmp->move.size = irs;
+      ir_append(n, tmp);
+      
+      tmp = new_node(e->unary.op.type == TK_PLPL ? IR_IDEC : IR_IINC);
+      tmp->unary.reg = creg - 1;
+      tmp->unary.size = irs;
+      ir_append(n, tmp);
+      break;
+   case EXPR_COMMA:
+   {
+      const size_t nreg = creg;
+      n = NULL;
+      for (size_t i = 0; i < buf_len(e->comma); ++i) {
+         creg = nreg;
+         n = ir_append(n, ir_expr(scope, e->comma[i]));
+      }
+      break;
+   }
+   case EXPR_TERNARY:
+   {
+      istr_t l1 = make_label(clbl);
+      istr_t l2 = make_label(clbl + 1);
+      clbl += 2;
+      n = ir_expr(scope, e->ternary.cond);
+      
+      tmp = new_node(IR_JMPIFN);
+      tmp->cjmp.label = l1;
+      tmp->cjmp.reg = --creg;
+      tmp->cjmp.size = irs;
+      ir_append(n, tmp);
+      
+      ir_append(n, irgen_expr(scope, e->ternary.true_case));
+
+      tmp = new_node(IR_JMP);
+      tmp->str = l2;
+      ir_append(n, tmp);
+
+      tmp = new_node(IR_LABEL);
+      tmp->str = l1;
+      ir_append(n, tmp);
+
+      ir_append(n, irgen_expr(scope, e->ternary.false_case));
+
+      tmp = new_node(IR_LABEL);
+      tmp->str = l2;
+      ir_append(n, tmp);
+      break;
+   }
    default:
       panic("ir_expr(): unsupported expression '%s'", expr_type_str[e->type]);
    }
+   free_value_type(vt);
+   return n;
 }
 
 ir_node_t* irgen_expr(struct scope* scope, const struct expression* expr) {
@@ -193,9 +311,10 @@ ir_node_t* irgen_expr(struct scope* scope, const struct expression* expr) {
    return ir_expr(scope, expr);
 }
 
-static ir_node_t* ir_stmt(const struct statement* s) {
+ir_node_t* irgen_stmt(const struct statement* s) {
    ir_node_t* n;
    ir_node_t* tmp;
+   creg = 0;
    switch (s->type) {
    case STMT_NOP: return new_node(IR_NOP);
    case STMT_EXPR:return ir_expr(s->parent, s->expr);
@@ -213,7 +332,7 @@ static ir_node_t* ir_stmt(const struct statement* s) {
       n = new_node(IR_BEGIN_SCOPE);
       n->scope = s->scope;
       for (size_t i = 0; i < buf_len(s->scope->body); ++i)
-         n = ir_append(n, ir_stmt(s->scope->body[i]));
+         n = ir_append(n, irgen_stmt(s->scope->body[i]));
       tmp = new_node(IR_END_SCOPE);
       tmp->scope = s->scope;
       return ir_append(n, tmp);
@@ -236,15 +355,98 @@ static ir_node_t* ir_stmt(const struct statement* s) {
          --creg;
       } else n = new_node(IR_NOP);
       return n;
-      
+   case STMT_IF:
+   {
+      struct value_type* vt = get_value_type(s->parent, s->ifstmt.cond);
+      const enum ir_value_size irs = vt2irs(vt);
+      free_value_type(vt);
 
-   default: panic("ir_stmt(): unsupported statement '%s'", stmt_type_str[s->type]);
+      const bool has_false = s->ifstmt.false_case != NULL;
+      istr_t lbl1 = make_label(clbl);
+      istr_t lbl2 = has_false ? make_label(clbl + 1) : NULL;
+      clbl += has_false ? 2 : 1;
+     
+      n = ir_expr(s->parent, s->ifstmt.cond);
+      tmp = new_node(IR_JMPIFN);
+      tmp->cjmp.label = has_false ? lbl2 : lbl1;
+      tmp->cjmp.reg = --creg;
+      tmp->cjmp.size = irs;
+      ir_append(n, tmp);
+      ir_append(n, irgen_stmt(s->ifstmt.true_case));
+
+      if (has_false) {
+         tmp = new_node(IR_JMP);
+         tmp->str = lbl1;
+         ir_append(n, tmp);
+
+         tmp = new_node(IR_LABEL);
+         tmp->str = lbl2;
+         ir_append(n, tmp);
+
+         ir_append(n, irgen_stmt(s->ifstmt.false_case));
+      }
+
+      tmp = new_node(IR_LABEL);
+      tmp->str = lbl1;
+      ir_append(n, tmp);
+
+      return n;
    }
-}
+   case STMT_WHILE:
+   {
+      const istr_t old_begin = begin_loop, old_end = end_loop;
+      struct value_type* vt = get_value_type(s->parent, s->whileloop.cond);
+      const enum ir_value_size irs = vt2irs(vt);
+      free_value_type(vt);
 
-ir_node_t* irgen_stmt(const struct statement* s) {
-   creg = 0;
-   return ir_stmt(s);
+      const istr_t begin = make_label(clbl);
+      begin_loop = make_label(clbl + 1);
+      end_loop = make_label(clbl + 2);
+      clbl += 3;
+      
+      n = new_node(IR_LABEL);
+      n->str = begin;
+      ir_append(n, ir_expr(s->parent, s->whileloop.cond));
+
+      tmp = new_node(IR_JMPIFN);
+      tmp->cjmp.label = end_loop;
+      tmp->cjmp.reg = --creg;
+      tmp->cjmp.size = irs;
+      ir_append(n, tmp);
+
+      ir_append(n, irgen_stmt(s->whileloop.stmt));
+
+      tmp = new_node(IR_LABEL);
+      tmp->str = begin_loop;
+      ir_append(n, tmp);
+
+      if (s->whileloop.end) ir_append(n, ir_expr(s->parent, s->whileloop.end));
+
+      tmp = new_node(IR_JMP);
+      tmp->str = begin;
+      ir_append(n, tmp);
+
+      tmp = new_node(IR_LABEL);
+      tmp->str = end_loop;
+      ir_append(n, tmp);
+
+      begin_loop = old_begin;
+      end_loop = old_end;
+      return n;
+   }
+   case STMT_BREAK:
+      if (!end_loop) parse_error(&s->begin, "break statement outside a loop");
+      n = new_node(IR_JMP);
+      n->str = end_loop;
+      return n;
+   case STMT_CONTINUE:
+      if (!begin_loop) parse_error(&s->begin, "break statement outside a loop");
+      n = new_node(IR_JMP);
+      n->str = begin_loop;
+      return n;
+
+   default: panic("irgen_stmt(): unsupported statement '%s'", stmt_type_str[s->type]);
+   }
 }
 
 ir_node_t* irgen_func(const struct function* f) {

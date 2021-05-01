@@ -72,6 +72,9 @@ const char* token_type_str[NUM_TOKENS] = {
    [KW_WHILE]     = "while",
    [KW_DO]        = "do",
    [KW_RETURN]    = "return",
+   [KW_FOR]       = "for",
+   [KW_BREAK]     = "break",
+   [KW_CONTINUE]  = "continue",
 };
 
 void token_init(void) {

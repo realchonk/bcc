@@ -41,6 +41,22 @@ const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_IFCALL]       = "ifcall",
    [IR_FPARAM]       = "fparam",
    [IR_LSTR]         = "lstr",
+   [IR_ISTEQ]        = "isteq",
+   [IR_ISTNE]        = "istne",
+   [IR_ISTGR]        = "istgt",
+   [IR_ISTGE]        = "istge",
+   [IR_ISTLT]        = "istlt",
+   [IR_ISTLE]        = "istle",
+   [IR_USTGR]        = "ustgt",
+   [IR_USTGE]        = "ustge",
+   [IR_USTLT]        = "ustlt",
+   [IR_USTLE]        = "ustle",
+   [IR_JMP]          = "jmp",
+   [IR_JMPIF]        = "jmpif",
+   [IR_JMPIFN]       = "jmpifn",
+   [IR_LABEL]        = "",
+   [IR_IINC]         = "iinc",
+   [IR_IDEC]         = "idec",
 };
 
 ir_node_t* ir_end(ir_node_t* n) {
@@ -114,12 +130,24 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
    case IR_UMUL:
    case IR_UDIV:
    case IR_UMOD:
+   case IR_ISTEQ:
+   case IR_ISTNE:
+   case IR_ISTGR:
+   case IR_ISTGE:
+   case IR_ISTLT:
+   case IR_ISTLE:
+   case IR_USTGR:
+   case IR_USTGE:
+   case IR_USTLT:
+   case IR_USTLE:
       fprintf(file, ".%s R%u, R%u, R%u", ir_size_str[n->binary.size], n->binary.dest, n->binary.a, n->binary.b);
       break;
    case IR_INEG:
    case IR_INOT:
    case IR_BNOT:
    case IR_IRET:
+   case IR_IINC:
+   case IR_IDEC:
       fprintf(file, ".%s R%u", ir_size_str[n->unary.size], n->unary.reg);
       break;
    case IR_LOOKUP:
@@ -139,6 +167,16 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
       break;
    case IR_LSTR:
       fprintf(file, " R%u, '%s'", n->lstr.reg, n->lstr.str);
+      break;
+   case IR_JMP:
+      fprintf(file, " %s", n->str);
+      break;
+   case IR_JMPIF:
+   case IR_JMPIFN:
+      fprintf(file, ".%s %s, R%u", ir_size_str[n->cjmp.size], n->cjmp.label, n->cjmp.reg);
+      break;
+   case IR_LABEL:
+      fprintf(file, "%s:", n->str);
       break;
    }
    fputc('\n', file);
