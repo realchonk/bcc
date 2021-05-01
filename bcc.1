@@ -6,8 +6,13 @@ bcc - bad C-like compiler
 .SH SYNOPSIS
 .SY bcc
 .OP -c\fR|\fB-i\fR|\fB-A\fR|\fB-S
+.OP -w
+.OP -O \fIlevel\fR
 .OP -o \fIoutput\fR
 .I source
+.YS
+.SY bcc
+.OP -V
 .YS
 
 .SH DESCRIPTION
@@ -20,18 +25,31 @@ The language currently has a minimal type-system. (SEE \fILANGUAGE\fR)
 .B -o \fIoutput\fR
 .RE
 .RS 5
-Specify the output file (or '-' for standard output)
-The default is standard output.
+Specify the 
+.I output
+file (or '-' for standard output).
+By default the
+.I output
+file is derived from the 
+.I source
+file, except if the
+.B -A
+option was specified, then it is standard output.
 .RE
 .B -c
 .RE
 .RS 5
 Compile and assemble the program. (This is the default)
 .RE
+.RS 5
+Note: For x86_64 and i386 it is required that the
+.I nasm
+assembler is installed.
+.RE
 .B -A
 .RE
 .RS 5
-Only emit the representation of the program, as interpreted by the parser.
+Only emit the abstract syntax tree of the program, as interpreted by the parser.
 .RE
 .B -i
 .RE
@@ -41,7 +59,25 @@ Only emit the intermediate representation.
 .B -S
 .RE
 .RS 5
-Emit the assembly-output.
+Emit the assembly output.
+.RE
+.B -O
+.I level
+.RE
+.RS 5
+Specify the
+.I optimization
+level. (possible values: 0, 1)
+.RE
+.B -w
+.RE
+.RS 5
+Disable all \fIwarnings\fR.
+.RE
+.B -V
+.RE
+.RS 5
+Print the version information.
 
 .SH OPERANDS
 .I output
@@ -55,6 +91,11 @@ The output file, to which to write the resulting output.
 .RS 5
 The source file, for which to generate the output.
 
+.RE
+.I level
+.RS 5
+The optimization level to perform. (default: 0)
+
 .SH LANGUAGE
 WIP
 
@@ -62,6 +103,8 @@ WIP
 Currently supported target architectures:
 .RE
 - i386
+.RE
+- x86_64
 
 .RE
 The compiler uses the System V ABI.

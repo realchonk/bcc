@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
    enable_warnings = true;
    optim_level = 0;
    int option;
-   while ((option = getopt(argc, argv, ":O:wciSAo:")) != -1) {
+   while ((option = getopt(argc, argv, ":VO:wciSAo:")) != -1) {
       switch (option) {
       case 'o': output_file = optarg; break;
       case 'c':
@@ -52,12 +52,15 @@ int main(int argc, char* argv[]) {
          }
          break;
       }
+      case 'V':
+         printf("bcc %s\nCopyright (C) Benjamin Stürz.\nCompiled for %s.\n", BCC_VER, BCC_ARCH);
+         return 0;
       default: goto print_usage;
       }
    }
    if ((argc - optind) != 1) {
    print_usage:
-      fputs("Usage: bcc [-Olevel] [-ciAS] [-o output] input\n", stderr);
+      fputs("Usage: bcc [-Olevel] [-VciAS] [-o output] input\n", stderr);
       return 1;
    }
    const char* source_file = argv[optind];
@@ -87,20 +90,13 @@ int main(int argc, char* argv[]) {
 
    lexer_init(source, source_file);
    if (level == 'S' || level == 'c') emit_init(asm_file);
-   while (!lexer_match(TK_EOF)) {
-      struct function* func = parse_func();
-      if (level == 'A') print_func(output, func);
-      else {
-         ir_node_t* ir = irgen_func(func);
-         if (level == 'i') print_ir_nodes(output, ir);
-         else {
-            emit_func(func, ir);
-         }
-         free_ir_nodes(ir);
-      }
-      free_func(func);
-   }
+   struct compilation_unit* unit = parse_unit();
+   if (level == 'A') print_unit(output, unit);
+   else if (level == 'i') print_ir_unit(output, unit);
+   else emit_unit(unit);
+   free_unit(unit);
    lexer_free();
+   
    int ec = 0;
    if (level == 'S' || level == 'c') emit_free();
    if (level == 'c') {

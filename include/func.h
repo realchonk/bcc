@@ -4,12 +4,18 @@
 #include "value.h"
 #include "scope.h"
 
+struct compilation_unit;
+struct ir_node;
+
 struct function {
    istr_t name;
    struct value_type* type;
    struct variable* params;
-   struct scope* scope;
+   struct scope* scope;             // optional
    struct source_pos begin, end;
+   struct compilation_unit* unit;
+   struct ir_node* ir_code;         // optional
+   bool variadic;
 };
 
 struct function* parse_func(void);

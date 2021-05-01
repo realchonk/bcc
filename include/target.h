@@ -50,12 +50,8 @@ void emit_free(void);
 void emit(const char*, ...);
 void emitraw(const char*, ...);
 
-ir_node_t* emit_ir(const ir_node_t*);
-void emit_func(const struct function*, const ir_node_t*);
+void emit_unit(const struct compilation_unit*);
 
 int assemble(const char* source, const char* output);
-
-void emit_begin(void);
-void emit_end(void);
 
 #endif /* FILE_TARGET_H */

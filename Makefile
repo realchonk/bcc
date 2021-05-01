@@ -1,7 +1,10 @@
-CC=cc
-CFLAGS ?= -c -g -std=c99 -Og -Iinclude -Wall -Wextra -D_XOPEN_SOURCE=700 -Wno-missing-braces
+TARGET ?= $(shell uname -m)
 
-TARGET ?= i386
+VER="0.1"
+
+CC=cc
+CFLAGS += -c -g -std=c99 -Og -Iinclude -Wall -Wextra -D_XOPEN_SOURCE=700 -Wno-missing-braces
+CFLAGS += -DBCC_ARCH=\"$(TARGET)\" -DBCC_$(TARGET)=1 -DBCC_VER=\"$(VER)\"
 
 LD=$(CC)
 LDFLAGS=

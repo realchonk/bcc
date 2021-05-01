@@ -281,6 +281,11 @@ static struct token lexer_impl(void) {
       case '%':
          if (input_match('=')) return (struct token){ TK_PERCEQ, start, pos, 0 };
          else return (struct token){ TK_PERC, start, pos, 0 };
+      case '.':
+         if (input_match('.')) {
+            if (input_next() == '.') return (struct token){ TK_DDD, start, pos, 0 };
+            else lex_error("expected '.'");
+         } else return (struct token){ TK_DOT, start, pos, 0 };
 
       case EOF:   return (struct token){ TK_EOF, start, pos, 0 };
       default:    lex_error("illegal input character '%c'", ch);

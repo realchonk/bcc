@@ -1,8 +1,12 @@
+int printf(const char* fmt, ...);
 
-void puti(int i) {
-   printf("%d\n", i);
+int a() { return 42; }
+
+int main(void) {
+   for (int i = 0; i < 10; ++i) {
+      if (i == 5) continue;
+      printf("%d\n", i * a());
+   }
 }
 
-int main(int argc, char** argv) {
-   return puti(32), 1, 2;
-}
+

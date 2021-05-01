@@ -2,6 +2,7 @@
 #include "stmt.h"
 #include "func.h"
 #include "lex.h"
+#include "ir.h"
 
 struct function* parse_func(void) {
    struct function* func = malloc(sizeof(struct function));
@@ -9,10 +10,16 @@ struct function* parse_func(void) {
    func->type = parse_value_type();
    func->name = lexer_expect(TK_NAME).str;
    func->params = NULL;
+   func->unit = NULL;
+   func->ir_code = NULL;
    lexer_expect(TK_LPAREN);
 
    if (!lexer_match(KW_VOID) && !lexer_matches(TK_RPAREN)) {
       do {
+         if (lexer_match(TK_DDD)) {
+            func->variadic = true;
+            break;
+         }
          struct variable var;
          var.type = parse_value_type();
          const struct token name = lexer_expect(TK_NAME);
@@ -30,12 +37,16 @@ struct function* parse_func(void) {
    lexer_expect(TK_RPAREN);
 
    func->begin = func->type->begin;
-   func->scope = make_scope(NULL, func);
-   lexer_expect(TK_CLPAREN);
-   while (!lexer_matches(TK_CRPAREN)) {
-      buf_push(func->scope->body, parse_stmt(func->scope));
+   if (lexer_match(TK_SEMICOLON)) {
+      func->scope = NULL;
+   } else {
+      func->scope = make_scope(NULL, func);
+      lexer_expect(TK_CLPAREN);
+      while (!lexer_matches(TK_CRPAREN)) {
+         buf_push(func->scope->body, parse_stmt(func->scope));
+      }
+      func->end = lexer_expect(TK_CRPAREN).end;
    }
-   func->end = lexer_expect(TK_CRPAREN).end;
    return func;
 }
 
@@ -53,17 +64,19 @@ void print_func(FILE* file, const struct function* func) {
          fputs(", ", file);
          print_param(file, &func->params[i]);
       }
-   }
+      if (func->variadic) fputs(", ...", file);
+   } else if (func->variadic) fputs("...", file);
    fputs(") ", file);
    print_scope(file, func->scope);
 }
 
 void free_func(struct function* func) {
    free_value_type(func->type);
-   free_scope(func->scope);
+   if (func->scope) free_scope(func->scope);
    for (size_t i = 0; i < buf_len(func->params); ++i) {
       free_value_type(func->params[i].type);
    }
+   if (func->ir_code) free_ir_nodes(func->ir_code);
    buf_free(func->params);
    free(func);
 }

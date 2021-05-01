@@ -2,9 +2,10 @@
 
 ## Target architectures
 - i386 (x86-32/IA-32)
+- x86\_64 (amd64/EMT64)
 
 ## Building/Installation
-Building the compiler for the default target architecture:<br>
+Building the compiler for the host architecture:<br>
 ```make```<br>
 Builting the compiler for a different target architecture:<br>
 ```make ARCH=... all```<br>

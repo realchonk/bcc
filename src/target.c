@@ -9,11 +9,9 @@ unsigned asm_indent = 0;
 void emit_init(FILE* f) {
    file = f;
    asm_indent = 0;
-   emit_begin();
 }
 
 void emit_free(void) {
-   emit_end();
    if (file) fclose(file);
    file = NULL;
 }

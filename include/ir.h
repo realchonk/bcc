@@ -5,7 +5,7 @@
 #include "value.h"
 #include "expr.h"
 #include "stmt.h"
-#include "func.h"
+#include "unit.h"
 
 enum ir_node_type {
    IR_NOP,

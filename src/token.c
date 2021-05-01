@@ -53,6 +53,8 @@ const char* token_type_str[NUM_TOKENS] = {
    [TK_PERC]      = "%",
    [TK_PERCEQ]    = "%=",
    [TK_QMARK]     = "?",
+   [TK_DDD]       = "...",
+   [TK_DOT]       = ".",
    
    [TK_EOF]       = "end of file",
 

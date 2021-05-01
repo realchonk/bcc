@@ -7,5 +7,6 @@
 #include "scope.h"
 #include "func.h"
 #include "error.h"
+#include "unit.h"
 
 #endif /* FILE_PARSER_H */

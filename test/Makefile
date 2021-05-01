@@ -5,10 +5,10 @@ run: test
 	@(./$<; echo "\nexit code: $$?")
 
 test: test.o
-	gcc -m32 -o $@ $<
+	gcc -o $@ $<
 
 test.o: test.asm
-	nasm -felf32 -o $@ $<
+	nasm -felf64 -o $@ $<
 
 test.asm: test.c ../bcc
 	../bcc -S -o $@ $< -O1
