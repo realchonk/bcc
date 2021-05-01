@@ -8,7 +8,7 @@
 Building the compiler for the host architecture:<br>
 ```make```<br>
 Builting the compiler for a different target architecture:<br>
-```make ARCH=... all```<br>
+```make TARGET=... all```<br>
 Installing the compiler to /usr/local:<br>
 ```sudo make install```<br>
 Installing the compiler to a different location:<br>
