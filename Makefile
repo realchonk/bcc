@@ -1,5 +1,5 @@
 CC=cc
-CFLAGS=-c -g -std=c99 -Og -Iinclude -Wall -Wextra -D_XOPEN_SOURCE=700 -Wno-missing-braces
+CFLAGS ?= -c -g -std=c99 -Og -Iinclude -Wall -Wextra -D_XOPEN_SOURCE=700 -Wno-missing-braces
 
 TARGET ?= i386
 

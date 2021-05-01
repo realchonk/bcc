@@ -142,6 +142,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          struct value_type* vl = get_value_type(scope, e->binary.left);     
          struct value_type* vr = get_value_type(scope, e->binary.right);     
          if (!is_castable(vr, vl, true)) parse_error(&e->binary.op.begin, "incompatible types");
+         else if (vl->is_const) parse_error(&e->binary.op.begin, "assignment to const");
          free_value_type(vl);
          free_value_type(vr);
       }

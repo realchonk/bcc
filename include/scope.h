@@ -11,6 +11,7 @@ struct variable {
    istr_t name;
    struct expression* init;
    struct source_pos begin, end;
+   bool has_value;
 };
 
 struct scope {

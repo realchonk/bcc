@@ -1,3 +1,4 @@
+#include <string.h>
 #include <ctype.h>
 #include <math.h>
 #include "target.h"
@@ -255,8 +256,10 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    case IR_BEGIN_SCOPE:
       if (n->scope->vars) emit("sub esp, %zu", 4 * buf_len(n->scope->vars));
       esp += 4 * buf_len(n->scope->vars);
+      emit("");
       return n->next;
    case IR_END_SCOPE:
+      emit("");
       if (n->scope->vars) emit("add esp, %zu", 4 * buf_len(n->scope->vars));
       esp -= 4 * buf_len(n->scope->vars);
       return n->next;
@@ -298,9 +301,11 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       esp = 8;
       return n->next;
    case IR_EPILOGUE:
+      if (strcmp(n->func->name, "main") == 0 && n->prev && n->prev->prev && n->prev->prev->type != IR_IRET)
+         emit("xor eax, eax");
       emit(".ret:");
       emit("leave");
-      emit("ret");
+      emit("ret\n\n");
       return n->next;
    case IR_IRET:
       if (n->unary.reg != 0) {
