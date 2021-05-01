@@ -55,8 +55,8 @@ struct value_type* parse_value_type(void);
 void free_value_type(struct value_type*);
 void print_value_type(FILE*, const struct value_type*);
 struct value_type* get_value_type(struct scope*, const struct expression*);
-struct value_type* common_value_type_free(struct value_type*, struct value_type*, bool);
-struct value_type* common_value_type(const struct value_type*, const struct value_type*, bool);
+struct value_type* common_value_type_free(struct value_type*, struct value_type*, bool warn);
+struct value_type* common_value_type(const struct value_type*, const struct value_type*, bool warn);
 struct value_type* copy_value_type(const struct value_type*);
 
 bool is_castable(const struct value_type* old, const struct value_type* type, bool implicit);

@@ -3,6 +3,7 @@
 #include <errno.h>
 #include "parser.h"
 #include "error.h"
+#include "optim.h"
 #include "lex.h"
 
 const char* expr_type_str[NUM_EXPRS] = {
@@ -26,7 +27,7 @@ const char* expr_type_str[NUM_EXPRS] = {
    [EXPR_FCALL]   = "function call",
 };
 
-static struct expression* new_expr(void) {
+struct expression* new_expr(void) {
    struct expression* expr = malloc(sizeof(struct expression));
    if (!expr) panic("failed to allocate expression");
    else return expr;
@@ -64,7 +65,7 @@ static struct expression* expr_prim(void) {
          expr->fcall.params = NULL;
          if (!lexer_matches(TK_RPAREN)) {
             do {
-               buf_push(expr->fcall.params, expr_assign());
+               buf_push(expr->fcall.params, optim_expr(expr_assign()));
             } while (lexer_match(TK_COMMA));
          }
          lexer_expect(TK_RPAREN);
@@ -333,7 +334,7 @@ struct expression* parse_expr(void) {
    do {
       buf_push(comma->comma, expr_assign());
    } while (lexer_match(TK_COMMA));
-   return comma;
+   return optim_expr(comma);
 }
 
 

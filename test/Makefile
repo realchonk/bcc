@@ -11,7 +11,7 @@ test.o: test.asm
 	nasm -felf32 -o $@ $<
 
 test.asm: test.c ../bcc
-	../bcc -S -o $@ $<
+	../bcc -S -o $@ $< -O1
 
 test.ir: test.c ../bcc
 	../bcc -i -o $@ $<

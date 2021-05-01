@@ -67,6 +67,7 @@ struct expression {
 
 struct expression* parse_expr(void);
 
+struct expression* new_expr(void);
 void print_expr_tree(FILE*, const struct expression*);
 void print_expr(FILE*, const struct expression*);
 

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include "error.h"
+#include "bcc.h"
 
 noreturn void panic(const char* fmt, ...) {
    va_list ap;
@@ -34,6 +35,7 @@ noreturn void parse_error(const struct source_pos* pos, const char* fmt, ...) {
 }
 
 void parse_warn(const struct source_pos* pos, const char* fmt, ...) {
+   if (!enable_warnings) return;
    va_list ap;
    va_start(ap, fmt);
 

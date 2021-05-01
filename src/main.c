@@ -5,7 +5,11 @@
 #include "parser.h"
 #include "target.h"
 #include "lex.h"
+#include "bcc.h"
 #include "ir.h"
+
+bool enable_warnings;
+unsigned optim_level;
 
 static char* replace_ending(const char* s, const char* end) {
    const size_t len_end = strlen(end);
@@ -23,8 +27,10 @@ static char* replace_ending(const char* s, const char* end) {
 int main(int argc, char* argv[]) {
    const char* output_file = NULL;
    int level = 'c';
+   enable_warnings = true;
+   optim_level = 0;
    int option;
-   while ((option = getopt(argc, argv, ":ciSAo:")) != -1) {
+   while ((option = getopt(argc, argv, ":O:wciSAo:")) != -1) {
       switch (option) {
       case 'o': output_file = optarg; break;
       case 'c':
@@ -33,12 +39,25 @@ int main(int argc, char* argv[]) {
       case 'A':
          level = option;
          break;
+      case 'w':
+         enable_warnings = false;
+         break;
+      case 'O':
+      {
+         char* endp;
+         optim_level = (unsigned)strtoul(optarg, &endp, 10);
+         if (*endp) {
+            fprintf(stderr, "bcc: '%s' is not a valid number.\n", optarg);
+            return 1;
+         }
+         break;
+      }
       default: goto print_usage;
       }
    }
    if ((argc - optind) != 1) {
    print_usage:
-      fputs("Usage: bcc [-ciAS] [-o output] input\n", stderr);
+      fputs("Usage: bcc [-Olevel] [-ciAS] [-o output] input\n", stderr);
       return 1;
    }
    const char* source_file = argv[optind];
