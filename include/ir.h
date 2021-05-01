@@ -70,9 +70,27 @@ enum ir_value_size {
 
    NUM_IR_SIZES,
 };
+enum ir_value_type {
+   IRT_REG,
+   IRT_UINT,
+
+   NUM_IR_VALUES,
+};
 extern const char* ir_size_str[NUM_IR_SIZES];
 extern const char* ir_node_type_str[NUM_IR_NODES];
-typedef uint16_t ir_reg_t;
+extern const char* ir_value_type_str[NUM_IR_VALUES];
+typedef unsigned ir_reg_t;
+
+struct ir_value {
+   enum ir_value_type type;
+   union {
+      ir_reg_t reg;
+      uintmax_t uVal;
+   };
+};
+
+#define irv_reg(r) ((struct ir_value){ .type = IRT_REG, .reg = (r) })
+#define irv_uint(v) ((struct ir_value){ .type = IRT_UINT, .uVal = (v) })
 
 typedef struct ir_node {
    enum ir_node_type type;
@@ -92,7 +110,9 @@ typedef struct ir_node {
          enum ir_value_size size;
       } load;
       struct {
-         ir_reg_t dest, a, b;
+         ir_reg_t dest;
+         struct ir_value a;
+         struct ir_value b;
          enum ir_value_size size;
       } binary;
       struct {
@@ -141,6 +161,7 @@ size_t ir_length(const ir_node_t*);
 
 void print_ir_node(FILE*, const ir_node_t*);
 void print_ir_nodes(FILE*, const ir_node_t*);
+void print_ir_value(FILE*, const struct ir_value*);
 
 void free_ir_node(ir_node_t*);
 void free_ir_nodes(ir_node_t*);

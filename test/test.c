@@ -1,9 +1,10 @@
 
 
 int main(int argc, char** argv) {
-   for (int i = 0; i < 10; ++i) {
-      if (i == 5) continue;
-      else if (i == 7) break;
-      printf("%d\n", i);
+   printf("argc = %d\n", argc);
+   for (int i = 1; i < argc; ++i) {
+      char* s = *(argv + (i * 4));
+      printf("argv[%d]=%s\n", i, s);
    }
+   return 0;
 }

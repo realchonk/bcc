@@ -1,3 +1,4 @@
+#include "error.h"
 #include "ir.h"
 
 const char* ir_size_str[NUM_IR_SIZES] = {
@@ -57,6 +58,10 @@ const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_LABEL]        = "",
    [IR_IINC]         = "iinc",
    [IR_IDEC]         = "idec",
+};
+const char* ir_value_type_str[NUM_IR_VALUES] = {
+   [IRT_REG]         = "register",
+   [IRT_UINT]        = "immediate value",
 };
 
 ir_node_t* ir_end(ir_node_t* n) {
@@ -140,7 +145,9 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
    case IR_USTGE:
    case IR_USTLT:
    case IR_USTLE:
-      fprintf(file, ".%s R%u, R%u, R%u", ir_size_str[n->binary.size], n->binary.dest, n->binary.a, n->binary.b);
+      fprintf(file, ".%s R%u, ", ir_size_str[n->binary.size], n->binary.dest);
+      print_ir_value(file, &n->binary.a);
+      print_ir_value(file, &n->binary.b);
       break;
    case IR_INEG:
    case IR_INOT:
@@ -180,6 +187,17 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
       break;
    }
    fputc('\n', file);
+}
+void print_ir_value(FILE* file, const struct ir_value* v) {
+   switch (v->type) {
+   case IRT_REG:
+      fprintf(file, "R%u", v->reg);
+      break;
+   case IRT_UINT:
+      fprintf(file, "%ju", v->uVal);
+      break;
+   default: panic("print_ir_valu(): invalid IR value type '%d'", v->type);
+   }
 }
 void free_ir_node(ir_node_t* n) {
    if (n->type == IR_IFCALL) {

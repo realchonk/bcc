@@ -92,8 +92,9 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       ir_append(n, ir_expr(scope, e->binary.right));
       tmp = new_node(IR_NOP);
       tmp->binary.size = irs;
-      tmp->binary.dest = tmp->binary.a = creg - 2;
-      tmp->binary.b = creg - 1;
+      tmp->binary.dest = creg - 2;
+      tmp->binary.a = irv_reg(creg - 2);
+      tmp->binary.b = irv_reg(creg - 1);
       switch (e->binary.op.type) {
       case TK_PLUS:  tmp->type = IR_IADD; break;
       case TK_MINUS: tmp->type = IR_ISUB; break;
@@ -154,8 +155,8 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          ir_append(n, tmp);
          tmp = new_node(IR_NOP);
          tmp->binary.dest = creg - 2;
-         tmp->binary.a = creg;
-         tmp->binary.b = creg - 2;
+         tmp->binary.a = irv_reg(creg);
+         tmp->binary.b = irv_reg(creg - 2);
          tmp->binary.size = irs;
          switch (e->binary.op.type) {
          case TK_PLEQ:     tmp->type = IR_IADD; break;
@@ -197,13 +198,14 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    case EXPR_FCALL:
       n = new_node(IR_IFCALL);
       n->ifcall.name = e->fcall.name;
-      n->ifcall.dest = creg++;
+      n->ifcall.dest = creg;
       n->ifcall.params = NULL;
 
       for (size_t i = 0; i < buf_len(e->fcall.params); ++i) {
          buf_push(n->ifcall.params, ir_expr(scope, e->fcall.params[i]));
          --creg;
       }
+      ++creg;
       break;
    case EXPR_STRING:
       n = new_node(IR_LSTR);
@@ -317,7 +319,7 @@ ir_node_t* irgen_stmt(const struct statement* s) {
    creg = 0;
    switch (s->type) {
    case STMT_NOP: return new_node(IR_NOP);
-   case STMT_EXPR:return ir_expr(s->parent, s->expr);
+   case STMT_EXPR:return irgen_expr(s->parent, s->expr);
    case STMT_RETURN:
       tmp = new_node(IR_RET);
       if (s->expr) {
@@ -406,7 +408,7 @@ ir_node_t* irgen_stmt(const struct statement* s) {
       
       n = new_node(IR_LABEL);
       n->str = begin;
-      ir_append(n, ir_expr(s->parent, s->whileloop.cond));
+      ir_append(n, irgen_expr(s->parent, s->whileloop.cond));
 
       tmp = new_node(IR_JMPIFN);
       tmp->cjmp.label = end_loop;
