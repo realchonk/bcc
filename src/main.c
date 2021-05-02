@@ -11,17 +11,15 @@
 bool enable_warnings;
 unsigned optim_level;
 
-static char* replace_ending(const char* s, const char* end) {
+static istr_t replace_ending(const char* s, const char* end) {
    const size_t len_end = strlen(end);
    const char* dot = strrchr(s, '.');
-   char* new_str;
    const size_t len_s = dot ? (size_t)(dot - s) : strlen(s);
-   new_str = malloc(len_s + len_end + 2);
-   if (!new_str) panic("failed to allocate buffer");
+   char new_str[len_s + len_end + 2];
    strncpy(new_str, s, len_s);
    strncat(new_str, ".", 1);
    strncat(new_str, end, len_end);
-   return new_str;
+   return strint(new_str);
 }
 
 int main(int argc, char* argv[]) {

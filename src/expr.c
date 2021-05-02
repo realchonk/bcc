@@ -53,6 +53,15 @@ static struct expression* expr_prim(void) {
    case TK_STRING:
       expr->type = EXPR_STRING;
       expr->str = tk.str;
+      while (lexer_matches(TK_STRING)) {
+         const struct token stk = lexer_next();
+         const size_t len_orig = strlen(expr->str), len_new = strlen(stk.str);
+         char buffer[len_orig + len_new + 1];
+         memcpy(buffer, expr->str, len_orig);
+         memcpy(buffer + len_orig, stk.str, len_new);
+         buffer[len_orig + len_new] = '\0';
+         expr->str = strint(buffer);
+      }
       break;
    case TK_CHARACTER:
       expr->type = EXPR_CHAR;

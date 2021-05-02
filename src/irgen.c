@@ -18,12 +18,10 @@ static istr_t make_label(size_t i) {
    if (!i) return strint(".L0");
    else if (i == 1) return strint(".L1");
    const size_t len = log10(i) + 4;
-   char* buffer = malloc(len + 1);
+   char buffer[len + 1];
    snprintf(buffer, len, ".L%zu", i);
    buffer[len] = '\0';
-   istr_t s = strint(buffer);
-   free(buffer);
-   return s;
+   return strint(buffer);
 }
 
 enum ir_value_size vt2irs(const struct value_type* vt) {

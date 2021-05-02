@@ -27,6 +27,7 @@ static uintreg_t esp = 0;
 static istr_t* unresolved = NULL;
 static istr_t* defined = NULL;
 
+#if BCC_x86_64
 static bool is_defined(istr_t s) {
    for (size_t i = 0; i < buf_len(cunit->funcs); ++i) {
       const struct function* f = cunit->funcs[i];
@@ -34,6 +35,7 @@ static bool is_defined(istr_t s) {
    }
    return false;
 }
+#endif
 
 static ir_node_t* emit_ir(const ir_node_t* n);
 static void emit_begin(void) {
@@ -296,7 +298,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       esp = REGSIZE * 2;
 #if BCC_x86_64
       for (size_t i = 0; i < my_min(buf_len(n->func->params), arraylen(param_regs)); ++i) {
-         emit("push %s", regs64[param_regs[i]]);
+         emit("push %s", mreg(param_regs[i]));
          esp += REGSIZE;
       }
 #endif
