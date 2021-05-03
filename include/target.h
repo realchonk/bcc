@@ -1,43 +1,47 @@
 #ifndef FILE_TARGET_H
 #define FILE_TARGET_H
 #include <stdio.h>
+#include "value.h"
 #include "ir.h"
 
 struct target_info {
-   const char* name;
-   size_t size_byte;
-   size_t size_char;
-   size_t size_short;
-   size_t size_int;
-   size_t size_long;
-   size_t size_float;
-   size_t size_double;
-   size_t size_pointer;
+   const char* const name;
+   const size_t size_byte;
+   const size_t size_char;
+   const size_t size_short;
+   const size_t size_int;
+   const size_t size_long;
+   const size_t size_float;
+   const size_t size_double;
+   const size_t size_pointer;
 
-   intmax_t min_byte;
-   intmax_t max_byte;
-   uintmax_t max_ubyte;
+   const intmax_t min_byte;
+   const intmax_t max_byte;
+   const uintmax_t max_ubyte;
 
-   intmax_t min_char;
-   intmax_t max_char;
-   uintmax_t max_uchar;
+   const intmax_t min_char;
+   const intmax_t max_char;
+   const uintmax_t max_uchar;
 
-   intmax_t min_short;
-   intmax_t max_short;
-   uintmax_t max_ushort;
+   const intmax_t min_short;
+   const intmax_t max_short;
+   const uintmax_t max_ushort;
 
-   intmax_t min_int;
-   intmax_t max_int;
-   uintmax_t max_uint;
+   const intmax_t min_int;
+   const intmax_t max_int;
+   const uintmax_t max_uint;
 
-   intmax_t min_long;
-   intmax_t max_long;
-   uintmax_t max_ulong;
+   const intmax_t min_long;
+   const intmax_t max_long;
+   const uintmax_t max_ulong;
    
-   bool unsigned_char;
+   const bool unsigned_char;
 
-   const char* fend_asm;
-   const char* fend_obj;
+   const char* const fend_asm;
+   const char* const fend_obj;
+
+   const enum integer_size ptrdiff_type;
+   const bool has_c99_array; // runtime determined size?
 };
 
 extern const struct target_info target_info;

@@ -7,24 +7,25 @@
 #include "lex.h"
 
 const char* expr_type_str[NUM_EXPRS] = {
-   [EXPR_PAREN]   = "sub",
-   [EXPR_INT]     = "signed integer",
-   [EXPR_UINT]    = "unsigned integer",
-   [EXPR_FLOAT]   = "floating-point",
-   [EXPR_CHAR]    = "character-literal",
-   [EXPR_STRING]  = "string-literal",
-   [EXPR_NAME]    = "identifier",
-   [EXPR_UNARY]   = "unary",
-   [EXPR_BINARY]  = "binary",
-   [EXPR_PREFIX]  = "prefix",
-   [EXPR_SUFFIX]  = "suffix",
-   [EXPR_ADDROF]  = "address-of",
-   [EXPR_INDIRECT]= "indirection",
-   [EXPR_TERNARY] = "ternary",
-   [EXPR_ASSIGN]  = "assignment",
-   [EXPR_COMMA]   = "comma",
-   [EXPR_CAST]    = "cast",
-   [EXPR_FCALL]   = "function call",
+   [EXPR_PAREN]      = "sub",
+   [EXPR_INT]        = "signed integer",
+   [EXPR_UINT]       = "unsigned integer",
+   [EXPR_FLOAT]      = "floating-point",
+   [EXPR_CHAR]       = "character-literal",
+   [EXPR_STRING]     = "string-literal",
+   [EXPR_NAME]       = "identifier",
+   [EXPR_UNARY]      = "unary",
+   [EXPR_BINARY]     = "binary",
+   [EXPR_PREFIX]     = "prefix",
+   [EXPR_SUFFIX]     = "suffix",
+   [EXPR_ADDROF]     = "address-of",
+   [EXPR_INDIRECT]   = "indirection",
+   [EXPR_TERNARY]    = "ternary",
+   [EXPR_ASSIGN]     = "assignment",
+   [EXPR_COMMA]      = "comma",
+   [EXPR_CAST]       = "cast",
+   [EXPR_FCALL]      = "function call",
+   [EXPR_SIZEOF]     = "sizeof",
 };
 
 struct expression* new_expr(void) {
@@ -36,7 +37,7 @@ struct expression* new_expr(void) {
 static struct expression* expr_assign(void);
 static struct expression* expr_unary(void);
 static struct expression* expr_prim(void) {
-   const struct token tk = lexer_next();
+   struct token tk = lexer_next();
    struct expression* expr = new_expr();
    expr->begin = tk.begin;
    expr->end = tk.end;
@@ -98,9 +99,42 @@ static struct expression* expr_prim(void) {
          lexer_expect(TK_RPAREN);
       }
       break;
+   case KW_SIZEOF:
+      expr->type = EXPR_SIZEOF;
+      expr->expr = expr_unary();
+      expr->end = expr->expr->end;
+      break;
    default:
       parse_error(&tk.begin, "expected expression, got %s\n", token_type_str[tk.type]);
       break;
+   }
+   
+
+   while (lexer_matches(TK_PLPL) || lexer_matches(TK_MIMI) || lexer_matches(TK_LBRACK)) {
+      if (!expr_is_lvalue(expr))
+         parse_error(&expr->begin, "expected lvalue");
+      struct expression* tmp = new_expr();
+      tk = lexer_next();
+      tmp->begin = expr->begin;
+      if (tk.type == TK_LBRACK) {
+         struct expression* add = new_expr();
+         add->type = EXPR_BINARY;
+         add->binary.op.type = TK_PLUS;
+         add->binary.left = expr;
+         add->binary.right = parse_expr();
+         add->begin = expr->begin;
+         add->end = lexer_expect(TK_RBRACK).end;
+         
+         tmp->type = EXPR_INDIRECT;
+         tmp->expr = add;
+         tmp->end = add->end;
+      } else {
+         tmp->type = EXPR_SUFFIX;
+         tmp->unary.op = tk;
+         tmp->unary.expr = expr;
+         tmp->end = tmp->unary.op.begin;
+      }
+      expr = tmp;
    }
 
    return expr;
@@ -143,15 +177,7 @@ static struct expression* expr_unary(void) {
 
 
    if (!expr) expr = expr_prim();
-   if (lexer_matches(TK_PLPL) || lexer_matches(TK_MIMI)) {
-      struct expression* tmp = new_expr();
-      tmp->type = EXPR_SUFFIX;
-      tmp->unary.op = lexer_next();
-      tmp->unary.expr = expr;
-      tmp->begin = tmp->unary.op.begin;
-      tmp->end = expr->end;
-      expr = tmp;
-   }
+
    return expr;
 }
 
@@ -320,13 +346,39 @@ static struct expression* expr_assign(void) {
     || lexer_matches(TK_GRGREQ) || lexer_matches(TK_LELEEQ)
     || lexer_matches(TK_AMPEQ) || lexer_matches(TK_PIPEEQ) || lexer_matches(TK_XOREQ)) {
       if (!expr_is_lvalue(left)) parse_error(&left->begin, "expected lvalue, got %s", expr_type_str[left->type]);
+      const struct token op = lexer_next();
       struct expression* expr = new_expr();
       expr->type = EXPR_ASSIGN;
       expr->begin = left->begin;
-      expr->binary.op = lexer_next();
-      expr->binary.left = left;
-      expr->binary.right = expr_assign();
-      expr->end = expr->binary.right->end;
+      expr->assign.left = left;
+      struct expression* right = expr_assign();
+      if (op.type == TK_EQ) {
+         expr->assign.right = right;
+      } else {
+         struct expression* tmp = new_expr();
+         tmp->type = EXPR_BINARY;
+         tmp->begin = left->begin;
+         tmp->end = right->end;
+         enum token_type type;
+         switch (op.type) {
+         case TK_PLEQ:     type = TK_PLUS;   break;
+         case TK_MIEQ:     type = TK_MINUS;  break;
+         case TK_STEQ:     type = TK_STAR;   break;
+         case TK_SLEQ:     type = TK_SLASH;  break;
+         case TK_PERCEQ:   type = TK_PERC;   break;
+         case TK_AMPEQ:    type = TK_AMP;    break;
+         case TK_PIPEEQ:   type = TK_PIPE;   break;
+         case TK_XOREQ:    type = TK_XOR;    break;
+         case TK_GRGREQ:   type = TK_GRGR;   break;
+         case TK_LELEEQ:   type = TK_LELE;   break;
+         default:          parse_error(&op.begin, "invalid operator");
+         }
+         tmp->binary.op.type = type;
+         tmp->binary.left = left;
+         tmp->binary.right = right;
+         expr->assign.right = tmp;
+      }
+      expr->end = right->end;
       left = expr;
    }
    return left;
@@ -351,11 +403,16 @@ void free_expr(struct expression* e) {
    switch (e->type) {
    case EXPR_ADDROF:
    case EXPR_INDIRECT:
+   case EXPR_SIZEOF:
    case EXPR_PAREN:  free_expr(e->expr); break;
    case EXPR_PREFIX:
    case EXPR_SUFFIX:
    case EXPR_UNARY:  free_expr(e->unary.expr); break;
    case EXPR_ASSIGN:
+      if (e->assign.right->type != EXPR_BINARY || e->assign.right->binary.left != e->assign.left)
+         free_expr(e->assign.left);
+      free_expr(e->assign.right);
+      break;
    case EXPR_BINARY:
       free_expr(e->binary.left);
       free_expr(e->binary.right);
@@ -425,6 +482,10 @@ void print_expr(FILE* file, const struct expression* e) {
       print_token(file, &e->unary.op);
       break;
    case EXPR_ASSIGN:
+      print_expr(file, e->assign.left);
+      fputs(" = ", file);
+      print_expr(file, e->assign.right);
+      break;
    case EXPR_BINARY:
       print_expr(file, e->binary.left);
       fputc(' ', file);
@@ -470,6 +531,10 @@ void print_expr(FILE* file, const struct expression* e) {
          }
       }
       fputc(')', file);
+      break;
+   case EXPR_SIZEOF:
+      fputs("sizeof ", file);
+      print_expr(file, e->expr);
       break;
 
 

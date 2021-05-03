@@ -1,4 +1,4 @@
-.TH bcc 1 "2021-04-29"
+.TH bcc 1 "2021-05-03"
 
 .SH NAME
 bcc - bad C-like compiler
@@ -97,7 +97,31 @@ The source file, for which to generate the output.
 The optimization level to perform. (default: 0)
 
 .SH LANGUAGE
-WIP
+.I WIP
+.RE
+The compiler aims to implement a usable sub-set of the C99 standard,
+while changing some annoyance and adding a few extensions.
+Some of the changes break compatibility with the standard, this is intentional.
+The compiler does not support the full feature-set of neither C99 nor C90.
+But that was never the goal.
+This compiler was created as a learning project and as a successor to benc (an even worse compiler than this only available for 32-bit x86).
+.RE
+Changes/Extensions:
+.RE
+- do-while does not require a compound statement (eg.
+.B do f(); while (1);
+is valid).
+.RE
+- The pointer '*' is part of the type, instead of the name (
+.B int* a;
+not
+.B int *a;
+)
+
+.SH OPTIMIZATIONS
+Supported optimization techniques:
+.RE
+- AST-based constant folding (-O1)
 
 .SH TARGETS
 Currently supported target architectures:
@@ -107,6 +131,9 @@ Currently supported target architectures:
 - x86_64
 
 .RE
-The compiler uses the System V ABI.
+The compiler uses the System V ABI, where applicable.
+.RE
+There is no multilib support, the compiler is installed for a single target-architecture.
+If a second target is wanted, the compiler must be rebuild and reinstalled for the specific architecure.
 
 

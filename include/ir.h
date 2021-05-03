@@ -55,8 +55,7 @@ enum ir_node_type {
    IR_JMPIF,
    IR_JMPIFN,
    IR_LABEL,
-   IR_IINC,
-   IR_IDEC,
+   IR_ALLOCA,
 
    NUM_IR_NODES,
 };
@@ -147,6 +146,10 @@ typedef struct ir_node {
          ir_reg_t reg;
          enum ir_value_size size;
       } cjmp;
+      struct {
+         ir_reg_t dest;
+         struct ir_value size;
+      } alloca;
    };
 } ir_node_t;
 

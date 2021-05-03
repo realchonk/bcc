@@ -222,6 +222,10 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
          emit("mov %s, %s", eax, dest);
       }
 
+      if (n->binary.b.type == IRT_UINT) {
+         emit("mov %s, %ju", reg_dx, n->binary.b.uVal);
+         b = reg_dx;
+      }
       emit("%s %s", instr, b);
 
       if (n->binary.dest != 0) {
@@ -436,14 +440,24 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
    }
    case IR_LOOKUP:
    {
-      size_t idx = REGSIZE * (n->lookup.var_idx + 1);
+      size_t idx = REGSIZE; // * (n->lookup.var_idx + 1);
+      struct scope* scope = n->lookup.scope;
+      for (size_t i = 0; i < n->lookup.var_idx; ++i) {
+         idx += REGSIZE;
+         /*if (scope->vars[i].type->type == VAL_POINTER && scope->vars[i].type->pointer.is_array) {
+            idx += sizeof_value(scope->vars[i].type);
+         }*/
+      }
 #if BCC_x86_64
       idx += my_min(arraylen(param_regs), buf_len(cur_func->params)) * REGSIZE;
 #endif
-      struct scope* scope = n->lookup.scope->parent;
-      while (scope) {
-         idx += buf_len(scope->vars) * REGSIZE;
-         scope = scope->parent;
+      while ((scope = scope->parent) != NULL) {
+         for (size_t i = 0; i < buf_len(scope->vars); ++i) {
+            idx += REGSIZE;
+            if (scope->vars[i].type->type == VAL_POINTER && scope->vars[i].type->pointer.is_array) {
+               idx += sizeof_value(scope->vars[i].type);
+            }
+         }
       }
       emit("lea %s, [%s - %zu]", mreg(n->lookup.reg), reg_bp, idx);
       return n->next;
@@ -532,16 +546,13 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       emit("%s %s", instr, n->cjmp.label);
       return n->next;
    }
-   case IR_IINC:
-      instr = "inc";
-      goto iinc;
-   case IR_IDEC:
-      instr = "dec";
+   case IR_ALLOCA:
    {
-   iinc:;
-      const char* reg;
-      reg_op(reg, n->unary.reg, n->unary.size);
-      emit("%s %s", instr, reg);
+      const char* dest;
+      const char* num = irv2str(&n->alloca.size, IRS_PTR);
+      reg_op(dest, n->alloca.dest, IRS_PTR);
+      emit("sub %s, %s", reg_sp, num);
+      emit("mov %s, %s", dest, reg_sp);
       return n->next;
    }
 

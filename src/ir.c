@@ -56,8 +56,7 @@ const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_JMPIF]        = "jmpif",
    [IR_JMPIFN]       = "jmpifn",
    [IR_LABEL]        = "",
-   [IR_IINC]         = "iinc",
-   [IR_IDEC]         = "idec",
+   [IR_ALLOCA]       = "alloca",
 };
 const char* ir_value_type_str[NUM_IR_VALUES] = {
    [IRT_REG]         = "register",
@@ -153,8 +152,6 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
    case IR_INOT:
    case IR_BNOT:
    case IR_IRET:
-   case IR_IINC:
-   case IR_IDEC:
       fprintf(file, ".%s R%u", ir_size_str[n->unary.size], n->unary.reg);
       break;
    case IR_LOOKUP:
@@ -184,6 +181,10 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
       break;
    case IR_LABEL:
       fprintf(file, "%s:", n->str);
+      break;
+   case IR_ALLOCA:
+      fprintf(file, " R%u, ", n->alloca.dest);
+      print_ir_value(file, &n->alloca.size);
       break;
    }
    fputc('\n', file);

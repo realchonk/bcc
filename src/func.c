@@ -66,8 +66,12 @@ void print_func(FILE* file, const struct function* func) {
       }
       if (func->variadic) fputs(", ...", file);
    } else if (func->variadic) fputs("...", file);
-   fputs(") ", file);
-   print_scope(file, func->scope);
+   if (func->scope) {
+      fputs(") ", file);
+      print_scope(file, func->scope);
+   } else {
+      fputs(");", file);
+   }
 }
 
 void free_func(struct function* func) {

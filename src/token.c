@@ -77,6 +77,7 @@ const char* token_type_str[NUM_TOKENS] = {
    [KW_FOR]       = "for",
    [KW_BREAK]     = "break",
    [KW_CONTINUE]  = "continue",
+   [KW_SIZEOF]    = "sizeof",
 };
 
 void token_init(void) {

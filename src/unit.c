@@ -19,6 +19,7 @@ struct compilation_unit* parse_unit(void) {
 void print_unit(FILE* file, const struct compilation_unit* u) {
    for (size_t i = 0; i < buf_len(u->funcs); ++i) {
       print_func(file, u->funcs[i]);
+      fputc('\n', file);
    }
 }
 void print_ir_unit(FILE* file, const struct compilation_unit* u) {

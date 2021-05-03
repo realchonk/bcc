@@ -41,6 +41,9 @@ const struct target_info target_info = {
 
    .fend_asm = "asm",
    .fend_obj = "o",
+
+   .ptrdiff_type = INT_INT,
+   .has_c99_array = false,
 };
 
 int assemble(const char* source, const char* output) {

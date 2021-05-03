@@ -4,15 +4,6 @@
 #include "optim.h"
 #include "bcc.h"
 
-struct value {
-   struct value_type* type;
-   union {
-      istr_t sVal;
-      intmax_t iVal;
-      uintmax_t uVal;
-      fpmax_t fVal;
-   };
-};
 
 #define do_binary(t, op) \
    switch ((t)->type) { \
@@ -40,10 +31,10 @@ struct value {
       return false; \
    }
 
-static bool try_eval(const struct expression* e, struct value* val) {
+bool try_eval_expr(const struct expression* e, struct value* val) {
    switch (e->type) {
    case EXPR_PAREN:
-      return try_eval(e->expr, val);
+      return try_eval_expr(e->expr, val);
    case EXPR_INT:
       val->type = get_value_type(NULL, e);
       val->iVal = e->iVal;
@@ -59,7 +50,7 @@ static bool try_eval(const struct expression* e, struct value* val) {
    case EXPR_BINARY:
    {
       struct value left, right, result;
-      if (!try_eval(e->binary.left, &left) || !try_eval(e->binary.right, &right)) return false;
+      if (!try_eval_expr(e->binary.left, &left) || !try_eval_expr(e->binary.right, &right)) return false;
       result.type = common_value_type_free(left.type, right.type, false); // TODO: convert to common
 
       switch (e->binary.op.type) {
@@ -117,7 +108,7 @@ static bool try_eval(const struct expression* e, struct value* val) {
    case EXPR_UNARY:
    {
       struct value right, result;
-      if (!try_eval(e->unary.expr, &right)) return false;
+      if (!try_eval_expr(e->unary.expr, &right)) return false;
       result.type = right.type;
       right.type = NULL;
 
@@ -157,7 +148,7 @@ static bool try_eval(const struct expression* e, struct value* val) {
       while (i < (buf_len(e->comma) - 1)) {
          struct expression* sub = e->comma[i];
          struct value val;
-         if (try_eval(sub, &val)) {
+         if (try_eval_expr(sub, &val)) {
             buf_remove(e->comma, i, 1);
             free_expr(sub);
          } else ++i;
@@ -166,7 +157,7 @@ static bool try_eval(const struct expression* e, struct value* val) {
       if (buf_len(e->comma) == 1) {
          struct expression* sub = e->comma[0];
          struct value result;
-         if (try_eval(sub, &result)) {
+         if (try_eval_expr(sub, &result)) {
             *val = result;
             return true;
          }
@@ -184,7 +175,7 @@ struct expression* optim_expr(struct expression* e) {
     || e->type == EXPR_CHAR || optim_level < 1)
       return e;
    struct value result;
-   if (try_eval(e, &result)) {
+   if (try_eval_expr(e, &result)) {
       free_expr(e);
       e = new_expr();
       switch (result.type->type) {

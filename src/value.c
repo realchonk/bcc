@@ -16,6 +16,12 @@ const char* fp_size_str[NUM_FPS] = {
    "float",
    "double",
 };
+const char* value_type_str[NUM_VALS] = {
+   "integer",
+   "floating-point number",
+   "pointer",
+   "void",
+};
 
 void print_value_type(FILE* file, const struct value_type* val) {
    switch (val->type) {
@@ -39,7 +45,13 @@ void print_value_type(FILE* file, const struct value_type* val) {
 }
 
 void free_value_type(struct value_type* val) {
-   if (val->type == VAL_POINTER) free_value_type(val->pointer.type);
+   switch (val->type) {
+   case VAL_POINTER:
+      free_value_type(val->pointer.type);
+      break;
+   default:
+      break;
+   }
    free(val);
 }
 
@@ -203,6 +215,17 @@ struct value_type* common_value_type_free(struct value_type* a, struct value_typ
    return c;
 }
 
+#define check1or(a, b, c) (((a)->type == (c)) || ((b)->type == (c)))
+#define check1and(a, b, c) (((a)->type == (c)) && ((b)->type == (c)))
+#define check2(a, b, c, d) ((((a)->type == (c)) && ((b)->type == (d))) || (((a)->type == (d)) && ((b)->type == (c))))
+
+static struct value_type* decay(struct value_type* vt) {
+   if (vt->type == VAL_POINTER && vt->pointer.is_array) {
+      vt->pointer.is_array = false;
+   }
+   return vt;
+}
+
 struct value_type* get_value_type(struct scope* scope, const struct expression* e) {
    struct value_type* type;
    switch (e->type) {
@@ -219,6 +242,13 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
       } else {
          type->integer.size = e->iVal > target_info.max_int ? INT_LONG : INT_INT;
       }
+      return type;
+   case EXPR_SIZEOF:
+      type = new_vt();
+      type->type = VAL_INT;
+      type->is_const = true;
+      type->integer.is_unsigned = true;
+      type->integer.size = INT_INT;
       return type;
    case EXPR_FLOAT:
       type = new_vt();
@@ -270,8 +300,111 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
       type->is_const = true;
       return type;
    case EXPR_ASSIGN:
-      return get_value_type(scope, e->binary.left);
+   {
+      struct value_type* vl = get_value_type(scope, e->assign.left);
+      struct value_type* vr = get_value_type(scope, e->assign.right);
+      if (!is_castable(vr, vl, true))
+         parse_error(&e->begin, "incompatible types");
+      free_value_type(vr);
+      return vl;
+   }
    case EXPR_BINARY:
+   {
+      struct value_type* vl = get_value_type(scope, e->binary.left);
+      struct value_type* vr = get_value_type(scope, e->binary.right);
+      struct value_type* result;
+      if (check1or(vl, vr, VAL_VOID))
+         parse_error(&e->binary.op.begin, "binary operation on void");
+      switch (e->binary.op.type) {
+      case TK_EQEQ:
+      case TK_NEQ:
+      case TK_GR:
+      case TK_GREQ:
+      case TK_LE:
+      case TK_LEEQ:
+         if (vl->type != vr->type) {
+            if (check2(vl, vr, VAL_POINTER, VAL_FLOAT))
+               parse_error(&e->binary.op.begin, "comparisson between pointer and floating-point");
+            else if (check2(vl, vr, VAL_POINTER, VAL_INT))
+               parse_warn(&e->binary.op.begin, "comparisson between pointer and integer");
+         } else if (check1and(vl, vr, VAL_POINTER)) {
+            if (vl->pointer.type->type != vr->pointer.type->type)
+               parse_error(&e->binary.op.begin, "comparisson between pointer of different types");
+            // TODO: check for the specifics
+         }
+         result = new_vt();
+         result->type = VAL_INT;
+         result->integer.size = INT_INT;
+         result->integer.is_unsigned = false;
+         free_value_type(vl);
+         free_value_type(vr);
+         return result;
+      case TK_PLUS:
+         if (check1and(vl, vr, VAL_POINTER))
+            parse_error(&e->binary.op.begin, "addition of pointers");
+         switch (vl->type) {
+         case VAL_INT:
+            if (vr->type == VAL_POINTER) return free_value_type(vl), vr;
+            else return common_value_type_free(vl, vr, true);
+         case VAL_FLOAT:
+            if (vr->type == VAL_POINTER)
+               parse_error(&e->binary.op.begin, "addition of pointer and floating-point number");
+            else return common_value_type_free(vl, vr, true);
+         case VAL_POINTER:
+            if (vr->type == VAL_INT) return free_value_type(vr), decay(vl);
+            else if (vr->type == VAL_FLOAT)
+               parse_error(&e->binary.op.begin, "addition of pointer and floating-point number");
+            panic("get_value_type(): addition of pointer and '%s'", value_type_str[vr->type]);
+         default:
+            panic("get_value_type(): unsupported value type '%s'", value_type_str[vl->type]);
+         }
+      case TK_MINUS:
+         switch (vl->type) {
+         case VAL_INT:
+            if (vr->type == VAL_POINTER)
+               parse_error(&e->binary.op.begin, "invalid types");
+            else return common_value_type_free(vl, vr, true);
+         case VAL_FLOAT:
+            if (vr->type == VAL_POINTER)
+               parse_error(&e->binary.op.begin, "invalid types");
+            else return common_value_type_free(vl, vr, true);
+         case VAL_POINTER:
+            if (vr->type == VAL_FLOAT)
+               parse_error(&e->binary.op.begin, "invalid types");
+            else if (vr->type == VAL_INT) return free_value_type(vr), decay(vl);
+            else if (vr->type == VAL_POINTER) {
+               result = new_vt();
+               result->type = VAL_INT;
+               result->integer.size = target_info.ptrdiff_type;
+               result->integer.is_unsigned = false;
+               free_value_type(vl);
+               free_value_type(vr);
+               return result;
+            }
+            else panic("get_value_type(): unsupported value type '%s'", value_type_str[vr->type]);
+         default:
+            panic("get_value_type(): unsupported value type '%s'", value_type_str[vl->type]);
+         }
+      case TK_STAR:
+      case TK_SLASH:
+      case TK_PERC:
+         if (check1or(vl, vr, VAL_POINTER))
+            parse_error(&e->binary.op.begin, "invalid use of pointer");
+         else return common_value_type_free(vl, vr, true);
+      case TK_AMP:
+      case TK_PIPE:
+      case TK_XOR:
+         if (check1or(vl, vr, VAL_FLOAT))
+            parse_error(&e->binary.op.begin, "bitwise operation on floating-point number");
+         else if (check1or(vl, vr, VAL_POINTER))
+            parse_error(&e->binary.op.begin, "bitwise operation on pointer");
+         else return common_value_type_free(vl, vr, true);
+
+      default:
+         panic("get_value_type(): binary operator '%s' not implemented", token_type_str[e->binary.op.type]);
+      }
+      panic("get_value_type(): reached unreachable");
+   }
       return common_value_type_free(get_value_type(scope, e->binary.left), get_value_type(scope, e->binary.right), true); // TODO
    case EXPR_TERNARY:
       return common_value_type_free(get_value_type(scope, e->ternary.true_case), get_value_type(scope, e->ternary.false_case), true);
@@ -318,6 +451,13 @@ struct value_type* copy_value_type(const struct value_type* vt) {
       break;
    case VAL_POINTER:
       copy->pointer.type = copy_value_type(vt->pointer.type);
+      copy->pointer.is_array = vt->pointer.is_array;
+      if (vt->pointer.is_array) {
+         copy->pointer.array.has_const_size = vt->pointer.array.has_const_size;
+         if (copy->pointer.array.has_const_size)
+            copy->pointer.array.size = vt->pointer.array.size;
+         else copy->pointer.array.dsize = vt->pointer.array.dsize;
+      }
       break;
    case VAL_VOID:
       break;
@@ -375,5 +515,47 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
       default: panic("is_castable(): invalid value type '%u'", type->type);
       }
    default: panic("is_castable(): invalid value type '%u'", type->type);
+   }
+}
+struct value_type* make_array_vt(struct value_type* vt) {
+   struct value_type* arr = new_vt();
+   arr->type = VAL_POINTER;
+   arr->begin = vt->begin;
+   arr->pointer.type = vt;
+   arr->pointer.is_array = true;
+   return arr;
+}
+size_t sizeof_value(const struct value_type* vt) {
+   switch (vt->type) {
+   case VAL_POINTER:
+      if (vt->pointer.is_array && vt->pointer.array.has_const_size)
+         return sizeof_value(vt->pointer.type) * vt->pointer.array.size;
+      else return target_info.size_pointer;
+   case VAL_FLOAT:
+      switch (vt->fp.size) {
+      case FP_FLOAT:
+         return target_info.size_float;
+      case FP_DOUBLE:
+         return target_info.size_double;
+      default:
+         panic("sizeof_value(): invalid floating-point size '%s'", fp_size_str[vt->fp.size]);
+      }
+   case VAL_INT:
+      switch (vt->integer.size) {
+      case INT_BYTE:
+         return target_info.size_byte;
+      case INT_CHAR:
+         return target_info.size_char;
+      case INT_SHORT:
+         return target_info.size_short;
+      case INT_INT:
+         return target_info.size_int;
+      case INT_LONG:
+         return target_info.size_long;
+      default:
+         panic("sizeof_value(): invalid integer size '%s'", integer_size_str[vt->integer.size]);
+      }
+   default:
+      panic("sizeof_value(): invalid value type '%s'", value_type_str[vt->type]);
    }
 }

@@ -33,6 +33,7 @@ enum token_type {
    KW_FLOAT, KW_DOUBLE,
    KW_IF, KW_ELSE, KW_WHILE, KW_DO,
    KW_RETURN, KW_FOR, KW_BREAK, KW_CONTINUE,
+   KW_SIZEOF,
    NUM_TOKENS,
 };
 

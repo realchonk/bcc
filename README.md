@@ -7,9 +7,9 @@
 ## Building/Installation
 Building the compiler for the host architecture:<br>
 ```make```<br>
-Builting the compiler for a different target architecture:<br>
-```make TARGET=... all```<br>
+Builting the compiler for a different target architecture (eg. i386)<br>
+```make TARGET=i386 all```<br>
 Installing the compiler to /usr/local:<br>
 ```sudo make install```<br>
-Installing the compiler to a different location:<br>
-```make DESTDIR=... install```<br>
+Installing the compiler to a different location (eg. /usr)<br>
+```make PREFIX=/usr install```<br>

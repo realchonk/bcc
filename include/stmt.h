@@ -39,7 +39,7 @@ struct statement {
       struct {
          struct expression* cond;
          struct statement* stmt;
-         struct expression* end;
+         struct expression* end; // optional, unused for do-while
       } whileloop;
    };
 };

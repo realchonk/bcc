@@ -1,6 +1,5 @@
+VER="0.2"
 TARGET ?= $(shell uname -m)
-
-VER="0.1"
 
 CC=cc
 CFLAGS += -c -g -std=c99 -Og -Iinclude -Wall -Wextra -D_XOPEN_SOURCE=700 -Wno-missing-braces
@@ -10,11 +9,12 @@ LD=$(CC)
 LDFLAGS=
 LIBS=-lm
 
-DESTDIR ?= /usr/local
-BINDIR ?= bin
-MANDIR ?= share/man/man1
+PREFIX ?= /usr/local
+BINDIR ?= /bin
+MANDIR ?= /share/man/man1
 
 includes=$(wildcard include/*.h)
+sources=$(wildcard src/*.c) $(wildcard src/$(TARGET)/*.c)
 objects=$(patsubst src/%.c,obj/%.o,$(wildcard src/*.c)) \
 		  $(patsubst src/$(TARGET)/%.c,obj/$(TARGET)/%.o,$(wildcard src/$(TARGET)/*.c))
 
@@ -40,8 +40,8 @@ todo:
 	@grep -n TODO $(sources) $(includes) || true
 
 install:
-	install -Dm755 bcc $(DESTDIR)/$(BINDIR)/bcc
-	install -Dm644 bcc.1 $(DESTDIR)/$(MANDIR)/bcc.1
+	install -Dm755 bcc $(PREFIX)/$(BINDIR)/bcc
+	install -Dm644 bcc.1 $(PREFIX)/$(MANDIR)/bcc.1
 
 test: bcc
 	make -C test run

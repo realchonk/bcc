@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "target.h"
 #include "error.h"
 #include "parser.h"
 #include "lex.h"
@@ -12,6 +13,8 @@ const char* stmt_type_str[NUM_STMTS] = {
    [STMT_DO_WHILE]= "do-while",
    [STMT_VARDECL] = "variable declaration",
    [STMT_SCOPE]   = "scope/compound",
+   [STMT_BREAK]   = "break",
+   [STMT_CONTINUE]= "continue",
 };
 
 void free_stmt(struct statement* s) {
@@ -81,11 +84,22 @@ void print_stmt(FILE* file, const struct statement* s) {
    case STMT_VARDECL: {
       const struct variable* var = &s->parent->vars[s->var_idx];
       if (!var) panic("print_stmt(): var == NULL");
-      print_value_type(file, var->type);
-      fprintf(file, " %s", var->name);
-      if (var->init) {
-         fputs(" = ", file);
-         print_expr(file, var->init);
+      if (var->type->type == VAL_POINTER && var->type->pointer.is_array) {
+         print_value_type(file, var->type->pointer.type);
+         fprintf(file, " %s[", var->name);
+         if (var->type->pointer.array.has_const_size) {
+            fprintf(file, "%ju", var->type->pointer.array.size);
+         } else {
+            print_expr(file, var->type->pointer.array.dsize);
+         }
+         fputc(']', file);
+      } else {
+         print_value_type(file, var->type);
+         fprintf(file, " %s", var->name);
+         if (var->init) {
+            fputs(" = ", file);
+            print_expr(file, var->init);
+         }
       }
       fputc(';', file);
       break;
@@ -226,11 +240,43 @@ struct statement* parse_stmt(struct scope* scope) {
          if (vtype->type == VAL_VOID)
             parse_error(&vtype->begin, "invalid use of incomplete type void");
          struct variable var;
-         var.type = vtype;
          var.name = lexer_expect(TK_NAME).str;
          var.begin = vtype->begin;
+
+         // TODO: add multi-dimensional arrays
+         if (lexer_match(TK_LBRACK)) {
+            if (lexer_matches(TK_RBRACK))
+               parse_error(&vtype->end, "expected array size");
+            vtype = make_array_vt(vtype);
+            struct expression* expr = parse_expr();
+            struct value val;
+            if (try_eval_expr(expr, &val)) {
+               if (val.type->type != VAL_INT)
+                  parse_error(&expr->begin, "expected integer size");
+               else if (!val.type->integer.is_unsigned && val.iVal < 0)
+                  parse_error(&expr->begin, "negative array size");
+               else if (val.uVal == 0)
+                  parse_error(&expr->begin, "zero length array");
+               vtype->pointer.array.has_const_size = true;
+               vtype->pointer.array.size = val.uVal;
+            } else {
+               if (!target_info.has_c99_array)
+                  parse_error(&expr->begin, BCC_ARCH " does not support C99 arrays.");
+               struct value_type* st = get_value_type(scope, expr);
+               if (st->type != VAL_INT)
+                  parse_error(&expr->begin, "expected integer size");
+               vtype->pointer.array.has_const_size = false;
+               vtype->pointer.array.dsize = expr;
+            }
+            vtype->end = lexer_expect(TK_RBRACK).end;
+         }
+
          var.init = lexer_match(TK_EQ) ? parse_expr() : NULL;
          var.end = lexer_expect(TK_SEMICOLON).end;
+         var.type = vtype;
+
+         if (vtype->type == VAL_POINTER && vtype->pointer.is_array && var.init) // TODO: implement this
+            parse_error(&var.init->begin, "array initialization is not supported");
         
          stmt->var_idx = scope_add_var(scope, &var);
          if (stmt->var_idx == SIZE_MAX) parse_error(&var.begin, "variable '%s' is already declared.", var.name);

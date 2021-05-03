@@ -1,4 +1,5 @@
 #include <tgmath.h>
+#include "target.h"
 #include "error.h"
 #include "ir.h"
 
@@ -86,8 +87,21 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    case EXPR_BINARY:
    {
       const bool is_unsigned = vt->type == VAL_POINTER || (vt->type == VAL_INT && vt->integer.is_unsigned);
+      struct value_type* vl = get_value_type(scope, e->binary.left);
+      struct value_type* vr = get_value_type(scope, e->binary.right);
       n = ir_expr(scope, e->binary.left);
       ir_append(n, ir_expr(scope, e->binary.right));
+      if (((vl->type == VAL_POINTER && vr->type == VAL_INT) || (vl->type == VAL_INT && vr->type == VAL_POINTER)) && (e->binary.op.type == TK_PLUS || e->binary.op.type == TK_MINUS)) {
+         tmp = new_node(IR_IMUL);
+         tmp->binary.dest = creg - 1;
+         tmp->binary.a.type = IRT_REG;
+         tmp->binary.a.reg = creg - 1;
+         tmp->binary.b.type = IRT_UINT;
+         tmp->binary.b.uVal = sizeof_value((vl->type == VAL_POINTER ? vl : vr)->pointer.type);
+         tmp->binary.size = irs;
+         ir_append(n, tmp);
+      }
+      
       tmp = new_node(IR_NOP);
       tmp->binary.size = irs;
       tmp->binary.dest = creg - 2;
@@ -107,9 +121,14 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       case TK_GREQ:  tmp->type = is_unsigned ? IR_USTGE : IR_ISTGE; break;
       case TK_LE:    tmp->type = is_unsigned ? IR_USTLT : IR_ISTLT; break;
       case TK_LEEQ:  tmp->type = is_unsigned ? IR_USTLE : IR_ISTLE; break;
+      case TK_AMP:   tmp->type = IR_IAND; break;
+      case TK_PIPE:  tmp->type = IR_IAND; break;
+      case TK_XOR:   tmp->type = IR_IAND; break;
       default:       panic("ir_expr(): unsupported binary operator '%s'", token_type_str[e->binary.op.type]);
       }
       ir_append(n, tmp);
+
+
       --creg;
       break;
    }
@@ -136,42 +155,8 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       ir_append(n, tmp);
       break;
    case EXPR_ASSIGN:
-      {
-         struct value_type* vl = get_value_type(scope, e->binary.left);     
-         struct value_type* vr = get_value_type(scope, e->binary.right);     
-         if (!is_castable(vr, vl, true)) parse_error(&e->binary.op.begin, "incompatible types");
-         else if (vl->is_const) parse_error(&e->binary.op.begin, "assignment to const");
-         free_value_type(vl);
-         free_value_type(vr);
-      }
-      n = ir_expr(scope, e->binary.right);
-      ir_append(n, ir_lvalue(scope, e->binary.left));
-      if (e->binary.op.type != TK_EQ) {
-         tmp = new_node(IR_READ);
-         tmp->move.size = irs;
-         tmp->move.dest = creg;
-         tmp->move.src = creg - 1;
-         ir_append(n, tmp);
-         tmp = new_node(IR_NOP);
-         tmp->binary.dest = creg - 2;
-         tmp->binary.a = irv_reg(creg);
-         tmp->binary.b = irv_reg(creg - 2);
-         tmp->binary.size = irs;
-         switch (e->binary.op.type) {
-         case TK_PLEQ:     tmp->type = IR_IADD; break;
-         case TK_MIEQ:     tmp->type = IR_ISUB; break;
-         case TK_STEQ:     tmp->type = IR_IMUL; break;
-         case TK_SLEQ:     tmp->type = IR_IDIV; break;
-         case TK_PERCEQ:   tmp->type = IR_IMOD; break;
-         case TK_AMPEQ:    tmp->type = IR_IAND; break;
-         case TK_PIPEEQ:   tmp->type = IR_IOR; break;
-         case TK_XOREQ:    tmp->type = IR_IXOR; break;
-         case TK_GRGREQ:   tmp->type = IR_ILSL; break;
-         case TK_LELEEQ:   tmp->type = IR_ILSR; break;
-         default:          parse_error(&e->binary.op.begin, "invalid assignment operator '%s'", token_type_str[e->binary.op.type]);
-         }
-         ir_append(n, tmp);
-      }
+      n = ir_expr(scope, e->assign.right);
+      ir_append(n, ir_lvalue(scope, e->assign.left));
       tmp = new_node(IR_WRITE);
       tmp->move.size = irs;
       tmp->move.dest = creg - 1;
@@ -222,9 +207,13 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       tmp->move.size = irs;
       ir_append(n, tmp);
 
-      tmp = new_node(e->unary.op.type == TK_PLPL ? IR_IINC : IR_IDEC);
-      tmp->unary.reg = creg - 1;
-      tmp->unary.size = irs;
+      tmp = new_node(e->unary.op.type == TK_PLPL ? IR_IADD : IR_ISUB);
+      tmp->binary.dest = creg - 1;
+      tmp->binary.a.type = IRT_REG;
+      tmp->binary.a.reg = creg - 1;
+      tmp->binary.b.type = IRT_UINT;
+      tmp->binary.b.uVal = vt->type == VAL_POINTER ? sizeof_value(vt->pointer.type) : 1;
+      tmp->binary.size = irs;
       ir_append(n, tmp);
 
       tmp = new_node(IR_WRITE);
@@ -244,9 +233,13 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       tmp->move.size = irs;
       ir_append(n, tmp);
 
-      tmp = new_node(e->unary.op.type == TK_PLPL ? IR_IINC : IR_IDEC);
-      tmp->unary.reg = creg - 1;
-      tmp->unary.size = irs;
+      tmp = new_node(e->unary.op.type == TK_PLPL ? IR_IADD : IR_ISUB);
+      tmp->binary.dest = creg - 1;
+      tmp->binary.a.type = IRT_REG;
+      tmp->binary.a.reg = creg - 1;
+      tmp->binary.b.type = IRT_UINT;
+      tmp->binary.b.uVal = vt->type == VAL_POINTER ? sizeof_value(vt->pointer.type) : 1;
+      tmp->binary.size = irs;
       ir_append(n, tmp);
 
       tmp = new_node(IR_WRITE);
@@ -255,9 +248,13 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       tmp->move.size = irs;
       ir_append(n, tmp);
       
-      tmp = new_node(e->unary.op.type == TK_PLPL ? IR_IDEC : IR_IINC);
-      tmp->unary.reg = creg - 1;
-      tmp->unary.size = irs;
+      tmp = new_node(e->unary.op.type == TK_PLPL ? IR_ISUB : IR_IADD);
+      tmp->binary.dest = creg - 1;
+      tmp->binary.a.type = IRT_REG;
+      tmp->binary.a.reg = creg - 1;
+      tmp->binary.b.type = IRT_UINT;
+      tmp->binary.b.uVal = vt->type == VAL_POINTER ? sizeof_value(vt->pointer.type) : 1;
+      tmp->binary.size = irs;
       ir_append(n, tmp);
       break;
    case EXPR_COMMA:
@@ -300,6 +297,16 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       ir_append(n, tmp);
       break;
    }
+   case EXPR_SIZEOF:
+   {
+      struct value_type* nvt = get_value_type(scope, e->expr);
+      n = new_node(IR_LOAD);
+      n->load.dest = creg++;
+      n->load.value = sizeof_value(nvt);
+      n->load.size = IRS_INT;
+      free_value_type(nvt);
+      break;
+   }
    default:
       panic("ir_expr(): unsupported expression '%s'", expr_type_str[e->type]);
    }
@@ -338,8 +345,35 @@ ir_node_t* irgen_stmt(const struct statement* s) {
       tmp->scope = s->scope;
       return ir_append(n, tmp);
    case STMT_VARDECL:
-      if (s->parent->vars[s->var_idx].init) {
-         const struct variable* var = &s->parent->vars[s->var_idx];
+   {
+      const struct variable* var = &s->parent->vars[s->var_idx];
+      if (var->type->type == VAL_POINTER && var->type->pointer.is_array) {
+         n = new_node(IR_ALLOCA);
+         n->alloca.dest = creg;
+         if (var->type->pointer.array.has_const_size) {
+            n->alloca.size.type = IRT_UINT;
+            n->alloca.size.uVal = sizeof_value(var->type);
+         } else {
+            tmp = irgen_expr(s->parent, var->type->pointer.array.dsize);
+            n->alloca.size.type = IRT_REG;
+            n->alloca.size.reg = --creg;
+            ir_append(tmp, n);
+            n = tmp;
+         }
+         // creg is ptr to array
+         tmp = new_node(IR_LOOKUP);
+         tmp->lookup.reg = creg + 1;
+         tmp->lookup.scope = s->parent;
+         tmp->lookup.var_idx = s->var_idx;
+         ir_append(n, tmp);
+
+         tmp = new_node(IR_WRITE);
+         tmp->move.dest = creg + 1;
+         tmp->move.src = creg;
+         tmp->move.size = IRS_PTR;
+         ir_append(n, tmp);
+      }
+      else if (s->parent->vars[s->var_idx].init) {
          struct expression* init = var->init;
          n = ir_expr(s->parent, init);
          tmp = new_node(IR_LOOKUP);
@@ -356,6 +390,7 @@ ir_node_t* irgen_stmt(const struct statement* s) {
          --creg;
       } else n = new_node(IR_NOP);
       return n;
+   }
    case STMT_IF:
    {
       struct value_type* vt = get_value_type(s->parent, s->ifstmt.cond);
@@ -421,10 +456,40 @@ ir_node_t* irgen_stmt(const struct statement* s) {
       tmp->str = begin_loop;
       ir_append(n, tmp);
 
-      if (s->whileloop.end) ir_append(n, ir_expr(s->parent, s->whileloop.end));
+      if (s->whileloop.end) ir_append(n, irgen_expr(s->parent, s->whileloop.end));
 
       tmp = new_node(IR_JMP);
       tmp->str = begin;
+      ir_append(n, tmp);
+
+      tmp = new_node(IR_LABEL);
+      tmp->str = end_loop;
+      ir_append(n, tmp);
+
+      begin_loop = old_begin;
+      end_loop = old_end;
+      return n;
+   }
+   case STMT_DO_WHILE:
+   {
+      const istr_t old_begin = begin_loop, old_end = end_loop;
+      struct value_type* vt = get_value_type(s->parent, s->whileloop.cond);
+      const enum ir_value_size irs = vt2irs(vt);
+      free_value_type(vt);
+      begin_loop = make_label(clbl);
+      end_loop = make_label(clbl + 1);
+      clbl += 2;
+
+      n = new_node(IR_LABEL);
+      n->str = begin_loop;
+
+      ir_append(n, irgen_stmt(s->whileloop.stmt));
+
+      ir_append(n, irgen_expr(s->parent, s->whileloop.cond));
+      tmp = new_node(IR_JMPIF);
+      tmp->cjmp.label = begin_loop;
+      tmp->cjmp.reg = --creg;
+      tmp->cjmp.size = irs;
       ir_append(n, tmp);
 
       tmp = new_node(IR_LABEL);
