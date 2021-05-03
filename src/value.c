@@ -303,7 +303,9 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
    {
       struct value_type* vl = get_value_type(scope, e->assign.left);
       struct value_type* vr = get_value_type(scope, e->assign.right);
-      if (!is_castable(vr, vl, true))
+      if (vl->is_const)
+         parse_error(&e->begin, "assignment to const");
+      else if (!is_castable(vr, vl, true))
          parse_error(&e->begin, "incompatible types");
       free_value_type(vr);
       return vl;
@@ -523,6 +525,7 @@ struct value_type* make_array_vt(struct value_type* vt) {
    arr->begin = vt->begin;
    arr->pointer.type = vt;
    arr->pointer.is_array = true;
+   arr->is_const = true;
    return arr;
 }
 size_t sizeof_value(const struct value_type* vt) {

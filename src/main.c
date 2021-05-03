@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
          break;
       }
       case 'V':
-         printf("bcc %s\nCopyright (C) Benjamin Stürz.\nCompiled for %s.\n", BCC_VER, BCC_ARCH);
+         printf("bcc %s\nCopyright (C) Benjamin Stürz.\nThis software is distributed under the terms of the GPLv2\nCompiled for %s\n", BCC_VER, BCC_ARCH);
          return 0;
       default: goto print_usage;
       }

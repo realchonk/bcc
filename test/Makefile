@@ -1,14 +1,26 @@
 
 all: test test.ir
 
+TARGET = $(shell ../bcc -V | tail -n1 | awk '{print $$NF}')
+
+ifeq ($(TARGET),i386)
+ASFLAGS = -felf32
+CC = cc -m32
+else ifeq ($(TARGET),x86_64)
+ASFLAGS = -felf64
+CC = cc
+else
+
+endif
+
 run: test
 	@(./$<; echo "\nexit code: $$?")
 
 test: test.o
-	gcc -o $@ $<
+	$(CC) -o $@ $<
 
 test.o: test.asm
-	nasm -felf64 -o $@ $<
+	nasm $(ASFLAGS) -o $@ $<
 
 test.asm: test.c ../bcc
 	../bcc -S -o $@ $< -O1

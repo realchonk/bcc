@@ -10,6 +10,7 @@ static const char* regs32[] = { "eax", "ecx", "edx" };
 #define reg_bp "ebp"
 #define reg_ax "eax"
 #define reg_dx "edx"
+#define reg_dxi 2
 
 #define reg8(i) ((i) < arraylen(regs8) ? regs8[i] : (panic("emit_ir(): register out of range"), NULL))
 #define reg16(i) ((i) < arraylen(regs16) ? regs16[i] : (panic("emit_ir(): register out of range"), NULL))

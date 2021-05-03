@@ -286,7 +286,7 @@ struct statement* parse_stmt(struct scope* scope) {
             if (!is_castable(old, var.type, true))
                parse_error(&var.init->begin, "incompatible init value type");
             free_value_type(old);
-         } else if (vtype->is_const) parse_error(&var.end, "expected init value for const variable");
+         } else if (vtype->is_const && (vtype->type != VAL_POINTER || !vtype->pointer.is_array)) parse_error(&var.end, "expected init value for const variable");
 
          stmt->type = STMT_VARDECL;
          stmt->begin = var.begin;

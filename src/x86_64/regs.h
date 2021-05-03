@@ -12,6 +12,7 @@ static size_t param_regs[] = { 1, 2, 3, 4, 5, 6 };
 #define reg_bp "rbp"
 #define reg_ax "rax"
 #define reg_dx "rdx"
+#define reg_dxi 3
 
 #define reg8(i) ((i) < arraylen(regs8) ? regs8[i] : (panic("emit_ir(): register out of range"), NULL))
 #define reg16(i) ((i) < arraylen(regs16) ? regs16[i] : (panic("emit_ir(): register out of range"), NULL))

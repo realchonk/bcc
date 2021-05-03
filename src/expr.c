@@ -121,7 +121,7 @@ static struct expression* expr_prim(void) {
          add->type = EXPR_BINARY;
          add->binary.op.type = TK_PLUS;
          add->binary.left = expr;
-         add->binary.right = parse_expr();
+         add->binary.right = optim_expr(parse_expr());
          add->begin = expr->begin;
          add->end = lexer_expect(TK_RBRACK).end;
          
@@ -137,7 +137,7 @@ static struct expression* expr_prim(void) {
       expr = tmp;
    }
 
-   return expr;
+   return optim_expr(expr);
 }
 
 static struct expression* expr_unary(void) {

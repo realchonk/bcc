@@ -156,6 +156,17 @@ static struct token lexer_impl(void) {
    ch = input_peek();
    if (isdigit(ch)) {
       uintmax_t iVal = 0;
+      if (ch == '0') {
+         input_skip();
+         ch = input_peek();
+         if (ch == 'x' || ch == 'X') {
+            input_skip();
+            while (isxdigit(input_peek())) iVal = iVal * 16 + xctoi(input_next());
+         } else if (isodigit(ch)) {
+            while (isodigit(input_peek())) iVal = iVal * 8 + (input_next() - '0');
+         }
+         return (struct token){ .type = TK_INTEGER, start, pos, .iVal = iVal };
+      }
       while (isdigit(input_peek())) iVal = iVal * 10 + (input_next() - '0');
       if (input_match('.')) {
          fpmax_t fVal = 0.0;

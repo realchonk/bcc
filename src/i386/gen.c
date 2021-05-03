@@ -213,7 +213,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       const char* dest;
       reg_op(eax, 0, n->binary.size);
       reg_op(dest, n->binary.dest, n->binary.size);
-      emit("push %s", reg_dx);
+      if (n->binary.dest != reg_dxi) emit("push %s", reg_dx);
       if (n->binary.a.type != IRT_REG || n->binary.dest != n->binary.a.reg) {
          emit("mov %s, %s", dest, a);
       }
@@ -232,7 +232,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
          emit("mov %s, %s", dest, eax);
          emit("pop %s", reg_ax);
       }
-      emit("pop %s", reg_dx);
+      if (n->binary.dest != reg_dxi) emit("pop %s", reg_dx);
       return n->next;
    }
    case IR_IDIV:

@@ -170,6 +170,7 @@ bool try_eval_expr(const struct expression* e, struct value* val) {
 }
 
 struct expression* optim_expr(struct expression* e) {
+   if (optim_level < 1) return e;
    if (e->type == EXPR_INT || e->type == EXPR_UINT
     || e->type == EXPR_STRING || e->type == EXPR_FLOAT
     || e->type == EXPR_CHAR || optim_level < 1)

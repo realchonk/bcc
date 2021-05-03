@@ -43,7 +43,7 @@ install:
 	install -Dm755 bcc $(PREFIX)/$(BINDIR)/bcc
 	install -Dm644 bcc.1 $(PREFIX)/$(MANDIR)/bcc.1
 
-test: bcc
+test:
 	make -C test run
 
 
