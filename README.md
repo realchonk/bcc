@@ -1,5 +1,10 @@
 # Compiler for a C-like language
 
+## Description
+This is my third iteration of compiler design and implementation.<br>
+The <strong>bcc</strong> compiler is heavily based on the predecessor [benc](https://github.com/Benni3D/benc).<br>
+
+
 ## Target architectures
 - i386 (x86-32/IA-32)
 - x86\_64 (amd64/EMT64)

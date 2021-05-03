@@ -41,7 +41,7 @@ struct target_info {
    const char* const fend_obj;
 
    const enum integer_size ptrdiff_type;
-   const bool has_c99_array; // runtime determined size?
+   const bool has_c99_array; // variable-length array support?
 };
 
 extern const struct target_info target_info;
