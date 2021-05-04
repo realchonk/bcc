@@ -79,6 +79,7 @@ const char* token_type_str[NUM_TOKENS] = {
    [KW_CONTINUE]  = "continue",
    [KW_SIZEOF]    = "sizeof",
    [KW_ARRAYLEN]  = "arraylen",
+   [KW_AUTO]      = "auto",
 };
 
 void token_init(void) {

@@ -152,6 +152,11 @@ struct value_type* parse_value_type(void) {
       if (vt->type != NUM_VALS) parse_error(&tk.begin, "invalid combination of signed or unsigned and void");
       vt->type = VAL_VOID;
       break;
+   case KW_AUTO:
+      lexer_skip();
+      if (vt->type != NUM_VALS) parse_error(&tk.begin, "invalid combination of signed or unsigned and void");
+      vt->type = VAL_AUTO;
+      break;
    default: break;
    }
    if (vt->type == NUM_VALS) {
@@ -229,7 +234,7 @@ struct value_type* common_value_type_free(struct value_type* a, struct value_typ
 #define check1and(a, b, c) (((a)->type == (c)) && ((b)->type == (c)))
 #define check2(a, b, c, d) ((((a)->type == (c)) && ((b)->type == (d))) || (((a)->type == (d)) && ((b)->type == (c))))
 
-static struct value_type* decay(struct value_type* vt) {
+struct value_type* decay(struct value_type* vt) {
    if (vt->type == VAL_POINTER && vt->pointer.is_array) {
       vt->pointer.is_array = false;
    }

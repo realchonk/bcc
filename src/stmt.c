@@ -300,8 +300,10 @@ struct statement* parse_stmt(struct scope* scope) {
             else parse_error(&var.init->begin, "array initialization is only supported for char []");
          }
 
-         stmt->var_idx = scope_add_var(scope, &var);
-         if (stmt->var_idx == SIZE_MAX) parse_error(&var.begin, "variable '%s' is already declared.", var.name);
+         if (vtype->type == VAL_AUTO) {
+            if (!var.init) parse_error(&var.end, "auto variable expects initializer");
+            else var.type = decay(get_value_type(scope, var.init));
+         }
 
          if (var.init) {
             struct value_type* old = get_value_type(scope, var.init);
@@ -310,7 +312,9 @@ struct statement* parse_stmt(struct scope* scope) {
             free_value_type(old);
          } else if (vtype->is_const && (vtype->type != VAL_POINTER || !vtype->pointer.is_array))
             parse_error(&var.end, "expected init value for const variable");
-
+         
+         stmt->var_idx = scope_add_var(scope, &var);
+         if (stmt->var_idx == SIZE_MAX) parse_error(&var.begin, "variable '%s' is already declared.", var.name);
          stmt->type = STMT_VARDECL;
          stmt->begin = var.begin;
          stmt->end = var.end;

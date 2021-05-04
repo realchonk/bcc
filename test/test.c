@@ -5,8 +5,9 @@ void* memcpy(void*, const void*, unsigned);
 
 int main(void) {
    char str[] = "Hello World";
-   printf("str is '%s'\n", &str);
-   return sizeof(int) * arraylen(str);
+   auto s = str;
+   printf("s = %s\n", s);
+   return sizeof(s);
 }
 
 

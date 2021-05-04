@@ -9,6 +9,7 @@ enum value_base_type {
    VAL_FLOAT,
    VAL_POINTER,
    VAL_VOID,
+   VAL_AUTO,
 
    NUM_VALS,
 };
@@ -80,6 +81,7 @@ struct value_type* copy_value_type(const struct value_type*);
 struct value_type* make_array_vt(struct value_type*);
 bool try_eval_expr(const struct expression*, struct value*);
 size_t sizeof_value(const struct value_type*);
+struct value_type* decay(struct value_type*);
 
 bool is_castable(const struct value_type* old, const struct value_type* type, bool implicit);
 
