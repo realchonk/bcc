@@ -8,6 +8,7 @@ const char* ir_size_str[NUM_IR_SIZES] = {
    [IRS_SHORT] = "short",
    [IRS_INT]   = "int",
    [IRS_LONG]  = "long",
+   [IRS_PTR]   = "ptr",
 };
 const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_NOP]          = "nop",
@@ -58,6 +59,7 @@ const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_JMPIFN]       = "jmpifn",
    [IR_LABEL]        = "",
    [IR_ALLOCA]       = "alloca",
+   [IR_COPY]         = "copy",
 };
 const char* ir_value_type_str[NUM_IR_VALUES] = {
    [IRT_REG]         = "register",
@@ -187,6 +189,9 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
    case IR_ALLOCA:
       fprintf(file, " R%u, ", n->alloca.dest);
       print_ir_value(file, &n->alloca.size);
+      break;
+   case IR_COPY:
+      fprintf(file, " R%u, R%u, %ju", n->copy.dest, n->copy.src, n->copy.len);
       break;
    }
    fputc('\n', file);

@@ -14,7 +14,7 @@ struct function* parse_func(void) {
    func->ir_code = NULL;
    lexer_expect(TK_LPAREN);
 
-   if (!lexer_match(KW_VOID) && !lexer_matches(TK_RPAREN)) {
+   if (!lexer_matches(TK_RPAREN)) {
       do {
          if (lexer_match(TK_DDD)) {
             func->variadic = true;
@@ -22,14 +22,25 @@ struct function* parse_func(void) {
          }
          struct variable var;
          var.type = parse_value_type();
-         const struct token name = lexer_expect(TK_NAME);
-         
-         var.name = name.str;
+         if (var.type->type == VAL_VOID) {
+            if (func->params)
+               parse_error(&var.type->begin, "incomplete type void");
+            break;
+         }
          var.begin = var.type->begin;
-         var.end = name.end;
-         for (size_t i = 0; i < buf_len(func->params); ++i) {
-            if (var.name == func->params[i].name)
-               parse_error(&var.begin, "parameter '%s' is already declared", var.name);
+         
+         if (lexer_matches(TK_NAME)) {
+            const struct token name = lexer_next();
+         
+            var.name = name.str;
+            var.end = name.end;
+            for (size_t i = 0; i < buf_len(func->params); ++i) {
+               if (var.name == func->params[i].name)
+                  parse_error(&var.begin, "parameter '%s' is already declared", var.name);
+            }
+         } else {
+            var.name = NULL;
+            var.end = var.type->end;
          }
          buf_push(func->params, var);
       } while (lexer_match(TK_COMMA));

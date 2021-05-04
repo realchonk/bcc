@@ -56,6 +56,7 @@ enum ir_node_type {
    IR_JMPIFN,        // .cjmp    | jump to label if false
    IR_LABEL,         // .str     | define label
    IR_ALLOCA,        // .alloca  | allocate data on the stack
+   IR_COPY,          // .copy    | copy array
 
    NUM_IR_NODES,
 };
@@ -150,6 +151,10 @@ typedef struct ir_node {
          ir_reg_t dest;
          struct ir_value size;
       } alloca;
+      struct {
+         ir_reg_t dest, src;
+         uintmax_t len;
+      } copy;
    };
 } ir_node_t;
 

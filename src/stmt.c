@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "target.h"
 #include "error.h"
 #include "parser.h"
@@ -245,9 +246,13 @@ struct statement* parse_stmt(struct scope* scope) {
 
          // TODO: add multi-dimensional arrays
          if (lexer_match(TK_LBRACK)) {
-            if (lexer_matches(TK_RBRACK))
-               parse_error(&vtype->end, "expected array size");
             vtype = make_array_vt(vtype);
+            if (lexer_match(TK_RBRACK)) {
+               //parse_error(&vtype->end, "expected array size");
+               vtype->pointer.array.has_const_size = false;
+               vtype->pointer.array.dsize = NULL;
+               goto skip_asize;
+            }
             struct expression* expr = parse_expr();
             struct value val;
             if (try_eval_expr(expr, &val)) {
@@ -270,14 +275,31 @@ struct statement* parse_stmt(struct scope* scope) {
             }
             vtype->end = lexer_expect(TK_RBRACK).end;
          }
+      skip_asize:
 
          var.init = lexer_match(TK_EQ) ? parse_expr() : NULL;
          var.end = lexer_expect(TK_SEMICOLON).end;
          var.type = vtype;
 
-         if (vtype->type == VAL_POINTER && vtype->pointer.is_array && var.init) // TODO: implement this
-            parse_error(&var.init->begin, "array initialization is not supported");
-        
+         if (vtype->type == VAL_POINTER && vtype->pointer.is_array && var.init) {
+            if (!vtype->pointer.array.has_const_size && vtype->pointer.array.dsize)
+               parse_error(&var.init->begin, "initializing a variable-length array is not supported");
+            if (vtype->pointer.type->type == VAL_INT && vtype->pointer.type->integer.size == INT_CHAR) {
+               if (var.init->type == EXPR_STRING) {
+                  const char* str = var.init->str;
+                  const size_t len = strlen(str) + 1;
+                  if (vtype->pointer.array.has_const_size) {
+                     if (len < vtype->pointer.array.size)
+                        parse_warn(&var.init->begin, "array is too small to fit string, cutting off");
+                  } else {
+                     vtype->pointer.array.has_const_size = true;
+                     vtype->pointer.array.size = len;
+                  }
+               } else parse_error(&var.init->begin, "only string literal initialization supported");
+            }
+            else parse_error(&var.init->begin, "array initialization is only supported for char []");
+         }
+
          stmt->var_idx = scope_add_var(scope, &var);
          if (stmt->var_idx == SIZE_MAX) parse_error(&var.begin, "variable '%s' is already declared.", var.name);
 
@@ -286,7 +308,8 @@ struct statement* parse_stmt(struct scope* scope) {
             if (!is_castable(old, var.type, true))
                parse_error(&var.init->begin, "incompatible init value type");
             free_value_type(old);
-         } else if (vtype->is_const && (vtype->type != VAL_POINTER || !vtype->pointer.is_array)) parse_error(&var.end, "expected init value for const variable");
+         } else if (vtype->is_const && (vtype->type != VAL_POINTER || !vtype->pointer.is_array))
+            parse_error(&var.end, "expected init value for const variable");
 
          stmt->type = STMT_VARDECL;
          stmt->begin = var.begin;

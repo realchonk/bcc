@@ -64,6 +64,7 @@ static void emit_begin(void) {
    if (defined) buf_free(defined);
    emit("default rel");
    emit("section .text");
+   emit("extern memcpy");
 }
 static void emit_end(void) {
    for (size_t i = 0; i < buf_len(unresolved); ++i) {
@@ -625,6 +626,29 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       reg_op(dest, n->alloca.dest, IRS_PTR);
       emit("sub %s, %s", reg_sp, num);
       emit("mov %s, %s", dest, reg_sp);
+      return n->next;
+   }
+   case IR_COPY:
+   {
+      // TODO: stack aligning
+#if BCC_x86_64
+      const size_t align = esp & 15 ? 16 - (esp & 15) : 0;
+      if (align) emit("sub %s, %zu", reg_sp, align);
+      emit("mov %s, %s", mreg(param_regs[1]), mreg(n->copy.src));
+      emit("mov %s, %s", mreg(param_regs[0]), mreg(n->copy.dest));
+      emit("mov %s, %ju", mreg(param_regs[2]), n->copy.len);
+      emit("call [rel memcpy wrt ..got]");
+      if (align) emit("add %s, %zu", reg_sp, align);
+#else
+      esp += 12;
+      const size_t align = esp & 15 ? 16 - (esp & 15) : 0;
+      if (align) emit("sub %s, %zu", reg_sp, align);
+      emit("push %ju", n->copy.len);
+      emit("push %s", mreg(n->copy.src));
+      emit("push %s", mreg(n->copy.dest));
+      emit("call memcpy");
+      emit("add esp, %zu", 12 + align);
+#endif
       return n->next;
    }
 

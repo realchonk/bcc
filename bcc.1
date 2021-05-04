@@ -67,7 +67,7 @@ Emit the assembly output.
 .RS 5
 Specify the
 .I optimization
-level. (possible values: 0, 1)
+level. (possible values: 0, 1, 2)
 .RE
 .B -w
 .RE
@@ -112,11 +112,18 @@ Changes/Extensions:
 .B do f(); while (1);
 is valid).
 .RE
-- The pointer '*' is part of the type, instead of the name (
+- the pointer '*' is part of the type, instead of the name (
 .B int* a;
 not
 .B int *a;
-)
+).
+.RE
+- added new basic type \fBbyte\fR, which is guaranteed to be exactly 8 bits wide.
+.RE
+- parameter names of function implementations may be omitted. (eg.
+.B int add(int, int a) { return a; }
+).
+
 
 .SH OPTIMIZATIONS
 Supported optimization techniques:

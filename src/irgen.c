@@ -1,4 +1,5 @@
 #include <tgmath.h>
+#include <string.h>
 #include "target.h"
 #include "error.h"
 #include "ir.h"
@@ -395,8 +396,42 @@ ir_node_t* irgen_stmt(const struct statement* s) {
          tmp->move.src = creg;
          tmp->move.size = IRS_PTR;
          ir_append(n, tmp);
+
+         if (var->init) {
+            // TODO: implement non-string array initialization
+            /*ir_node_t* param;
+            tmp = new_node(IR_IFCALL);
+            tmp->ifcall.name = "memcpy";
+            tmp->ifcall.dest = 0;
+            tmp->ifcall.params = NULL;
+
+            param = new_node(IR_NOP);
+            buf_push(tmp->ifcall.params, param);
+            
+            param = new_node(IR_LSTR);
+            param->lstr.reg = 0;
+            param->lstr.str = var->init->str;
+            buf_push(tmp->ifcall.params, param);
+            
+            param = new_node(IR_LOAD);
+            param->load.dest = 0;
+            param->load.value = my_min(var->type->pointer.array.size, strlen(var->init->str) + 1);
+            param->load.size = IRS_PTR;
+            buf_push(tmp->ifcall.params, param);*/
+
+            tmp = new_node(IR_LSTR);
+            tmp->lstr.str = var->init->str;
+            tmp->lstr.reg = creg + 1;
+            ir_append(n, tmp);
+
+            tmp = new_node(IR_COPY);
+            tmp->copy.dest = creg;
+            tmp->copy.src = creg + 1;
+            tmp->copy.len = my_min(var->type->pointer.array.size, strlen(var->init->str) + 1);
+            ir_append(n, tmp);
+         }
       }
-      else if (s->parent->vars[s->var_idx].init) {
+      else if (var->init) {
          struct expression* init = var->init;
          n = ir_expr(s->parent, init);
          tmp = new_node(IR_LOOKUP);
