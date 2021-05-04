@@ -474,12 +474,7 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
             parse_error(&e->begin, "invalid type of parameter %zu", i);
          free_value_type(vp);
       }
-      type = new_vt();
-      type->is_const = true;
-      type->type = VAL_INT;
-      type->integer.is_unsigned = false;
-      type->integer.size = INT_INT;
-      return type;
+      return copy_value_type(callee->type);
    }
    default: panic("get_value_type(): unsupported expression '%s'", expr_type_str[e->type]);
    }

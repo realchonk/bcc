@@ -302,7 +302,10 @@ struct statement* parse_stmt(struct scope* scope) {
 
          if (vtype->type == VAL_AUTO) {
             if (!var.init) parse_error(&var.end, "auto variable expects initializer");
-            else var.type = decay(get_value_type(scope, var.init));
+            var.type = decay(get_value_type(scope, var.init));
+            var.type->is_const = vtype->is_const;
+            free_value_type(vtype);
+            vtype = var.type;
          }
 
          if (var.init) {
