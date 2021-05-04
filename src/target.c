@@ -1,5 +1,6 @@
 #include <stdarg.h>
 #include "target.h"
+#include "error.h"
 
 #define ASM_INDENT ' '
 
@@ -39,3 +40,13 @@ void emit(const char* fmt, ...) {
 }
 
 
+uintmax_t target_get_umax(enum ir_value_size sz) {
+   switch (sz) {
+   case IRS_BYTE:    return target_info.max_ubyte;
+   case IRS_CHAR:    return target_info.max_uchar;
+   case IRS_SHORT:   return target_info.max_ushort;
+   case IRS_INT:     return target_info.max_uint;
+   case IRS_LONG:    return target_info.max_ulong;
+   default:          panic("target_get_umax(): unreachable reached");
+   }
+}

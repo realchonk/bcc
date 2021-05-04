@@ -58,4 +58,6 @@ void emit_unit(const struct compilation_unit*);
 
 int assemble(const char* source, const char* output);
 
+uintmax_t target_get_umax(enum ir_value_size);
+
 #endif /* FILE_TARGET_H */

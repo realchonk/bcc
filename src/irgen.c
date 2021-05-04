@@ -91,7 +91,24 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       struct value_type* vl = get_value_type(scope, e->binary.left);
       struct value_type* vr = get_value_type(scope, e->binary.right);
       n = ir_expr(scope, e->binary.left);
+      printf("irs = %s\n", ir_size_str[irs]);
+      if (irs != vt2irs(vl)) {
+         tmp = new_node(IR_IICAST);
+         tmp->iicast.dest = tmp->iicast.src = creg - 1;
+         tmp->iicast.ds = irs;
+         tmp->iicast.ss = vt2irs(vl);
+         tmp->iicast.sign_extend = !is_unsigned;
+         ir_append(n, tmp);
+      }
       ir_append(n, ir_expr(scope, e->binary.right));
+      if (irs != vt2irs(vr)) {
+         tmp = new_node(IR_IICAST);
+         tmp->iicast.dest = tmp->iicast.src = creg - 1;
+         tmp->iicast.ds = irs;
+         tmp->iicast.ss = vt2irs(vr);
+         tmp->iicast.sign_extend = !is_unsigned;
+         ir_append(n, tmp);
+      }
       if (((vl->type == VAL_POINTER && vr->type == VAL_INT) || (vl->type == VAL_INT && vr->type == VAL_POINTER))
             && (e->binary.op.type == TK_PLUS || e->binary.op.type == TK_MINUS)) {
          tmp = new_node(IR_IMUL);
@@ -194,27 +211,48 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    case EXPR_CAST:
    {
       struct value_type* svt = get_value_type(scope, e->cast.expr);
+      if (svt->type != VAL_INT && svt->type != VAL_POINTER)
+         parse_error(&e->begin, "unsupported cast");
       n = ir_expr(scope, e->cast.expr);
       tmp = new_node(IR_IICAST);
       tmp->iicast.dest = tmp->iicast.src = creg - 1;
       tmp->iicast.ds = irs;
       tmp->iicast.ss = vt2irs(svt);
+      tmp->iicast.sign_extend = svt->type != VAL_POINTER && !svt->integer.is_unsigned;
       free_value_type(svt);
       ir_append(n, tmp);
       break;
    }
    case EXPR_FCALL:
+   {
+      struct function* func = unit_get_func(scope->func->unit, e->fcall.name);
+      if (!func) parse_error(&e->begin, "function '%s' not found", e->fcall.name);
       n = new_node(IR_IFCALL);
-      n->ifcall.name = e->fcall.name;
+      n->ifcall.name = func->name;
       n->ifcall.dest = creg;
       n->ifcall.params = NULL;
 
       for (size_t i = 0; i < buf_len(e->fcall.params); ++i) {
-         buf_push(n->ifcall.params, ir_expr(scope, e->fcall.params[i]));
+         struct expression* p = e->fcall.params[i];
+         struct value_type* vp = get_value_type(scope, p);
+         ir_node_t* ir = ir_expr(scope, p);
+         enum ir_value_size irs = i < buf_len(func->params) ? vt2irs(func->params[i].type) : IRS_INT;
+         if (vt2irs(vp) != irs) {
+            tmp = new_node(IR_IICAST);
+            tmp->iicast.dest = tmp->iicast.src = creg - 1;
+            tmp->iicast.ds = irs;
+            tmp->iicast.ss = vt2irs(vp);
+            tmp->iicast.sign_extend = irs == IRS_PTR ? false : !func->type->integer.is_unsigned;
+            ir_append(ir, tmp);
+         }
+         buf_push(n->ifcall.params, ir);
          --creg;
+
+         free_value_type(vp);
       }
       ++creg;
       break;
+   }
    case EXPR_STRING:
       n = new_node(IR_LSTR);
       n->lstr.reg = creg++;
@@ -370,11 +408,24 @@ ir_node_t* irgen_stmt(const struct statement* s) {
    case STMT_RETURN:
       tmp = new_node(IR_RET);
       if (s->expr) {
+         struct value_type* vt = get_value_type(s->parent, s->expr);
+         if (vt->type == VAL_FLOAT) parse_error(&s->expr->begin, "floating-point numbers are not supported");
+         enum ir_value_size irs = vt2irs(vt);
          n = ir_expr(s->parent, s->expr);
+         if (vt2irs(s->parent->func->type) != irs) {
+            tmp->type = IR_IICAST;
+            tmp->iicast.dest = tmp->iicast.src = creg - 1;
+            tmp->iicast.ds = vt2irs(s->parent->func->type);
+            tmp->iicast.ss = irs;
+            tmp->iicast.sign_extend = !s->parent->func->type->integer.is_unsigned;
+            ir_append(n, tmp);
+            tmp = new_node(IR_IRET);
+         }
          tmp->type = IR_IRET;
-         tmp->unary.size = IRS_INT; // TODO
+         tmp->unary.size = irs; // TODO
          tmp->unary.reg = creg - 1;
          ir_append(n, tmp);
+         
       } else n = tmp;
       return n;
    case STMT_SCOPE:

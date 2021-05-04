@@ -10,5 +10,6 @@ struct compilation_unit* parse_unit(void);
 void print_unit(FILE*, const struct compilation_unit*);
 void print_ir_unit(FILE*, const struct compilation_unit*);
 void free_unit(struct compilation_unit*);
+struct function* unit_get_func(struct compilation_unit*, const char*);
 
 #endif /* FILE_UNIT_H */

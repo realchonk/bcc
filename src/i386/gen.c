@@ -166,7 +166,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       const char* dest;
       reg_op(dest, n->load.dest, n->load.size);
       if (!n->load.value) emit_clear(dest);
-      else emit("mov %s, %ju", dest, n->load.value);
+      else emit("mov %s, %jd", dest, (intmax_t)n->load.value);
       return n->next;
    }
    case IR_IADD:
@@ -384,16 +384,11 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
             if (mask) emit("and %s, 0x%jx", mreg(n->iicast.dest), (uintmax_t)mask);
          }
       } else if (n->iicast.ds > n->iicast.ss) {
-         if (n->iicast.dest != n->iicast.src) {
-            const char* tmp_dest;
-            const char* dest;
-            const char* src;
-            reg_op(tmp_dest, n->iicast.dest, n->iicast.ds);
-            reg_op(dest, n->iicast.dest, n->iicast.ss);
-            reg_op(src, n->iicast.src, n->iicast.ss);
-            emit_clear(tmp_dest);
-            emit("mov %s, %s", dest, src);
-         }
+         const char* dest;
+         const char* src;
+         reg_op(dest, n->iicast.dest, n->iicast.ds);
+         reg_op(src, n->iicast.src, n->iicast.ss);
+         emit("%s %s, %s", n->iicast.sign_extend ? "movsx" : "movzx", dest, src);
       } else {
          if (n->iicast.dest != n->iicast.src) {
             const char* dest;

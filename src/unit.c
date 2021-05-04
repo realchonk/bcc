@@ -37,3 +37,10 @@ void free_unit(struct compilation_unit* u) {
    buf_free(u->funcs);
    free(u);
 }
+struct function* unit_get_func(struct compilation_unit* unit, const char* name) {
+   name = strint(name);
+   for (size_t i = 0; i < buf_len(unit->funcs); ++i) {
+      if (name == unit->funcs[i]->name) return unit->funcs[i];
+   }
+   return NULL;
+}

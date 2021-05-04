@@ -127,6 +127,7 @@ typedef struct ir_node {
       struct {
          ir_reg_t dest, src;
          enum ir_value_size ds, ss;
+         bool sign_extend;
       } iicast;
       struct {
          istr_t name;

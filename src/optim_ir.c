@@ -1,4 +1,5 @@
 #include <tgmath.h>
+#include "target.h"
 #include "optim.h"
 #include "bcc.h"
 
@@ -53,7 +54,7 @@ static bool direct_val(ir_node_t** n) {
 static bool fold(ir_node_t** n) {
    bool success = false;
    for (ir_node_t* cur = *n; cur; cur = cur->next) {
-      if (ir_isv(cur, 24, IR_IADD, IR_ISUB, IR_IMUL, IR_IDIV, IR_UMUL, IR_UDIV,
+      if (ir_isv(cur, IR_IADD, IR_ISUB, IR_IMUL, IR_IDIV, IR_UMUL, IR_UDIV,
             IR_IMOD, IR_UMOD, IR_IAND, IR_IOR, IR_IXOR, IR_ILSL, IR_ILSR, IR_IASR,
             IR_ISTEQ, IR_ISTNE, IR_ISTGR, IR_ISTGE, IR_ISTLT, IR_ISTLE,
             IR_USTGR, IR_USTGE, IR_USTLT, IR_USTLE, NUM_IR_NODES)
@@ -97,6 +98,13 @@ static bool fold(ir_node_t** n) {
          cur->load.dest = dest;
          cur->load.size = sz;
          cur->load.value = res;
+         success = true;
+      } else if (cur->type == IR_LOAD && ir_isv(cur->next, IR_INOT, IR_INEG, NUM_IR_NODES) && cur->next->unary.reg == cur->load.dest) {
+         uintmax_t a = cur->load.value;
+         if (cur->next->type == IR_INOT) a = ~a;
+         else a = ~a + 1;
+         cur->next->type = IR_NOP;
+         cur->load.value = a;// & target_get_umax(cur->load.size);
          success = true;
       }
    }
