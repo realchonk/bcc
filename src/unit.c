@@ -9,8 +9,7 @@ struct compilation_unit* parse_unit(void) {
    if (!u) panic("failed to allocate compilation unit");
    u->funcs = NULL;
    while (!lexer_match(TK_EOF)) {
-      struct function* func = parse_func();
-      func->unit = u;
+      struct function* func = parse_func(u);
       if (func->scope) func->ir_code = optim_ir_nodes(irgen_func(func));
       buf_push(u->funcs, func);
    }

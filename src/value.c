@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <assert.h>
 #include "target.h"
 #include "scope.h"
 #include "value.h"
@@ -442,13 +443,38 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
       return copy_value_type(e->cast.type);
    }
    case EXPR_FCALL:
-      // TODO
+   {
+      struct compilation_unit* unit = scope->func->unit;
+      struct function* callee = NULL;
+      assert(unit != NULL);
+      for (size_t i = 0; i < buf_len(unit->funcs); ++i) {
+         if (e->fcall.name == unit->funcs[i]->name) {
+            callee = unit->funcs[i];
+            break;
+         }
+      }
+      if (!callee)
+         parse_warn(&e->begin, "function '%s' is not declared.");
+      const size_t num_callee_params = buf_len(callee->params);
+      const size_t num_params = buf_len(e->fcall.params);
+      if (num_callee_params != num_params) {
+         if (callee->variadic && num_params < num_callee_params)
+            parse_warn(&e->begin, "not enough parameters for %s()", callee->name);
+         else if (!callee->variadic) parse_warn(&e->begin, "invalid number of parameters");
+      }
+      for (size_t i = 0; i < my_min(num_params, num_callee_params); ++i) {
+         struct value_type* vp = get_value_type(scope, e->fcall.params[i]);
+         if (!is_castable(vp, callee->params[i].type, true))
+            parse_error(&e->begin, "invalid type of parameter %zu", i);
+         free_value_type(vp);
+      }
       type = new_vt();
       type->is_const = true;
       type->type = VAL_INT;
       type->integer.is_unsigned = false;
       type->integer.size = INT_INT;
       return type;
+   }
    default: panic("get_value_type(): unsupported expression '%s'", expr_type_str[e->type]);
    }
 }

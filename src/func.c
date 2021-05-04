@@ -4,7 +4,7 @@
 #include "lex.h"
 #include "ir.h"
 
-struct function* parse_func(void) {
+struct function* parse_func(struct compilation_unit* unit) {
    struct function* func = malloc(sizeof(struct function));
    if (!func) panic("parse_func(): failed to allocate function");
    func->type = parse_value_type();
@@ -12,6 +12,7 @@ struct function* parse_func(void) {
    func->params = NULL;
    func->unit = NULL;
    func->ir_code = NULL;
+   func->unit = unit;
    lexer_expect(TK_LPAREN);
 
    if (!lexer_matches(TK_RPAREN)) {

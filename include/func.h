@@ -18,7 +18,7 @@ struct function {
    bool variadic;
 };
 
-struct function* parse_func(void);
+struct function* parse_func(struct compilation_unit*);
 
 void print_func(FILE*, const struct function*);
 void free_func(struct function*);
