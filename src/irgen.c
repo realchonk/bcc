@@ -91,7 +91,8 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       struct value_type* vr = get_value_type(scope, e->binary.right);
       n = ir_expr(scope, e->binary.left);
       ir_append(n, ir_expr(scope, e->binary.right));
-      if (((vl->type == VAL_POINTER && vr->type == VAL_INT) || (vl->type == VAL_INT && vr->type == VAL_POINTER)) && (e->binary.op.type == TK_PLUS || e->binary.op.type == TK_MINUS)) {
+      if (((vl->type == VAL_POINTER && vr->type == VAL_INT) || (vl->type == VAL_INT && vr->type == VAL_POINTER))
+            && (e->binary.op.type == TK_PLUS || e->binary.op.type == TK_MINUS)) {
          tmp = new_node(IR_IMUL);
          tmp->binary.dest = creg - 1;
          tmp->binary.a.type = IRT_REG;
@@ -128,8 +129,21 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       }
       ir_append(n, tmp);
 
+      if (vl->type == VAL_POINTER && vr->type == VAL_POINTER && e->binary.op.type == TK_MINUS) {
+         tmp = new_node(IR_IDIV);
+         tmp->binary.size = irs;
+         tmp->binary.dest = creg - 2;
+         tmp->binary.a.type = IRT_REG;
+         tmp->binary.a.reg = creg - 2;
+         tmp->binary.b.type = IRT_UINT;
+         tmp->binary.b.uVal = sizeof_value(vl->pointer.type);
+         ir_append(n, tmp);
+      }
 
       --creg;
+
+      free_value_type(vl);
+      free_value_type(vr);
       break;
    }
    case EXPR_UNARY:
@@ -165,8 +179,17 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       ir_append(n, tmp);
       break;
    case EXPR_ADDROF:
+   {
       n = ir_lvalue(scope, e->expr);
+      struct value_type* ve = get_value_type(scope, e->expr);  
+      if (ve->type == VAL_POINTER && ve->pointer.is_array) {
+         tmp = new_node(IR_READ);
+         tmp->move.dest = tmp->move.src = creg - 1;
+         tmp->move.size = IRS_PTR;
+         ir_append(n, tmp);
+      }
       break;
+   }
    case EXPR_CAST:
    {
       struct value_type* svt = get_value_type(scope, e->cast.expr);

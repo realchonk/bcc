@@ -1,4 +1,4 @@
-.TH bcc 1 "2021-05-03"
+.TH bcc 1 "2021-05-04"
 
 .SH NAME
 bcc - bad C-like compiler
@@ -121,7 +121,13 @@ not
 .SH OPTIMIZATIONS
 Supported optimization techniques:
 .RE
-- AST-based constant folding (-O1)
+- constant folding (-O1)
+.RE
+- micro-optimizations (-O1)
+.RE
+- multiply to shift (-O1)
+.RE
+- fusion of memory instructions for x86 (-O2)
 
 .SH TARGETS
 Currently supported target architectures:

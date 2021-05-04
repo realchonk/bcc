@@ -8,54 +8,54 @@
 #include "unit.h"
 
 enum ir_node_type {
-   IR_NOP,
-   IR_MOVE,
-   IR_LOAD,
-   IR_IADD,
-   IR_ISUB,
-   IR_IAND,
-   IR_IOR,
-   IR_IXOR,
-   IR_ILSL,
-   IR_ILSR,
-   IR_IASR,
-   IR_IMUL,
-   IR_IDIV,
-   IR_IMOD,
-   IR_UMUL,
-   IR_UDIV,
-   IR_UMOD,
-   IR_INEG,
-   IR_INOT,
-   IR_BNOT,
-   IR_RET,
-   IR_IRET,
-   IR_LOOKUP,
-   IR_BEGIN_SCOPE,
-   IR_END_SCOPE,
-   IR_READ,
-   IR_WRITE,
-   IR_PROLOGUE,
-   IR_EPILOGUE,
-   IR_IICAST,
-   IR_IFCALL,
-   IR_FPARAM,
-   IR_LSTR,
-   IR_ISTEQ,
-   IR_ISTNE,
-   IR_ISTGR,
-   IR_ISTGE,
-   IR_ISTLT,
-   IR_ISTLE,
-   IR_USTGR,
-   IR_USTGE,
-   IR_USTLT,
-   IR_USTLE,
-   IR_JMP,
-   IR_JMPIF,
-   IR_JMPIFN,
-   IR_LABEL,
-   IR_ALLOCA,
+   IR_NOP,           //          | no operation
+   IR_MOVE,          // .move    | copy registers
+   IR_LOAD,          // .load    | load constants
+   IR_IADD,          // .binary  | integer addition
+   IR_ISUB,          // .binary  | integer subtraction
+   IR_IAND,          // .binary  | bitwise and
+   IR_IOR,           // .binary  | bitwise or
+   IR_IXOR,          // .binary  | bitwise xor
+   IR_ILSL,          // .binary  | logical shift left
+   IR_ILSR,          // .binary  | logical shift right
+   IR_IASR,          // .binary  | arithmetic shift right
+   IR_IMUL,          // .binary  | signed integer multiplication
+   IR_IDIV,          // .binary  | signed integer division
+   IR_IMOD,          // .binary  | signed integer modulo
+   IR_UMUL,          // .binary  | unsigned integer multiplication
+   IR_UDIV,          // .binary  | unsigned integer division
+   IR_UMOD,          // .binary  | unsigned integer modulo
+   IR_INEG,          // .unary   | integer 2s-complement
+   IR_INOT,          // .unary   | integer 1s-complement (integer negation)
+   IR_BNOT,          // .unary   | boolean negation      (bitwise negation)
+   IR_RET,           //          | return from function 
+   IR_IRET,          // .unary   | return from function w/ integer
+   IR_LOOKUP,        // .lookup  | load address of variable
+   IR_BEGIN_SCOPE,   // .scope   | beginning of a scope
+   IR_END_SCOPE,     // .scope   | ending of a scope
+   IR_READ,          // .move    | read data from memory
+   IR_WRITE,         // .move    | write data to memory
+   IR_PROLOGUE,      // .func    | beginning of a function
+   IR_EPILOGUE,      // .func    | ending of a function
+   IR_IICAST,        // .iicast  | integer-to-integer cast
+   IR_IFCALL,        // .ifcall  | function call w/ optional integer return value
+   IR_FPARAM,        // .fparam  | load address of function parameter
+   IR_LSTR,          // .lstr    | load address of string
+   IR_ISTEQ,         // .binary  | set if integer equal
+   IR_ISTNE,         // .binary  | set if integer not equal
+   IR_ISTGR,         // .binary  | set if signed integer greater than
+   IR_ISTGE,         // .binary  | set if signed integer greater than or equal
+   IR_ISTLT,         // .binary  | set if signed integer less than
+   IR_ISTLE,         // .binary  | set if signed integer less than or equal
+   IR_USTGR,         // .binary  | set if unsigned integer greater than
+   IR_USTGE,         // .binary  | set if unsigned integer greater than or equal
+   IR_USTLT,         // .binary  | set if unsigned integer less than
+   IR_USTLE,         // .binary  | set if unsigned integer less than or equal
+   IR_JMP,           // .str     | unconditional jump to label
+   IR_JMPIF,         // .cjmp    | jump to label if true
+   IR_JMPIFN,        // .cjmp    | jump to label if false
+   IR_LABEL,         // .str     | define label
+   IR_ALLOCA,        // .alloca  | allocate data on the stack
 
    NUM_IR_NODES,
 };
@@ -161,6 +161,7 @@ ir_node_t* ir_append(ir_node_t*, ir_node_t*);
 ir_node_t* ir_insert(ir_node_t*, ir_node_t*);
 ir_node_t* ir_end(ir_node_t*);
 size_t ir_length(const ir_node_t*);
+void ir_remove(ir_node_t*);
 
 void print_ir_node(FILE*, const ir_node_t*);
 void print_ir_nodes(FILE*, const ir_node_t*);
@@ -170,5 +171,8 @@ void free_ir_node(ir_node_t*);
 void free_ir_nodes(ir_node_t*);
 
 enum ir_value_size vt2irs(const struct value_type*);
+
+bool ir_is(ir_node_t*, enum ir_node_type);
+bool ir_isv(ir_node_t*, ...); // must be terminated with NUM_IR_NODES
 
 #endif /* FILE_IR_H */

@@ -5,6 +5,7 @@
 #include "error.h"
 #include "strdb.h"
 #include "regs.h"
+#include "bcc.h"
 
 static const char* nasm_size(enum ir_value_size s) {
    switch (s) {
@@ -36,6 +37,25 @@ static bool is_defined(istr_t s) {
    return false;
 }
 #endif
+
+inline static const char* reg_bx(const enum ir_value_size irs) {
+   switch (irs) {
+   case IRS_BYTE:
+   case IRS_CHAR:
+      return "bl";
+   case IRS_SHORT:
+      return "bx";
+   case IRS_PTR:
+#if BCC_x86_64
+   case IRS_LONG:
+      return "rbx";
+#endif
+   case IRS_INT:
+      return "ebx";
+   default:
+      panic("reg_bx(): invalid value size '%s'", ir_size_str[irs]);
+   }
+}
 
 static ir_node_t* emit_ir(const ir_node_t* n);
 static void emit_begin(void) {
@@ -119,6 +139,11 @@ static const char* irv2str(const struct ir_value* v, const enum ir_value_size s)
       return strint(buffer);
    } else panic("irv2str(): invalid IR value type '%u'", v->type);
 }
+static void emit_clear(const char* reg) {
+   if (optim_level < 1) emit("mov %s, 0", reg);
+   else emit("xor %s, %s", reg, reg);
+}
+
 static ir_node_t* emit_ir(const ir_node_t* n) {
    const char* instr;
    switch (n->type) {
@@ -139,8 +164,8 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
    {
       const char* dest;
       reg_op(dest, n->load.dest, n->load.size);
-      if (n->load.value) emit("mov %s, %ju", dest, n->load.value);
-      else emit("xor %s, %s", dest, dest);
+      if (!n->load.value) emit_clear(dest);
+      else emit("mov %s, %ju", dest, n->load.value);
       return n->next;
    }
    case IR_IADD:
@@ -151,8 +176,10 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       const char* dest;
       reg_op(dest, n->binary.dest, n->binary.size);
 
-      if (n->binary.a.type == IRT_REG && n->binary.dest == n->binary.a.reg) {
-         emit("%s %s, %s", n->type == IR_IADD ? "add" : "sub", dest, b);
+      if (optim_level >= 1 && n->binary.a.type == IRT_REG && n->binary.dest == n->binary.a.reg) {
+         if (n->binary.b.type == IRT_UINT && n->binary.b.uVal == 1) {
+            emit("%s %s", n->type == IR_IADD ? "inc" : "dec", dest);
+         } else emit("%s %s, %s", n->type == IR_IADD ? "add" : "sub", dest, b);
       } else {
          emit("lea %s, [%s %c %s]", dest, a, n->type == IR_IADD ? '+' : '-', b);
       }
@@ -174,7 +201,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       instr = "shr";
       goto ir_binary;
    case IR_IASR:
-      instr = "asr";
+      instr = "sar";
    {
    ir_binary:;
       const char* a = irv2str(&n->binary.a, n->binary.size);
@@ -249,7 +276,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       reg_op(eax, 0, n->binary.size);
       reg_op(dest, n->binary.dest, n->binary.size);
       emit("push %s", reg_dx);
-      emit("xor %s, %s", reg_dx, reg_dx);
+      emit_clear(reg_dx);
 
       if (n->binary.a.type != IRT_REG || n->binary.dest != n->binary.a.reg) {
          emit("mov %s, %s", dest, a);
@@ -258,8 +285,16 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
          emit("push %s", reg_ax);
          emit("mov %s, %s", eax, dest);
       }
+      if (n->binary.b.type != IRT_REG) {
+         emit("push %s", reg_bx(IRS_PTR));
+         emit("mov %s, %s", reg_bx(IRS_PTR), b);
+         b = reg_bx(IRS_PTR);
+      }
 
-      emit("%s %s, %s", instr, eax, b);
+      emit("%s %s", instr, b);
+      if (n->binary.b.type != IRT_REG)
+         emit("pop %s", reg_bx(IRS_PTR));
+
       if (n->binary.dest != 0) {
          emit("mov %s, %s", dest, eax);
          emit("pop %s", reg_ax);
@@ -309,7 +344,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    case IR_EPILOGUE:
       if (strcmp(n->func->name, "main") == 0 && n->prev && n->prev->prev && n->prev->prev->type != IR_IRET)
-         emit("xor %s, %s", reg_ax, reg_ax);
+         emit_clear(reg_ax);
       emit(".ret:");
       emit("leave");
       emit("ret\n\n");
@@ -355,7 +390,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
             reg_op(tmp_dest, n->iicast.dest, n->iicast.ds);
             reg_op(dest, n->iicast.dest, n->iicast.ss);
             reg_op(src, n->iicast.src, n->iicast.ss);
-            emit("xor %s, %s", tmp_dest, tmp_dest);
+            emit_clear(tmp_dest);
             emit("mov %s, %s", dest, src);
          }
       } else {
@@ -413,7 +448,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
             break;
          }
       }
-      if (variadic) emit("xor rax, rax");
+      if (variadic) emit_clear(reg_ax);
       if (is_defined(n->ifcall.name)) emit("call %s", n->ifcall.name);
       else emit("call [rel %s wrt ..got]", n->ifcall.name);
       size_t add_rsp = padding;
@@ -459,6 +494,43 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
             }
          }
       }
+      // TODO: experimental
+      if (optim_level >= 2) {
+         if (ir_is(n->next, IR_READ) && n->next->move.src == n->lookup.reg) {
+            ir_node_t* read = n->next;
+            if (ir_isv(read->next, IR_IADD, IR_ISUB, NUM_IR_NODES) && read->next->binary.dest == read->move.dest) {
+               ir_node_t* inc = read->next;
+               if (inc->binary.a.type != IRT_REG || inc->binary.a.reg != inc->binary.dest) goto lookup_lea;
+               if (ir_is(inc->next, IR_WRITE) && inc->next->move.src == inc->binary.dest && inc->next->move.dest == n->lookup.reg) {
+                  ir_node_t* write = inc->next;
+                  if (inc->binary.b.type == IRT_UINT) {
+                     if (inc->binary.b.uVal == 1)
+                        emit("%s %s [%s - %zu]", (inc->type == IR_IADD ? "inc" : "dec"), nasm_size(read->move.size), reg_bp, idx);
+                     else emit("%s %s [%s - %zu], %s", (inc->type == IR_IADD ? "add" : "sub"),
+                           nasm_size(read->move.size), reg_bp, idx, inc->binary.b.uVal);
+                  } else if (inc->binary.b.type == IRT_REG) {
+                     const char* reg;
+                     reg_op(reg, inc->binary.b.reg, write->move.size);
+                     emit("%s %s [%s - %zu], %s", (inc->type == IR_IADD ? "add" : "sub"),
+                           nasm_size(read->move.size), reg_bp, idx, reg);
+                  } else goto lookup_lea;
+                  return write->next;
+               }
+               else goto lookup_lea;
+            }
+            const char* dest;
+            reg_op(dest, n->next->move.dest, read->move.size);
+            emit("mov %s, %s [%s - %zu]", dest, nasm_size(read->move.size), reg_bp, idx);
+            return read->next;
+         } else if (ir_is(n->next, IR_WRITE) && n->next->move.dest == n->lookup.reg) {
+            ir_node_t* write = n->next;
+            const char* src;
+            reg_op(src, write->move.src, write->move.size);
+            emit("mov %s [%s - %zu], %s", nasm_size(write->move.size), reg_bp, idx, src);
+            return write->next;
+         }
+      }
+   lookup_lea:
       emit("lea %s, [%s - %zu]", mreg(n->lookup.reg), reg_bp, idx);
       return n->next;
    }

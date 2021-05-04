@@ -23,6 +23,15 @@ const char* value_type_str[NUM_VALS] = {
    "void",
 };
 
+static bool ptreq(const struct value_type* a, const struct value_type* b) {
+   if (a->type != b->type) return false;
+   switch (a->type) {
+   case VAL_INT:     return (a->integer.is_unsigned == b->integer.is_unsigned) && (a->integer.size == b->integer.size);
+   case VAL_FLOAT:   return a->fp.size == b->fp.size;
+   case VAL_POINTER: return ptreq(a->pointer.type, b->pointer.type);
+   default:          panic("ptreq(): invalid value type '%u'", a->type);
+   }
+}
 void print_value_type(FILE* file, const struct value_type* val) {
    switch (val->type) {
    case VAL_INT:
@@ -272,11 +281,16 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
       return copy_value_type(var->type);
    }
    case EXPR_ADDROF:
+   {
+      struct value_type* ve = get_value_type(scope, e->expr);
+      if (ve->type == VAL_POINTER && ve->pointer.is_array)
+         return decay(ve);
       type = new_vt();
       type->type = VAL_POINTER;
       type->is_const = true;
-      type->pointer.type = get_value_type(scope, e->expr);
+      type->pointer.type = ve;
       return type;
+   }
    case EXPR_INDIRECT: {
       struct value_type* tmp = get_value_type(scope, e->expr);
       if (tmp->type != VAL_POINTER) parse_error(&e->expr->begin, "cannot dereference a non-pointer");
@@ -375,6 +389,8 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
                parse_error(&e->binary.op.begin, "invalid types");
             else if (vr->type == VAL_INT) return free_value_type(vr), decay(vl);
             else if (vr->type == VAL_POINTER) {
+               if (!ptreq(vl->pointer.type, vr->pointer.type))
+                  parse_error(&e->binary.op.begin, "incompatible pointer types"); // TODO: maybe error?
                result = new_vt();
                result->type = VAL_INT;
                result->integer.size = target_info.ptrdiff_type;
@@ -470,15 +486,6 @@ struct value_type* copy_value_type(const struct value_type* vt) {
 
 #define warn_implicit(f, t) parse_warn(&old->begin, "implicit conversion from %s to %s", f, t)
 
-static bool ptreq(const struct value_type* a, const struct value_type* b) {
-   if (a->type != b->type) return false;
-   switch (a->type) {
-   case VAL_INT:     return (a->integer.is_unsigned == b->integer.is_unsigned) && (a->integer.size == b->integer.size);
-   case VAL_FLOAT:   return a->fp.size == b->fp.size;
-   case VAL_POINTER: return ptreq(a->pointer.type, b->pointer.type);
-   default:          panic("ptreq(): invalid value type '%u'", a->type);
-   }
-}
 
 bool is_castable(const struct value_type* old, const struct value_type* type, bool implicit) {
    if (old->type == VAL_VOID || type->type == VAL_VOID) return false;

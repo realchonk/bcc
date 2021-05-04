@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "parser.h"
+#include "optim.h"
 #include "lex.h"
 #include "ir.h"
 
@@ -10,7 +11,7 @@ struct compilation_unit* parse_unit(void) {
    while (!lexer_match(TK_EOF)) {
       struct function* func = parse_func();
       func->unit = u;
-      if (func->scope) func->ir_code = irgen_func(func);
+      if (func->scope) func->ir_code = optim_ir_nodes(irgen_func(func));
       buf_push(u->funcs, func);
    }
    return u;

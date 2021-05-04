@@ -27,4 +27,3 @@ static const char* regs32[] = { "eax", "ecx", "edx" };
    default:          panic("emit_ir(): unsupported operand size '%s'", ir_size_str[size]); \
    }
 
-

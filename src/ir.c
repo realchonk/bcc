@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include "error.h"
 #include "ir.h"
 
@@ -146,6 +147,7 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
    case IR_USTLE:
       fprintf(file, ".%s R%u, ", ir_size_str[n->binary.size], n->binary.dest);
       print_ir_value(file, &n->binary.a);
+      fputs(", ", file);
       print_ir_value(file, &n->binary.b);
       break;
    case IR_INEG:
@@ -215,3 +217,30 @@ void free_ir_nodes(ir_node_t* n) {
       n = next;
    }
 }
+void ir_remove(ir_node_t* n) {
+   if (n->prev) n->prev->next = n->next;
+   if (n->next) n->next->prev = n->prev;
+   free_ir_node(n);
+}
+bool ir_is(ir_node_t* n, enum ir_node_type t) {
+   return n && n->type == t;
+}
+bool ir_isv(ir_node_t* n, ...) {
+   if (!n) return false;
+   bool success = false;
+   va_list ap;
+   va_start(ap, n);
+
+   while (1) {
+      const enum ir_node_type t = va_arg(ap, enum ir_node_type);
+      if (t == NUM_IR_NODES) break;
+      else if (t == n->type) {
+         success = true;
+         break;
+      }
+   }
+
+   va_end(ap);
+   return success;
+}
+
