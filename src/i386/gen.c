@@ -630,7 +630,6 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
    }
    case IR_COPY:
    {
-      // TODO: stack aligning
 #if BCC_x86_64
       const size_t align = esp & 15 ? 16 - (esp & 15) : 0;
       if (align) emit("sub %s, %zu", reg_sp, align);

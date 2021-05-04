@@ -26,6 +26,7 @@ const char* expr_type_str[NUM_EXPRS] = {
    [EXPR_CAST]       = "cast",
    [EXPR_FCALL]      = "function call",
    [EXPR_SIZEOF]     = "sizeof",
+   [EXPR_ARRAYLEN]   = "arraylen",
 };
 
 struct expression* new_expr(void) {
@@ -101,6 +102,19 @@ static struct expression* expr_prim(void) {
       break;
    case KW_SIZEOF:
       expr->type = EXPR_SIZEOF;
+      if (lexer_match(TK_LPAREN)) {
+         struct value_type* vt = parse_value_type();
+         expr->szof.has_expr = vt == NULL;
+         if (!vt) expr->szof.expr = expr_unary();
+         else expr->szof.type = vt;
+         expr->end = lexer_expect(TK_RPAREN).end;
+      } else {
+         expr->szof.has_expr = true;
+         expr->szof.expr = expr_unary();
+      }
+      break;
+   case KW_ARRAYLEN:
+      expr->type = EXPR_ARRAYLEN;
       expr->expr = expr_unary();
       expr->end = expr->expr->end;
       break;
@@ -403,7 +417,7 @@ void free_expr(struct expression* e) {
    switch (e->type) {
    case EXPR_ADDROF:
    case EXPR_INDIRECT:
-   case EXPR_SIZEOF:
+   case EXPR_ARRAYLEN:
    case EXPR_PAREN:  free_expr(e->expr); break;
    case EXPR_PREFIX:
    case EXPR_SUFFIX:
@@ -436,6 +450,9 @@ void free_expr(struct expression* e) {
          free_expr(e->fcall.params[i]);
       buf_free(e->fcall.params);
       break;
+   case EXPR_SIZEOF:
+      if (e->szof.has_expr) free_expr(e->szof.expr);
+      else free_value_type(e->szof.type);
    case EXPR_INT:
    case EXPR_UINT:
    case EXPR_STRING:
@@ -532,12 +549,17 @@ void print_expr(FILE* file, const struct expression* e) {
       }
       fputc(')', file);
       break;
-   case EXPR_SIZEOF:
-      fputs("sizeof ", file);
+   case EXPR_ARRAYLEN:
+      fputs("arraylen ", file);
       print_expr(file, e->expr);
       break;
-
-
+   case EXPR_SIZEOF:
+      fputs("sizeof (", file);
+      if (e->szof.has_expr)
+         print_expr(file, e->szof.expr);
+      else print_value_type(file, e->szof.type);
+      fputc(')', file);
+      break;
    case NUM_EXPRS: break;
    }
 }

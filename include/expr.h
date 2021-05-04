@@ -24,6 +24,7 @@ enum expression_type {
    EXPR_CAST,
    EXPR_FCALL,
    EXPR_SIZEOF,
+   EXPR_ARRAYLEN,
 
    NUM_EXPRS,
 };
@@ -71,6 +72,13 @@ struct expression {
          struct expression* left;
          struct expression* right;
       } assign;
+      struct {
+         bool has_expr;
+         union {
+            struct expression* expr;
+            struct value_type* type;
+         };
+      } szof;
    };
 };
 

@@ -323,14 +323,31 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    }
    case EXPR_SIZEOF:
    {
-      struct value_type* nvt = get_value_type(scope, e->expr);
       n = new_node(IR_LOAD);
       n->load.dest = creg++;
-      n->load.value = sizeof_value(nvt);
+      if (e->szof.has_expr) {
+         struct value_type* nvt = get_value_type(scope, e->szof.expr);
+         n->load.value = sizeof_value(nvt);
+         free_value_type(nvt);
+      } else n->load.value = sizeof_value(e->szof.type);
+      n->load.size = IRS_INT;
+      break;
+   }
+   case EXPR_ARRAYLEN:
+   {
+      struct value_type* nvt = get_value_type(scope, e->expr);
+      if (nvt->type != VAL_POINTER || !nvt->pointer.is_array)
+         parse_error(&e->expr->begin, "expected array value");
+      else if (!nvt->pointer.array.has_const_size)
+         parse_error(&e->expr->begin, "not supported for VLAs");
+      n = new_node(IR_LOAD);
+      n->load.dest = creg++;
+      n->load.value = nvt->pointer.array.size;
       n->load.size = IRS_INT;
       free_value_type(nvt);
       break;
    }
+   
    default:
       panic("ir_expr(): unsupported expression '%s'", expr_type_str[e->type]);
    }

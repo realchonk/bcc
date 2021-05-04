@@ -253,6 +253,7 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
          type->integer.size = e->iVal > target_info.max_int ? INT_LONG : INT_INT;
       }
       return type;
+   case EXPR_ARRAYLEN:
    case EXPR_SIZEOF:
       type = new_vt();
       type->type = VAL_INT;
