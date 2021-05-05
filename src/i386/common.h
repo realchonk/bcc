@@ -121,6 +121,76 @@ static void emit_end(void) {
 
    buf_free(unresolved);
    buf_free(defined);
+
+   if (cunit.vars) {
+      emit("section .data");
+      for (size_t i = 0; i < buf_len(cunit.vars); ++i) {
+         const struct variable* var = &cunit.vars[i];
+         const struct value_type* type = var->type;
+         if (var->attrs & ATTR_EXTERN) {
+            emit("extern %s", var->name);
+            continue;
+         }
+         if (!(var->attrs & ATTR_STATIC))
+            emit("global %s", var->name);
+         emit("%s:", var->name);
+         switch (type->type) {
+         case VAL_INT:
+            switch (type->integer.size) {
+            case INT_BYTE:
+            case INT_CHAR:
+               emitraw("db ");
+               break;
+            case INT_SHORT:
+               emitraw("dw ");
+               break;
+            case INT_INT:
+               emitraw("dd ");
+               break;
+            case INT_LONG:
+               emitraw("dq ");
+               break;
+            default:
+               panic("emit_begin(): unreachable reached");
+            }
+            break;
+         case VAL_FLOAT:
+            switch (type->fp.size) {
+            case FP_FLOAT:
+               emitraw("dd ");
+               break;
+            case FP_DOUBLE:
+               emitraw("dq ");
+               break;
+            default:
+               panic("emit_begin(): unreachable reached");
+            }
+            break;
+         case VAL_POINTER:
+#if BCC_x86_64
+            emitraw("dq ");
+#else
+            emitraw("dd ");
+#endif
+            if (type->pointer.is_array) {
+               emit("$ + %zu", target_info.size_pointer);
+               emit("resb %zu", sizeof_value(type, false));
+               continue;
+            }
+            break;
+         default:
+            panic("emit_begin(): invalid variable type '%s'", value_type_str[type->type]);
+         }
+         if (var->init) {
+            if (type->type != VAL_INT)
+               parse_error(&var->init->begin, "only initialization of integer global variables is supported.");
+            if (var->type->integer.is_unsigned)
+               emit("%ju", var->const_init.uVal);
+            else emit("%jd", var->const_init.iVal);
+         } else emit("0");
+      }
+
+   }
 }
 static void emit_func(const struct function* func, const ir_node_t* n) {
    cur_func = func;

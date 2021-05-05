@@ -11,8 +11,10 @@ struct variable {
    istr_t name;
    struct expression* init;
    struct source_pos begin, end;
-   bool has_value;
    uintmax_t addr; // used by backend
+   unsigned attrs;
+   bool has_const_value;
+   struct value const_init;
 };
 
 struct scope {

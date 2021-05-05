@@ -3,11 +3,11 @@
 #include "lex.h"
 #include "ir.h"
 
-struct function* parse_func(void) {
+struct function* parse_func_part(struct value_type* type, istr_t name) {
    struct function* func = malloc(sizeof(struct function));
    if (!func) panic("parse_func(): failed to allocate function");
-   func->type = parse_value_type();
-   func->name = lexer_expect(TK_NAME).str;
+   func->type = type;
+   func->name = name;
    func->params = NULL;
    func->ir_code = NULL;
    lexer_expect(TK_LPAREN);

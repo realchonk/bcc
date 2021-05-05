@@ -71,6 +71,14 @@ static struct value_type* new_vt(void) {
    else return vt;
 }
 
+static struct value_type* make_int(enum integer_size sz, bool is_unsigned) {
+   struct value_type* vt = new_vt();
+   vt->type = VAL_INT;
+   vt->integer.size = sz;
+   vt->integer.is_unsigned = is_unsigned;
+   return vt;
+}
+
 // const unsigned int* const
 struct value_type* parse_value_type(void) {
    bool has_begon = false;
@@ -285,6 +293,7 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
    case EXPR_NAME: {
       const struct variable* var = scope_find_var(scope, e->str);
       if (!var) var = func_find_var(scope->func, e->str);
+      if (!var) var = unit_get_var(e->str);
       if (!var) parse_error(&e->begin, "undeclared variable '%s'", e->str);
       return copy_value_type(var->type);
    }
@@ -310,15 +319,14 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
       type = new_vt();
       type->type = VAL_POINTER;
       type->is_const = true;
-      type->pointer.type = new_vt();
-      type->pointer.type->type = VAL_INT;
-      type->pointer.type->integer.size = INT_CHAR;
-      type->pointer.type->integer.is_unsigned = target_info.unsigned_char;
+      type->pointer.type = make_int(INT_CHAR, target_info.unsigned_char);
       return type;
    case EXPR_COMMA:
       return get_value_type(scope, e->comma[buf_len(e->comma) - 1]);
    case EXPR_SUFFIX:
       type = get_value_type(scope, e->unary.expr);
+      if (type->is_const)
+         parse_error(&e->begin, "assignment to const");
       type->is_const = true;
       return type;
    case EXPR_ASSIGN:
@@ -336,7 +344,6 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
    {
       struct value_type* vl = get_value_type(scope, e->binary.left);
       struct value_type* vr = get_value_type(scope, e->binary.right);
-      struct value_type* result;
       if (check1or(vl, vr, VAL_VOID))
          parse_error(&e->binary.op.begin, "binary operation on void");
       switch (e->binary.op.type) {
@@ -356,13 +363,9 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
                parse_error(&e->binary.op.begin, "comparisson between pointer of different types");
             // TODO: check for the specifics
          }
-         result = new_vt();
-         result->type = VAL_INT;
-         result->integer.size = INT_INT;
-         result->integer.is_unsigned = false;
          free_value_type(vl);
          free_value_type(vr);
-         return result;
+         return make_int(INT_INT, false);
       case TK_PLUS:
          if (check1and(vl, vr, VAL_POINTER))
             parse_error(&e->binary.op.begin, "addition of pointers");
@@ -399,13 +402,9 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
             else if (vr->type == VAL_POINTER) {
                if (!ptreq(vl->pointer.type, vr->pointer.type))
                   parse_error(&e->binary.op.begin, "incompatible pointer types"); // TODO: maybe error?
-               result = new_vt();
-               result->type = VAL_INT;
-               result->integer.size = target_info.ptrdiff_type;
-               result->integer.is_unsigned = false;
                free_value_type(vl);
                free_value_type(vr);
-               return result;
+               return make_int(target_info.ptrdiff_type, false);
             }
             else panic("get_value_type(): unsupported value type '%s'", value_type_str[vr->type]);
          default:
@@ -437,6 +436,8 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
    case EXPR_PREFIX:
    case EXPR_UNARY:
       type = get_value_type(scope, e->unary.expr);
+      if (e->type == EXPR_PREFIX && type->is_const)
+         parse_error(&e->begin, "assignment to const");
       if (e->unary.op.type == TK_MINUS && type->type == VAL_INT && type->integer.is_unsigned)
          parse_warn(&e->begin, "negating an unsigned integer");
       type->is_const = true;
@@ -452,8 +453,10 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
    case EXPR_FCALL:
    {
       struct function* callee = unit_get_func(e->fcall.name);
-      if (!callee)
-         parse_warn(&e->begin, "function '%s' is not declared.");
+      if (!callee) {
+         parse_warn(&e->begin, "function '%s' is not declared.", e->fcall.name);
+         return make_int(INT_INT, false);
+      }
       const size_t num_callee_params = buf_len(callee->params);
       const size_t num_params = buf_len(e->fcall.params);
       if (num_callee_params != num_params) {

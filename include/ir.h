@@ -58,6 +58,7 @@ enum ir_node_type {
    IR_ALLOCA,        // .alloca     | allocate data on the stack
    IR_COPY,          // .copy       | copy array
    IR_ARRAYLEN,      // .lookup     | get length of variable-length array
+   IR_GLOOKUP,       // .lstr       | get address of global variable
 
    NUM_IR_NODES,
 };

@@ -195,7 +195,8 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
    case IR_PROLOGUE:
    {
       buf_push(defined, n->func->name);
-      emit("global %s", n->func->name);
+      if (!(n->func->attrs & ATTR_STATIC))
+         emit("global %s", n->func->name);
       emit("%s:", n->func->name);
       emit("push %s", reg_bp);
       emit("mov %s, %s", reg_bp, reg_sp);
@@ -521,6 +522,9 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
 #endif
       return n->next;
    }
+   case IR_GLOOKUP:
+      emit("lea %s, [%s]", mreg(n->lstr.reg), n->lstr.str);
+      return n->next;
 
    default: panic("emit_ir(): unsupported ir_node type '%s'", ir_node_type_str[n->type]);
    }

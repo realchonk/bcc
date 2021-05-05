@@ -4,6 +4,12 @@
 #include <stdio.h>
 #include "token.h"
 
+
+enum attribute {
+   ATTR_EXTERN    = 0x0001,
+   ATTR_STATIC    = 0x0002,
+};
+
 enum value_base_type {
    VAL_INT,
    VAL_FLOAT,

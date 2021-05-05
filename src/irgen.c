@@ -54,12 +54,18 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e) {
       idx = scope_find_var_idx(scope, &n->lookup.scope, e->str);
       if (idx == SIZE_MAX) {
          idx = func_find_var_idx(scope->func, e->str);
-         if (idx == SIZE_MAX)
-            parse_error(&e->begin, "undeclared variable '%s'", e->str);
-         n->type = IR_FPARAM;
-         n->fparam.reg = creg++;
-         n->fparam.func = scope->func;
-         n->fparam.idx = idx;
+         if (idx == SIZE_MAX) {
+            struct variable* var = unit_get_var(e->str);
+            if (!var) parse_error(&e->begin, "undeclared variable '%s'", e->str);
+            n->type = IR_GLOOKUP;
+            n->lstr.str = e->str;
+            n->lstr.reg = creg++;
+         } else {
+            n->type = IR_FPARAM;
+            n->fparam.reg = creg++;
+            n->fparam.func = scope->func;
+            n->fparam.idx = idx;
+         }
       } else {
          n->lookup.reg = creg++;
          n->lookup.var_idx = idx;

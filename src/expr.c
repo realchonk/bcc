@@ -411,6 +411,9 @@ struct expression* parse_expr(void) {
    } while (lexer_match(TK_COMMA));
    return optim_expr(comma);
 }
+struct expression* parse_expr_no_comma(void) {
+   return optim_expr(expr_assign());
+}
 
 
 void free_expr(struct expression* e) {

@@ -80,6 +80,8 @@ const char* token_type_str[NUM_TOKENS] = {
    [KW_SIZEOF]    = "sizeof",
    [KW_ARRAYLEN]  = "arraylen",
    [KW_AUTO]      = "auto",
+   [KW_EXTERN]    = "extern",
+   [KW_STATIC]    = "static",
 };
 
 void token_init(void) {

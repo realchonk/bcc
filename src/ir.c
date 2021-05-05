@@ -61,6 +61,7 @@ const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_ALLOCA]       = "alloca",
    [IR_COPY]         = "copy",
    [IR_ARRAYLEN]     = "arraylen",
+   [IR_GLOOKUP]      = "glookup"
 };
 const char* ir_value_type_str[NUM_IR_VALUES] = {
    [IRT_REG]         = "register",
@@ -177,6 +178,9 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
       break;
    case IR_LSTR:
       fprintf(file, " R%u, '%s'", n->lstr.reg, n->lstr.str);
+      break;
+   case IR_GLOOKUP:
+      fprintf(file, " R%u, %s", n->lstr.reg, n->lstr.str);
       break;
    case IR_JMP:
       fprintf(file, " %s", n->str);

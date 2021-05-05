@@ -14,10 +14,10 @@ struct function {
    struct source_pos begin, end;
    struct ir_node* ir_code;         // optional
    bool variadic;
+   unsigned attrs;
 };
 
-struct function* parse_func(void);
-
+struct function* parse_func_part(struct value_type* type, istr_t name);
 void print_func(FILE*, const struct function*);
 void free_func(struct function*);
 
