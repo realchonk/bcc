@@ -5,3 +5,5 @@ Planned features:
 - Improve warnings
 - implement a C pre-processor
 - add more optimization techniques
+- adding switch/case
+- adding labels & goto

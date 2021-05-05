@@ -197,7 +197,9 @@ static void emit_func(const struct function* func, const ir_node_t* n) {
    esp = 0;
    while ((n = emit_ir(n)) != NULL);
 }
-void emit_unit(void) {
+// TODO: implement machine-specific options
+void emit_unit(const char** opts) {
+   (void)opts;
    emit_begin();
    for (size_t i = 0; i < buf_len(cunit.funcs); ++i) {
       const struct function* f = cunit.funcs[i];

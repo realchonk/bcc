@@ -27,8 +27,9 @@ int main(int argc, char* argv[]) {
    int level = 'c';
    enable_warnings = true;
    optim_level = 0;
+   const char** target_opts = NULL;
    int option;
-   while ((option = getopt(argc, argv, ":VO:wciSAo:")) != -1) {
+   while ((option = getopt(argc, argv, ":m:VO:wciSAo:")) != -1) {
       switch (option) {
       case 'o': output_file = optarg; break;
       case 'c':
@@ -51,14 +52,19 @@ int main(int argc, char* argv[]) {
          break;
       }
       case 'V':
-         printf("bcc %s\nCopyright (C) Benjamin Stürz.\nThis software is distributed under the terms of the GPLv2\nCompiled for %s\n", BCC_VER, BCC_ARCH);
+         printf("bcc %s\nCopyright (C) Benjamin Stürz.\n"
+               "This software is distributed under the terms of the GPLv2\n"
+               "Compiled for %s\n", BCC_VER, BCC_ARCH);
          return 0;
+      case 'm':
+         buf_push(target_opts, optarg);
+         break;
       default: goto print_usage;
       }
    }
    if ((argc - optind) != 1) {
    print_usage:
-      fputs("Usage: bcc [-Olevel] [-VciAS] [-o output] input\n", stderr);
+      fputs("Usage: bcc [options] input\n", stderr);
       return 1;
    }
    const char* source_file = argv[optind];
@@ -91,7 +97,7 @@ int main(int argc, char* argv[]) {
    parse_unit();
    if (level == 'A') print_unit(output);
    else if (level == 'i') print_ir_unit(output);
-   else emit_unit();
+   else emit_unit(target_opts);
    free_unit();
    lexer_free();
    

@@ -1,4 +1,4 @@
-.TH bcc 1 "2021-05-04"
+.TH bcc 1 "2021-05-06"
 
 .SH NAME
 bcc - bad C-like compiler
@@ -9,6 +9,7 @@ bcc - bad C-like compiler
 .OP -w
 .OP -O \fIlevel\fR
 .OP -o \fIoutput\fR
+.OP -m \fImach_opt\fR
 .I source
 .YS
 .SY bcc
@@ -78,6 +79,11 @@ Disable all \fIwarnings\fR.
 .RE
 .RS 5
 Print the version information.
+.RE
+.B -m \fImach_opt\fR
+.RE
+.RS 5
+Specify a target-dependend option.
 
 .SH OPERANDS
 .I output
@@ -93,8 +99,15 @@ The source file, for which to generate the output.
 
 .RE
 .I level
+.RE
 .RS 5
 The optimization level to perform. (default: 0)
+
+.RE
+.I mach_opt
+.RE
+.RS 5
+A target-specific option. (Currently none)
 
 .SH LANGUAGE
 .I WIP

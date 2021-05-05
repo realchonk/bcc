@@ -359,9 +359,8 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
             else if (check2(vl, vr, VAL_POINTER, VAL_INT))
                parse_warn(&e->binary.op.begin, "comparisson between pointer and integer");
          } else if (check1and(vl, vr, VAL_POINTER)) {
-            if (vl->pointer.type->type != vr->pointer.type->type)
+            if (!ptreq(vl, vr))
                parse_error(&e->binary.op.begin, "comparisson between pointer of different types");
-            // TODO: check for the specifics
          }
          free_value_type(vl);
          free_value_type(vr);
@@ -401,7 +400,7 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
             else if (vr->type == VAL_INT) return free_value_type(vr), decay(vl);
             else if (vr->type == VAL_POINTER) {
                if (!ptreq(vl->pointer.type, vr->pointer.type))
-                  parse_error(&e->binary.op.begin, "incompatible pointer types"); // TODO: maybe error?
+                  parse_error(&e->binary.op.begin, "incompatible pointer types");
                free_value_type(vl);
                free_value_type(vr);
                return make_int(target_info.ptrdiff_type, false);
