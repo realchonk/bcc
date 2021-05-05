@@ -3,7 +3,8 @@
 ## Description
 This is my third iteration of compiler design and implementation.<br>
 The <strong>bcc</strong> compiler is heavily based on the predecessor [benc](https://github.com/Benni3D/benc).<br>
-
+The compiler generated assembly for the [System V ABI](https://wiki.osdev.org/System_V_ABI), where applicable.<br>
+More documentation can be found using the [man(1)](https://www.man7.org/linux/man-pages/man1/man.1.html) utility with the <em>./bcc.1</em> argument.
 
 ## Target architectures
 - i386 (x86-32/IA-32)

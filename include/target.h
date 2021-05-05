@@ -54,7 +54,7 @@ void emit_free(void);
 void emit(const char*, ...);
 void emitraw(const char*, ...);
 
-void emit_unit(const struct compilation_unit*);
+void emit_unit(void);
 
 int assemble(const char* source, const char* output);
 

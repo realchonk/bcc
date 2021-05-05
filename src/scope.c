@@ -14,6 +14,7 @@ struct scope* make_scope(struct scope* parent, struct function* func) {
    s->func = func;
    s->body = NULL;
    s->vars = NULL;
+   s->children = NULL;
    return s;
 }
 

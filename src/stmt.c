@@ -145,6 +145,7 @@ struct statement* parse_stmt(struct scope* scope) {
          buf_push(stmt->scope->body, parse_stmt(stmt->scope));
       }
       stmt->end = lexer_expect(TK_CRPAREN).end;
+      buf_push(stmt->parent->children, stmt->scope);
       break;
    case KW_RETURN:
       lexer_skip();
@@ -207,6 +208,7 @@ struct statement* parse_stmt(struct scope* scope) {
       outer->parent = scope;
       outer->func = scope->func;
       outer->begin = lexer_next().begin;
+      buf_push(scope->children, outer->scope);
       
       lexer_expect(TK_LPAREN);
      

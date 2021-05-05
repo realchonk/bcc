@@ -43,7 +43,7 @@ const struct target_info target_info = {
    .fend_obj = "o",
 
    .ptrdiff_type = INT_LONG,
-   .has_c99_array = false,
+   .has_c99_array = true,
 };
 
 int assemble(const char* source, const char* output) {

@@ -31,3 +31,12 @@ static size_t param_regs[] = { 1, 2, 3, 4, 5, 6 };
    default:          panic("emit_ir(): unsupported operand size '%s'", ir_size_str[size]); \
    }
 
+#if BCC_x86_64
+static bool is_defined(istr_t s) {
+   for (size_t i = 0; i < buf_len(cunit.funcs); ++i) {
+      const struct function* f = cunit.funcs[i];
+      if (s == f->name && f->scope) return true;
+   }
+   return false;
+}
+#endif

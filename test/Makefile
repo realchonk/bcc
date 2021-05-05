@@ -13,6 +13,8 @@ else
 
 endif
 
+olevel=2
+
 run: test
 	@(./$<; echo "\nexit code: $$?")
 
@@ -23,10 +25,10 @@ test.o: test.asm
 	nasm $(ASFLAGS) -o $@ $<
 
 test.asm: test.c ../bcc
-	../bcc -S -o $@ $< -O2
+	../bcc -S -o $@ $< -O $(olevel)
 
 test.ir: test.c ../bcc
-	../bcc -i -o $@ $< -O2
+	../bcc -i -o $@ $< -O $(olevel)
 
 clean:
 	rm -f test test.o test.asm test.ir

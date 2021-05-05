@@ -4,7 +4,6 @@
 #include "value.h"
 #include "scope.h"
 
-struct compilation_unit;
 struct ir_node;
 
 struct function {
@@ -13,12 +12,11 @@ struct function {
    struct variable* params;
    struct scope* scope;             // optional
    struct source_pos begin, end;
-   struct compilation_unit* unit;
    struct ir_node* ir_code;         // optional
    bool variadic;
 };
 
-struct function* parse_func(struct compilation_unit*);
+struct function* parse_func(void);
 
 void print_func(FILE*, const struct function*);
 void free_func(struct function*);

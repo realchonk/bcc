@@ -12,10 +12,12 @@ struct variable {
    struct expression* init;
    struct source_pos begin, end;
    bool has_value;
+   uintmax_t addr; // used by backend
 };
 
 struct scope {
    struct scope* parent;
+   struct scope** children;
    struct variable* vars;
    struct statement** body;
    struct function* func;

@@ -99,7 +99,8 @@ static bool fold(ir_node_t** n) {
          cur->load.size = sz;
          cur->load.value = res;
          success = true;
-      } else if (cur->type == IR_LOAD && ir_isv(cur->next, IR_INOT, IR_INEG, NUM_IR_NODES) && cur->next->unary.reg == cur->load.dest) {
+      } else if (cur->type == IR_LOAD && ir_isv(cur->next, IR_INOT, IR_INEG, NUM_IR_NODES)
+            && cur->next->unary.reg == cur->load.dest) {
          uintmax_t a = cur->load.value;
          if (cur->next->type == IR_INOT) a = ~a;
          else a = ~a + 1;
@@ -115,7 +116,7 @@ static bool fold(ir_node_t** n) {
 static bool unmuldiv(ir_node_t** n) {
    bool success = false;
    for (ir_node_t* cur = *n; cur; cur = cur->next) {
-      if (ir_isv(cur, 4, IR_IMUL, IR_UMUL, IR_IDIV, IR_UDIV, NUM_IR_NODES)
+      if (ir_isv(cur, IR_IMUL, IR_UMUL, IR_IDIV, IR_UDIV, NUM_IR_NODES)
             && ((cur->binary.a.type == IRT_UINT) ^ (cur->binary.b.type == IRT_UINT))) {
          const enum ir_value_size sz = cur->binary.size;
          const ir_reg_t dest = cur->binary.dest;

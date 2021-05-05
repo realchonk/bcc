@@ -191,6 +191,7 @@ struct value_type* common_value_type(const struct value_type* a, const struct va
    c->is_const = false;
    if (a->type == b->type) {
       c->type = a->type;
+      // TODO: improve warnings
       switch (a->type) {
       case VAL_INT:
          if (a->integer.is_unsigned != b->integer.is_unsigned) {
@@ -450,15 +451,7 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
    }
    case EXPR_FCALL:
    {
-      struct compilation_unit* unit = scope->func->unit;
-      struct function* callee = NULL;
-      assert(unit != NULL);
-      for (size_t i = 0; i < buf_len(unit->funcs); ++i) {
-         if (e->fcall.name == unit->funcs[i]->name) {
-            callee = unit->funcs[i];
-            break;
-         }
-      }
+      struct function* callee = unit_get_func(e->fcall.name);
       if (!callee)
          parse_warn(&e->begin, "function '%s' is not declared.");
       const size_t num_callee_params = buf_len(callee->params);
@@ -562,11 +555,11 @@ struct value_type* make_array_vt(struct value_type* vt) {
    arr->is_const = true;
    return arr;
 }
-size_t sizeof_value(const struct value_type* vt) {
+size_t sizeof_value(const struct value_type* vt, bool decay) {
    switch (vt->type) {
    case VAL_POINTER:
-      if (vt->pointer.is_array && vt->pointer.array.has_const_size)
-         return sizeof_value(vt->pointer.type) * vt->pointer.array.size;
+      if (vt->pointer.is_array && vt->pointer.array.has_const_size && !decay)
+         return sizeof_value(vt->pointer.type, false) * vt->pointer.array.size;
       else return target_info.size_pointer;
    case VAL_FLOAT:
       switch (vt->fp.size) {

@@ -25,7 +25,7 @@ struct BufHdr {
 #define buf_capacity(buf) ((buf) ? buf__hdr(buf)->cap : 0)
 #define buf__fit(buf, n) ((n) <= buf_capacity(buf) ? 0 : ((buf) = buf__grow((buf), (n), (sizeof(*(buf))))))
 #define buf_push(buf, elem) (buf__fit((buf), 1 + buf_size(buf)), (buf)[buf__hdr(buf)->len++] = (elem))
-#define buf_pop(buf) ((buf) ? (buf)[--buf__hdr(buf)->len], 1 : 0)
+#define buf_pop(buf) (assert(buf_len(buf) != 0), (buf)[--buf__hdr(buf)->len])
 #define buf_free(buf) ((buf) ? (free(buf__hdr(buf)), (buf) = NULL) : 0)
 #define buf_last(buf) ((buf) + buf_size(buf) - 1)
 #define buf_reserve(buf, len) ((buf_size(buf) < (len)) ? ((buf) = buf__grow((buf), (len), sizeof(*(buf)))) : (buf))

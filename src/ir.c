@@ -60,6 +60,7 @@ const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_LABEL]        = "",
    [IR_ALLOCA]       = "alloca",
    [IR_COPY]         = "copy",
+   [IR_ARRAYLEN]     = "arraylen",
 };
 const char* ir_value_type_str[NUM_IR_VALUES] = {
    [IRT_REG]         = "register",
@@ -159,6 +160,7 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
       fprintf(file, ".%s R%u", ir_size_str[n->unary.size], n->unary.reg);
       break;
    case IR_LOOKUP:
+   case IR_ARRAYLEN:
       fprintf(file, " R%u, %s", n->lookup.reg, n->lookup.scope->vars[n->lookup.var_idx].name);
       break;
    case IR_IICAST:

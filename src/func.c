@@ -1,18 +1,15 @@
+#include "parser.h"
 #include "error.h"
-#include "stmt.h"
-#include "func.h"
 #include "lex.h"
 #include "ir.h"
 
-struct function* parse_func(struct compilation_unit* unit) {
+struct function* parse_func(void) {
    struct function* func = malloc(sizeof(struct function));
    if (!func) panic("parse_func(): failed to allocate function");
    func->type = parse_value_type();
    func->name = lexer_expect(TK_NAME).str;
    func->params = NULL;
-   func->unit = NULL;
    func->ir_code = NULL;
-   func->unit = unit;
    lexer_expect(TK_LPAREN);
 
    if (!lexer_matches(TK_RPAREN)) {

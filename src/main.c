@@ -88,11 +88,11 @@ int main(int argc, char* argv[]) {
 
    lexer_init(source, source_file);
    if (level == 'S' || level == 'c') emit_init(asm_file);
-   struct compilation_unit* unit = parse_unit();
-   if (level == 'A') print_unit(output, unit);
-   else if (level == 'i') print_ir_unit(output, unit);
-   else emit_unit(unit);
-   free_unit(unit);
+   parse_unit();
+   if (level == 'A') print_unit(output);
+   else if (level == 'i') print_ir_unit(output);
+   else emit_unit();
+   free_unit();
    lexer_free();
    
    int ec = 0;

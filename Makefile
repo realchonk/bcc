@@ -1,4 +1,4 @@
-VER="0.3"
+VER="0.4"
 TARGET ?= $(shell uname -m)
 
 CC=cc
@@ -17,6 +17,7 @@ includes=$(wildcard include/*.h)
 sources=$(wildcard src/*.c) $(wildcard src/$(TARGET)/*.c)
 objects=$(patsubst src/%.c,obj/%.o,$(wildcard src/*.c)) \
 		  $(patsubst src/$(TARGET)/%.c,obj/$(TARGET)/%.o,$(wildcard src/$(TARGET)/*.c))
+target_includes=$(wildcard src/$(TARGET)/*.h)
 
 all: bcc
 
@@ -28,6 +29,9 @@ obj:
 
 obj/$(TARGET): obj
 	mkdir -p obj/$(TARGET)
+
+obj/$(TARGET)/%.o: src/$(TARGET)/%.c $(includes) $(target_includes)
+	$(CC) -o $@ $< $(CFLAGS)
 
 obj/%.o: src/%.c $(includes)
 	$(CC) -o $@ $< $(CFLAGS)

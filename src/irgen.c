@@ -2,6 +2,7 @@
 #include <string.h>
 #include "target.h"
 #include "error.h"
+#include "optim.h"
 #include "ir.h"
 
 static ir_node_t* new_node(enum ir_node_type t) {
@@ -91,7 +92,6 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       struct value_type* vl = get_value_type(scope, e->binary.left);
       struct value_type* vr = get_value_type(scope, e->binary.right);
       n = ir_expr(scope, e->binary.left);
-      printf("irs = %s\n", ir_size_str[irs]);
       if (irs != vt2irs(vl)) {
          tmp = new_node(IR_IICAST);
          tmp->iicast.dest = tmp->iicast.src = creg - 1;
@@ -116,7 +116,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          tmp->binary.a.type = IRT_REG;
          tmp->binary.a.reg = creg - 1;
          tmp->binary.b.type = IRT_UINT;
-         tmp->binary.b.uVal = sizeof_value((vl->type == VAL_POINTER ? vl : vr)->pointer.type);
+         tmp->binary.b.uVal = sizeof_value((vl->type == VAL_POINTER ? vl : vr)->pointer.type, false);
          tmp->binary.size = irs;
          ir_append(n, tmp);
       }
@@ -154,7 +154,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          tmp->binary.a.type = IRT_REG;
          tmp->binary.a.reg = creg - 2;
          tmp->binary.b.type = IRT_UINT;
-         tmp->binary.b.uVal = sizeof_value(vl->pointer.type);
+         tmp->binary.b.uVal = sizeof_value(vl->pointer.type, false);
          ir_append(n, tmp);
       }
 
@@ -225,7 +225,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    }
    case EXPR_FCALL:
    {
-      struct function* func = unit_get_func(scope->func->unit, e->fcall.name);
+      struct function* func = unit_get_func(e->fcall.name);
       if (!func) parse_error(&e->begin, "function '%s' not found", e->fcall.name);
       n = new_node(IR_IFCALL);
       n->ifcall.name = func->name;
@@ -245,7 +245,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
             tmp->iicast.sign_extend = irs == IRS_PTR ? false : !func->type->integer.is_unsigned;
             ir_append(ir, tmp);
          }
-         buf_push(n->ifcall.params, ir);
+         buf_push(n->ifcall.params, optim_ir_nodes(ir));
          --creg;
 
          free_value_type(vp);
@@ -274,7 +274,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       tmp->binary.a.type = IRT_REG;
       tmp->binary.a.reg = creg - 1;
       tmp->binary.b.type = IRT_UINT;
-      tmp->binary.b.uVal = vt->type == VAL_POINTER ? sizeof_value(vt->pointer.type) : 1;
+      tmp->binary.b.uVal = vt->type == VAL_POINTER ? sizeof_value(vt->pointer.type, false) : 1;
       tmp->binary.size = irs;
       ir_append(n, tmp);
 
@@ -300,7 +300,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       tmp->binary.a.type = IRT_REG;
       tmp->binary.a.reg = creg - 1;
       tmp->binary.b.type = IRT_UINT;
-      tmp->binary.b.uVal = vt->type == VAL_POINTER ? sizeof_value(vt->pointer.type) : 1;
+      tmp->binary.b.uVal = vt->type == VAL_POINTER ? sizeof_value(vt->pointer.type, false) : 1;
       tmp->binary.size = irs;
       ir_append(n, tmp);
 
@@ -315,7 +315,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       tmp->binary.a.type = IRT_REG;
       tmp->binary.a.reg = creg - 1;
       tmp->binary.b.type = IRT_UINT;
-      tmp->binary.b.uVal = vt->type == VAL_POINTER ? sizeof_value(vt->pointer.type) : 1;
+      tmp->binary.b.uVal = vt->type == VAL_POINTER ? sizeof_value(vt->pointer.type, false) : 1;
       tmp->binary.size = irs;
       ir_append(n, tmp);
       break;
@@ -365,9 +365,9 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       n->load.dest = creg++;
       if (e->szof.has_expr) {
          struct value_type* nvt = get_value_type(scope, e->szof.expr);
-         n->load.value = sizeof_value(nvt);
+         n->load.value = sizeof_value(nvt, false);
          free_value_type(nvt);
-      } else n->load.value = sizeof_value(e->szof.type);
+      } else n->load.value = sizeof_value(e->szof.type, false);
       n->load.size = IRS_INT;
       break;
    }
@@ -376,12 +376,31 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       struct value_type* nvt = get_value_type(scope, e->expr);
       if (nvt->type != VAL_POINTER || !nvt->pointer.is_array)
          parse_error(&e->expr->begin, "expected array value");
-      else if (!nvt->pointer.array.has_const_size)
-         parse_error(&e->expr->begin, "not supported for VLAs");
-      n = new_node(IR_LOAD);
-      n->load.dest = creg++;
-      n->load.value = nvt->pointer.array.size;
-      n->load.size = IRS_INT;
+      
+      if (!nvt->pointer.array.has_const_size) {
+         struct expression* t = e->expr;
+         while (t->type == EXPR_PAREN) t = t->expr;
+         if (t->type != EXPR_NAME)
+            panic("ir_expr(): arraylen() went wrong for VLA");
+         n = new_node(IR_ARRAYLEN);
+         n->lookup.reg = creg++;
+         if ((n->lookup.var_idx = scope_find_var_idx(scope, &n->lookup.scope, t->str)) == SIZE_MAX)
+            parse_error(&t->begin, "array %s not found");
+
+         tmp = new_node(IR_UDIV);
+         tmp->binary.size = IRS_PTR;
+         tmp->binary.dest = creg - 1;
+         tmp->binary.a.type = IRT_REG;
+         tmp->binary.a.reg = creg - 1;
+         tmp->binary.b.type = IRT_UINT;
+         tmp->binary.b.uVal = sizeof_value(nvt->pointer.type, false);
+         ir_append(n, tmp);
+      } else {
+         n = new_node(IR_LOAD);
+         n->load.dest = creg++;
+         n->load.value = nvt->pointer.array.size;
+         n->load.size = IRS_INT;
+      }
       free_value_type(nvt);
       break;
    }
@@ -442,11 +461,21 @@ ir_node_t* irgen_stmt(const struct statement* s) {
       if (var->type->type == VAL_POINTER && var->type->pointer.is_array) {
          n = new_node(IR_ALLOCA);
          n->alloca.dest = creg;
+         n->alloca.var = var;
          if (var->type->pointer.array.has_const_size) {
             n->alloca.size.type = IRT_UINT;
-            n->alloca.size.uVal = sizeof_value(var->type);
+            n->alloca.size.uVal = sizeof_value(var->type, false);
          } else {
             tmp = irgen_expr(s->parent, var->type->pointer.array.dsize);
+            ir_node_t* mul = new_node(IR_UMUL);
+            mul->binary.size = IRS_PTR;
+            mul->binary.dest = creg - 1;
+            mul->binary.a.type = IRT_REG;
+            mul->binary.a.reg = creg - 1;
+            mul->binary.b.type = IRT_UINT;
+            mul->binary.b.uVal = sizeof_value(var->type->pointer.type, false);
+            ir_append(tmp, mul);
+
             n->alloca.size.type = IRT_REG;
             n->alloca.size.reg = --creg;
             ir_append(tmp, n);

@@ -6,144 +6,8 @@
 #include "strdb.h"
 #include "regs.h"
 #include "bcc.h"
+#include "common.h"
 
-static const char* nasm_size(enum ir_value_size s) {
-   switch (s) {
-   case IRS_BYTE:
-   case IRS_CHAR:    return "byte";
-   case IRS_SHORT:   return "word";
-
-   case IRS_PTR:
-#if BCC_x86_64
-   case IRS_LONG:    return "qword";
-#endif
-   case IRS_INT:     return "dword";
-   default:          panic("nasm_size(): unsupported operand size '%s'", ir_size_str[s]);
-   }
-}
-
-static const struct function* cur_func;
-static const struct compilation_unit* cunit;
-static uintreg_t esp = 0;
-static istr_t* unresolved = NULL;
-static istr_t* defined = NULL;
-
-#if BCC_x86_64
-static bool is_defined(istr_t s) {
-   for (size_t i = 0; i < buf_len(cunit->funcs); ++i) {
-      const struct function* f = cunit->funcs[i];
-      if (s == f->name && f->scope) return true;
-   }
-   return false;
-}
-#endif
-
-inline static const char* reg_bx(const enum ir_value_size irs) {
-   switch (irs) {
-   case IRS_BYTE:
-   case IRS_CHAR:
-      return "bl";
-   case IRS_SHORT:
-      return "bx";
-   case IRS_PTR:
-#if BCC_x86_64
-   case IRS_LONG:
-      return "rbx";
-#endif
-   case IRS_INT:
-      return "ebx";
-   default:
-      panic("reg_bx(): invalid value size '%s'", ir_size_str[irs]);
-   }
-}
-
-static ir_node_t* emit_ir(const ir_node_t* n);
-static void emit_begin(void) {
-   strdb_init();
-   if (unresolved) buf_free(unresolved);
-   if (defined) buf_free(defined);
-   emit("default rel");
-   emit("section .text");
-   emit("extern memcpy");
-}
-static void emit_end(void) {
-   for (size_t i = 0; i < buf_len(unresolved); ++i) {
-      bool is_defined = false;
-      for (size_t j = 0; j < buf_len(defined); ++j) {
-         if (unresolved[i] == defined[j]) {
-            is_defined = true;
-            break;
-         }
-      }
-      if (!is_defined) emit("extern %s", unresolved[i]);
-   }
-
-   asm_indent = 0;
-   if (strdb) {
-      emit("\nsection .rodata\n__strings:");
-      size_t i = 0;
-      while (i < buf_len(strdb)) {
-         if (!strdb[i]) {
-            emit("db 0");
-            ++i;
-            continue;
-         }
-         emitraw("db ");
-         while (strdb[i]) {
-            if (isprint(strdb[i])) {
-               emitraw("\"");
-               while (isprint(strdb[i])) {
-                  emitraw("%c", strdb[i++]);
-               }
-               emitraw("\"");
-            } else {
-               emitraw("%u", strdb[i++]);
-            }
-            emitraw(", ");
-         }
-         emit("0");
-         ++i;
-      }
-   }
-
-   buf_free(unresolved);
-   buf_free(defined);
-}
-static void emit_func(const struct function* func, const ir_node_t* n) {
-   cur_func = func;
-   esp = 0;
-   while ((n = emit_ir(n)) != NULL);
-}
-void emit_unit(const struct compilation_unit* unit) {
-   cunit = unit;
-   emit_begin();
-   for (size_t i = 0; i < buf_len(unit->funcs); ++i) {
-      const struct function* f = unit->funcs[i];
-      if (f->ir_code)
-         emit_func(f, f->ir_code);
-      else emit("extern %s", f->name);
-   }
-   emit_end();
-}
-
-static size_t uslen(uintmax_t v) {
-   return v == 0 ? 1 : (size_t)log10(v) + 1;
-}
-static const char* irv2str(const struct ir_value* v, const enum ir_value_size s) {
-   if (v->type == IRT_REG) {
-      const char* str;
-      reg_op(str, v->reg, s);
-      return str;
-   } else if (v->type == IRT_UINT) {
-      char buffer[uslen(v->uVal) + 1];
-      snprintf(buffer, sizeof(buffer), "%ju", v->uVal);
-      return strint(buffer);
-   } else panic("irv2str(): invalid IR value type '%u'", v->type);
-}
-static void emit_clear(const char* reg) {
-   if (optim_level < 1) emit("mov %s, 0", reg);
-   else emit("xor %s, %s", reg, reg);
-}
 
 static ir_node_t* emit_ir(const ir_node_t* n) {
    const char* instr;
@@ -177,12 +41,12 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       const char* dest;
       reg_op(dest, n->binary.dest, n->binary.size);
 
-      if (optim_level >= 1 && n->binary.a.type == IRT_REG && n->binary.dest == n->binary.a.reg) {
+      if (n->binary.a.type == IRT_REG && n->binary.dest == n->binary.a.reg) {
          if (n->binary.b.type == IRT_UINT && n->binary.b.uVal == 1) {
-            emit("%s %s", n->type == IR_IADD ? "inc" : "dec", dest);
-         } else emit("%s %s, %s", n->type == IR_IADD ? "add" : "sub", dest, b);
+            emit("%s %s", (n->type == IR_IADD ? "inc" : "dec"), dest);
+         } else emit("%s %s, %s", (n->type == IR_IADD ? "add" : "sub"), dest, b);
       } else {
-         emit("lea %s, [%s %c %s]", dest, a, n->type == IR_IADD ? '+' : '-', b);
+         emit("lea %s, [%s %c %s]", dest, a, (n->type == IR_IADD ? '+' : '-'), b);
       }
       return n->next;
    }
@@ -304,14 +168,13 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    }
    case IR_BEGIN_SCOPE:
-      if (n->scope->vars) emit("sub %s, %zu", reg_sp, REGSIZE * buf_len(n->scope->vars));
-      esp += REGSIZE * buf_len(n->scope->vars);
       emit("");
+      buf_push(stack_alloc, stack_cur_alloc);
+      stack_cur_alloc = NULL;
       return n->next;
    case IR_END_SCOPE:
       emit("");
-      if (n->scope->vars) emit("add %s, %zu", reg_sp, REGSIZE * buf_len(n->scope->vars));
-      esp -= 4 * buf_len(n->scope->vars);
+      free_stack();
       return n->next;
    case IR_READ:
    {
@@ -330,19 +193,28 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    }
    case IR_PROLOGUE:
+   {
       buf_push(defined, n->func->name);
       emit("global %s", n->func->name);
       emit("%s:", n->func->name);
       emit("push %s", reg_bp);
       emit("mov %s, %s", reg_bp, reg_sp);
       esp = REGSIZE * 2;
+      size_t addr = REGSIZE;
 #if BCC_x86_64
       for (size_t i = 0; i < my_min(buf_len(n->func->params), arraylen(param_regs)); ++i) {
          emit("push %s", mreg(param_regs[i]));
          esp += REGSIZE;
+         addr += REGSIZE;
       }
 #endif
+      const size_t sz = align_stack_size(sizeof_scope(n->func->scope));
+      emit("sub %s, %zu", reg_sp, sz);
+      assign_scope(n->func->scope, &addr);
+      esp += sz;
+      stack_cur_alloc = NULL;
       return n->next;
+   }
    case IR_EPILOGUE:
       if (strcmp(n->func->name, "main") == 0 && n->prev && n->prev->prev && n->prev->prev->type != IR_IRET)
          emit_clear(reg_ax);
@@ -386,9 +258,11 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       } else if (n->iicast.ds > n->iicast.ss) {
          const char* dest;
          const char* src;
-         reg_op(dest, n->iicast.dest, n->iicast.ds);
-         reg_op(src, n->iicast.src, n->iicast.ss);
-         emit("%s %s, %s", n->iicast.sign_extend ? "movsx" : "movzx", dest, src);
+         if (n->iicast.ds != IRS_LONG && n->iicast.ds != IRS_PTR) {
+            reg_op(dest, n->iicast.dest, n->iicast.ds);
+            reg_op(src, n->iicast.src, n->iicast.ss);
+            emit("%s %s, %s", n->iicast.sign_extend ? "movsx" : "movzx", dest, src);
+         }
       } else {
          if (n->iicast.dest != n->iicast.src) {
             const char* dest;
@@ -438,9 +312,9 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
          emit("pop %s", mreg(param_regs[i - 1]));
       }
       bool variadic = false;
-      for (size_t i = 0; i < buf_len(cunit->funcs); ++i) {
-         if (n->ifcall.name == cunit->funcs[i]->name) {
-            variadic = cunit->funcs[i]->variadic;
+      for (size_t i = 0; i < buf_len(cunit.funcs); ++i) {
+         if (n->ifcall.name == cunit.funcs[i]->name) {
+            variadic = cunit.funcs[i]->variadic;
             break;
          }
       }
@@ -471,25 +345,10 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
    }
    case IR_LOOKUP:
    {
-      size_t idx = REGSIZE; // * (n->lookup.var_idx + 1);
-      struct scope* scope = n->lookup.scope;
-      for (size_t i = 0; i < n->lookup.var_idx; ++i) {
-         idx += REGSIZE;
-         /*if (scope->vars[i].type->type == VAL_POINTER && scope->vars[i].type->pointer.is_array) {
-            idx += sizeof_value(scope->vars[i].type);
-         }*/
-      }
+      size_t idx = n->lookup.scope->vars[n->lookup.var_idx].addr;
 #if BCC_x86_64
       idx += my_min(arraylen(param_regs), buf_len(cur_func->params)) * REGSIZE;
 #endif
-      while ((scope = scope->parent) != NULL) {
-         for (size_t i = 0; i < buf_len(scope->vars); ++i) {
-            idx += REGSIZE;
-            if (scope->vars[i].type->type == VAL_POINTER && scope->vars[i].type->pointer.is_array) {
-               idx += sizeof_value(scope->vars[i].type);
-            }
-         }
-      }
       // TODO: experimental
       if (optim_level >= 2) {
          if (ir_is(n->next, IR_READ) && n->next->move.src == n->lookup.reg) {
@@ -616,11 +475,28 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
    }
    case IR_ALLOCA:
    {
+      struct stack_alloc_entry e;
       const char* dest;
       const char* num = irv2str(&n->alloca.size, IRS_PTR);
       reg_op(dest, n->alloca.dest, IRS_PTR);
+      
+      e.is_const = n->alloca.size.type == IRT_UINT;
+      
       emit("sub %s, %s", reg_sp, num);
+      if (e.is_const) e.sz = n->alloca.size.uVal;
+      else {
+         e.sz = n->alloca.var->addr + REGSIZE;
+         emit("mov %s [%s - %zu], %s", nasm_size(IRS_PTR), reg_bp, e.sz, num);
+      }
       emit("mov %s, %s", dest, reg_sp);
+
+      buf_push(stack_cur_alloc, e);
+      return n->next;
+   }
+   case IR_ARRAYLEN:
+   {
+      emit("mov %s, %s [%s - %zu]", mreg(n->lookup.reg), nasm_size(IRS_PTR),
+            reg_bp, n->lookup.scope->vars[n->lookup.var_idx].addr + REGSIZE);
       return n->next;
    }
    case IR_COPY:
