@@ -3,8 +3,8 @@
 ## Description
 This is my third iteration of compiler design and implementation.<br>
 The <strong>bcc</strong> compiler is heavily based on the predecessor [benc](https://github.com/Benni3D/benc).<br>
-The compiler generated assembly for the [System V ABI](https://wiki.osdev.org/System_V_ABI), where applicable.<br>
-More documentation can be found using the [man(1)](https://www.man7.org/linux/man-pages/man1/man.1.html) utility with the <em>./bcc.1</em> argument.
+The compiler generates assembly for the [System V ABI](https://wiki.osdev.org/System_V_ABI), where applicable.<br>
+More documentation can be found using the [man(1)](https://www.man7.org/linux/man-pages/man1/man.1.html) utility with the <em>./bcc.1</em> argument.<br>
 Planned features can be read in the [TODO](./TODO) file.
 
 ## Target architectures
@@ -23,4 +23,4 @@ Installing the compiler to a different location (eg. /usr)<br>
 
 ## Testing
 Preliminary testing can be performed with:<br>
-make test
+```make test```
