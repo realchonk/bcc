@@ -89,7 +89,7 @@ void print_stmt(FILE* file, const struct statement* s) {
          print_value_type(file, var->type->pointer.type);
          fprintf(file, " %s[", var->name);
          if (var->type->pointer.array.has_const_size) {
-            fprintf(file, "%ju", var->type->pointer.array.size);
+            fprintf(file, "%zu", var->type->pointer.array.size);
          } else {
             print_expr(file, var->type->pointer.array.dsize);
          }

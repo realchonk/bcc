@@ -52,7 +52,7 @@ static size_t sizeof_scope(const struct scope* scope) {
    size_t num = 0;
    for (size_t i = 0; i < buf_len(scope->vars); ++i) {
       const size_t sz = x86_sizeof_value(scope->vars[i].type);
-      if (sz > num) num = sz;
+      num += sz;
    }
    size_t max_child = 0;
    for (size_t i = 0; i < buf_len(scope->children); ++i) {

@@ -1,5 +1,6 @@
 VER="0.4"
-TARGET ?= $(shell uname -m)
+
+TARGET ?= $(shell ./util/gethostarch.sh)
 
 CC=cc
 CFLAGS += -c -g -std=c99 -Og -Iinclude -Wall -Wextra -D_XOPEN_SOURCE=700 -Wno-missing-braces
