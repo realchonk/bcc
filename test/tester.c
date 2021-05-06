@@ -17,7 +17,7 @@
 #define COLOR_RED          "\033[31m"
 #define COLOR_DFL          "\033[0m"
 
-#define BCC "../bcc"
+#define BCC "../bcc -c -O2 -o "
 #define LINKER "gcc"
 #define TEST_SOURCE "/tmp/test.c"
 #define TEST_OBJECT "/tmp/test.o"
@@ -56,7 +56,7 @@ static void write_test(const char* s) {
    fclose(file);
 }
 static bool compile_test(void) {
-   int ec = system(BCC " -c -o " TEST_OBJECT " " TEST_SOURCE " -O2");
+   int ec = system(BCC TEST_OBJECT " " TEST_SOURCE);
    if (ec < 0 || ec == 127) panic("failed to invoke bcc");
    else if (ec != 0) return false;
 

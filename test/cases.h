@@ -70,5 +70,48 @@
       "arr[7]=7\n",
    .ret_val = 42,
 },
- 
+{
+   .name = "multiply/divide",
+   .compiles = true,
+   .source =
+      "int printf(const char*, ...);\n"
+      "int main(void) {\n"
+      "  int a = 42;\n"
+      "  int b = 99;\n"
+      "  printf(\"%d\\n\", (a * b) + (b / a));\n"
+      "}",
+   .output = "4160",
+   .ret_val = 0
+},
+{
+   .name = "casting of integers",
+   .compiles = true,
+   .source =
+      "int printf(const char*, ...);\n"
+      "int main(void) {\n"
+      "  int a = -1;\n"
+      "  printf(\"%d\\n\", (short)a);\n"
+      "}",
+   .output = "-1",
+   .ret_val = 0
+},
+{
+   .name = "nested for-loop",
+   .compiles = true,
+   .source =
+      "int putchar(int);\n"
+      "int main(void) {\n"
+      "  for (int a = 0; a < 3; ++a) {\n"
+      "     for (int b = 0; b < 5; ++b) {\n"
+      "        putchar('.');\n"
+      "     }\n"
+      "     putchar('\\n');\n"
+      "  }\n"
+      "}",
+   .output =
+      ".....\n"
+      ".....\n"
+      ".....\n",
+   .ret_val = 0,
+},
 

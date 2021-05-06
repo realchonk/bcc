@@ -92,6 +92,12 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       n->load.value = e->uVal;
       n->load.size = irs;
       break;
+   case EXPR_CHAR:
+      n = new_node(IR_LOAD);
+      n->load.dest = creg++;
+      n->load.value = e->uVal;
+      n->load.size = IRS_CHAR;
+      break;
    case EXPR_BINARY:
    {
       const bool is_unsigned = vt->type == VAL_POINTER || (vt->type == VAL_INT && vt->integer.is_unsigned);

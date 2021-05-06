@@ -23,7 +23,7 @@ static bool remove_nops(ir_node_t** n) {
    return success;
 }
 
-// Replace: (load R1, 40; iadd R0, R0, R1) with (iadd R0, R0, 40) 
+// (load R1, 40; iadd R0, R0, R1) -> (iadd R0, R0, 40) 
 static bool direct_val(ir_node_t** n) {
    bool success = false;
    
@@ -112,7 +112,7 @@ static bool fold(ir_node_t** n) {
    return success;
 }
 
-// convert '4 * x' to 'x << 2' 
+// (4 * x) -> (x << 2) 
 static bool unmuldiv(ir_node_t** n) {
    bool success = false;
    for (ir_node_t* cur = *n; cur; cur = cur->next) {
@@ -167,6 +167,21 @@ static bool unmuldiv(ir_node_t** n) {
    }
    return success;
 }
+// (add R0, 42, R0) -> (add R0, R0, 42)
+static bool reorder_params(ir_node_t** n) {
+   bool success = false;
+   for (ir_node_t* cur = *n; cur; cur = cur->next) {
+      if (ir_isv(cur, IR_IADD, IR_IMUL, IR_UMUL, IR_IAND, IR_IOR, IR_IXOR, IR_ISTEQ, IR_ISTNE, NUM_IR_NODES)
+         && cur->binary.a.type == IRT_UINT
+         && cur->binary.b.type == IRT_REG) {
+         const struct ir_value tmp = cur->binary.a;
+         cur->binary.a = cur->binary.b;
+         cur->binary.b = tmp;
+         success = true;
+      }
+   }
+   return success;
+}
 
 ir_node_t* optim_ir_nodes(ir_node_t* n) {
    if (optim_level < 1) return n;
@@ -174,6 +189,7 @@ ir_node_t* optim_ir_nodes(ir_node_t* n) {
       || direct_val(&n)
       || unmuldiv(&n)
       || fold(&n)
+      || reorder_params(&n)
    );
    return n;
 }
