@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
          if (!run_test(&cases[i])) ++failed;
       }
 
-      printf("%s%zu from %zu passed\n" COLOR_DFL, failed ? COLOR_RED : COLOR_GREEN, num - failed, num);
+      printf("%s%zu out of %zu tests passed\n" COLOR_DFL, failed ? COLOR_RED : COLOR_GREEN, num - failed, num);
       return failed ? 2 : 0;
    }
 }

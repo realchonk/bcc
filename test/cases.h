@@ -28,7 +28,7 @@
       "unsigned get(void) { return 10; }\n"
       "int main(void) {\n"
       "  int arr[get()];\n"
-      "  printf(\"%u\\n\", arraylen(arr));\n"
+      "  printf(\"%u\", arraylen(arr));\n"
       "}",
    .output = "10",
    .ret_val = 0,
@@ -126,5 +126,18 @@
       "}",
    .output = "20",
    .ret_val = 0
-}
+},
+{
+   .name = "sizeof(VLA)",
+   .compiles = true,
+   .source =
+      "int printf(const char*, ...);\n"
+      "unsigned get(void) { return 10; }\n"
+      "int main(void) {\n"
+      "  int arr[get()];\n"
+      "  printf(\"%u\", sizeof(arr));\n"
+      "}",
+   .output = "40",
+   .ret_val = 0,
+},
 

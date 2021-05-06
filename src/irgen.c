@@ -377,7 +377,18 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       n->load.dest = creg++;
       if (e->szof.has_expr) {
          struct value_type* nvt = get_value_type(scope, e->szof.expr);
-         n->load.value = sizeof_value(nvt, false);
+         if (nvt->type == VAL_POINTER && nvt->pointer.is_array && !nvt->pointer.array.has_const_size) {
+            struct expression* t = e->szof.expr;
+            while (t->type == EXPR_PAREN) t = t->expr;
+            if (t->type != EXPR_NAME)
+               parse_error(&t->begin, "expected array");
+            n = new_node(IR_ARRAYLEN);
+            n->lookup.reg = creg - 1;
+            if ((n->lookup.var_idx = scope_find_var_idx(scope, &n->lookup.scope, t->str)) == SIZE_MAX)
+               parse_error(&t->begin, "array '%s' not found", t->str);
+            free_value_type(nvt);
+            break;
+         } else n->load.value = sizeof_value(nvt, false);
          free_value_type(nvt);
       } else n->load.value = sizeof_value(e->szof.type, false);
       n->load.size = IRS_INT;
@@ -393,11 +404,11 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          struct expression* t = e->expr;
          while (t->type == EXPR_PAREN) t = t->expr;
          if (t->type != EXPR_NAME)
-            panic("ir_expr(): arraylen() went wrong for VLA");
+            parse_error(&t->begin, "expected array");
          n = new_node(IR_ARRAYLEN);
          n->lookup.reg = creg++;
          if ((n->lookup.var_idx = scope_find_var_idx(scope, &n->lookup.scope, t->str)) == SIZE_MAX)
-            parse_error(&t->begin, "array %s not found", t->str);
+            parse_error(&t->begin, "array '%s' not found", t->str);
 
          tmp = new_node(IR_UDIV);
          tmp->binary.size = IRS_PTR;
