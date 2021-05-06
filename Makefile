@@ -1,10 +1,14 @@
 VER="0.4"
 
-TARGET ?= $(shell ./util/gethostarch.sh)
+ifeq ($(TARGET),)
+ARCH=$(shell ./util/getarch.sh)
+else
+ARCH=$(shell ./util/getarch.sh $(TARGET))
+endif
 
 CC=cc
 CFLAGS += -c -g -std=c99 -Og -Iinclude -Wall -Wextra -D_XOPEN_SOURCE=700 -Wno-missing-braces
-CFLAGS += -DBCC_ARCH=\"$(TARGET)\" -DBCC_$(TARGET)=1 -DBCC_VER=\"$(VER)\"
+CFLAGS += -DBCC_ARCH=\"$(ARCH)\" -DBCC_$(ARCH)=1 -DBCC_VER=\"$(VER)\"
 
 LD=$(CC)
 LDFLAGS=
@@ -15,23 +19,23 @@ BINDIR ?= /bin
 MANDIR ?= /share/man/man1
 
 includes=$(wildcard include/*.h)
-sources=$(wildcard src/*.c) $(wildcard src/$(TARGET)/*.c)
+sources=$(wildcard src/*.c) $(wildcard src/$(ARCH)/*.c)
 objects=$(patsubst src/%.c,obj/%.o,$(wildcard src/*.c)) \
-		  $(patsubst src/$(TARGET)/%.c,obj/$(TARGET)/%.o,$(wildcard src/$(TARGET)/*.c))
-target_includes=$(wildcard src/$(TARGET)/*.h)
+		  $(patsubst src/$(ARCH)/%.c,obj/$(ARCH)/%.o,$(wildcard src/$(ARCH)/*.c))
+target_includes=$(wildcard src/$(ARCH)/*.h)
 
 all: bcc
 
-bcc: obj/$(TARGET) $(objects)
+bcc: check_arch obj/$(ARCH) $(objects)
 	$(LD) -o $@ $(objects) $(LDFLAGS) $(LIBS)
 
 obj:
 	mkdir -p obj
 
-obj/$(TARGET): obj
-	mkdir -p obj/$(TARGET)
+obj/$(ARCH): obj
+	mkdir -p obj/$(ARCH)
 
-obj/$(TARGET)/%.o: src/$(TARGET)/%.c $(includes) $(target_includes)
+obj/$(ARCH)/%.o: src/$(ARCH)/%.c $(includes) $(target_includes)
 	$(CC) -o $@ $< $(CFLAGS)
 
 obj/%.o: src/%.c $(includes)
@@ -51,5 +55,7 @@ install:
 test:
 	make -C test
 
+check_arch:
+	@!([ -z "$(ARCH)" ] && echo "Unsupported TARGET $(TARGET)" && exit 0)
 
-.PHONY: all clean todo install test
+.PHONY: all clean todo install test check_arch
