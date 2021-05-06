@@ -16,9 +16,10 @@ static istr_t replace_ending(const char* s, const char* end) {
    const char* dot = strrchr(s, '.');
    const size_t len_s = dot ? (size_t)(dot - s) : strlen(s);
    char new_str[len_s + len_end + 2];
-   strncpy(new_str, s, len_s);
-   strncat(new_str, ".", 1);
-   strncat(new_str, end, len_end);
+   memcpy(new_str, s, len_s);
+   new_str[len_s] = '.';
+   memcpy(new_str + len_s + 1, end, len_end);
+   new_str[len_s + len_end + 1] = '\0';
    return strint(new_str);
 }
 
