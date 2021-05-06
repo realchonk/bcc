@@ -128,17 +128,23 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    }
    case IR_IDIV:
-      instr = "s";
+      instr = "sdiv";
       goto ir_div;
    case IR_UDIV:
-      instr = "u";
+      instr = "udiv";
+      goto ir_div;
+   case IR_IMOD:
+      instr = "smod";
+      goto ir_div;
+   case IR_UMOD:
+      instr = "umod";
    {
    ir_div:;
       const char* a = irv2str(&n->binary.a, IRS_PTR);
       const char* b = irv2str(&n->binary.b, IRS_PTR);
       if (n->binary.dest != 0) emit("push %s", reg_ax);
       char f[] = "__divxixx";
-      snprintf(f, sizeof(f), "__div%ci%zu", *instr, irs2sz(n->binary.size) * 8);
+      snprintf(f, sizeof(f), "__%s%ci%zu", instr + 1, *instr, irs2sz(n->binary.size) * 8);
 
       emit("push %s", b);
       emit("push %s", a);

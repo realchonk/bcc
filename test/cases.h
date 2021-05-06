@@ -114,4 +114,17 @@
       ".....\n",
    .ret_val = 0,
 },
+{
+   .name = "modulo",
+   .compiles = true,
+   .source =
+      "int printf(const char*, ...);\n"
+      "int main(void) {\n"
+      "  int a = 42;\n"
+      "  int b = 22;\n"
+      "  printf(\"%d\", a % b);\n"
+      "}",
+   .output = "20",
+   .ret_val = 0
+}
 

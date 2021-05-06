@@ -11,24 +11,6 @@ static struct stack_alloc_entry** stack_alloc;
 static struct stack_alloc_entry* stack_cur_alloc;
 
 
-static const char* reg_bx(const enum ir_value_size irs) {
-   switch (irs) {
-   case IRS_BYTE:
-   case IRS_CHAR:
-      return "bl";
-   case IRS_SHORT:
-      return "bx";
-   case IRS_PTR:
-#if BCC_x86_64
-   case IRS_LONG:
-      return "rbx";
-#endif
-   case IRS_INT:
-      return "ebx";
-   default:
-      panic("reg_bx(): invalid value size '%s'", ir_size_str[irs]);
-   }
-}
 static const char* nasm_size(enum ir_value_size s) {
    switch (s) {
    case IRS_BYTE:

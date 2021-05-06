@@ -200,7 +200,7 @@ static struct expression* expr_unary(void) {
 
 static struct expression* expr_mul(void) {
    struct expression* left = expr_unary();
-   while (lexer_matches(TK_STAR) || lexer_matches(TK_SLASH) || lexer_match(TK_PERC)) {
+   while (lexer_matches(TK_STAR) || lexer_matches(TK_SLASH) || lexer_matches(TK_PERC)) {
       struct expression* expr = new_expr();
       expr->type = EXPR_BINARY;
       expr->begin = left->begin;
