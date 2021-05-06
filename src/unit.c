@@ -54,12 +54,12 @@ void parse_unit(void) {
          struct function* func = parse_func_part(type, name);
          func->begin = begin;
          func->attrs = attrs;
+         buf_push(cunit.funcs, func);
          if (func->scope) {
             if (func->attrs & ATTR_EXTERN)
                parse_warn(&begin, "function definition shall not be extern");
             func->ir_code = optim_ir_nodes(irgen_func(func));
          }
-         buf_push(cunit.funcs, func); 
       } else {
          struct variable var;
          var.type = type;

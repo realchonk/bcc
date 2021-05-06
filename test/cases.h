@@ -140,4 +140,17 @@
    .output = "40",
    .ret_val = 0,
 },
+{
+   .name = "fibonacci",
+   .compiles = true,
+   .source = 
+      "int fib(int n) {\n"
+      "  return n <= 1 ? n : (fib(n - 1) + fib(n - 2));\n"
+      "}\n"
+      "int main(void) {\n"
+      "  return fib(10);\n"
+      "}",
+   .output = "",
+   .ret_val = 55,
+}
 

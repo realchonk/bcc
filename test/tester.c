@@ -17,7 +17,7 @@
 #define COLOR_RED          "\033[31m"
 #define COLOR_DFL          "\033[0m"
 
-#define BCC "../bcc -c -O2 -o "
+#define BCC "../bcc -c -O2 -w -o "
 #define LINKER "gcc"
 #define TEST_SOURCE "/tmp/test.c"
 #define TEST_OBJECT "/tmp/test.o"
