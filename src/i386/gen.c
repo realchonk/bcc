@@ -128,43 +128,31 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    }
    case IR_IDIV:
-      instr = "idiv";
+      instr = "s";
       goto ir_div;
    case IR_UDIV:
-      instr = "div";
+      instr = "u";
    {
    ir_div:;
-      const char* eax;
-      const char* dest;
-      const char* a = irv2str(&n->binary.a, n->binary.size);
-      const char* b = irv2str(&n->binary.b, n->binary.size);
-      reg_op(eax, 0, n->binary.size);
-      reg_op(dest, n->binary.dest, n->binary.size);
-      emit("push %s", reg_dx);
-      emit_clear(reg_dx);
+      const char* a = irv2str(&n->binary.a, IRS_PTR);
+      const char* b = irv2str(&n->binary.b, IRS_PTR);
+      if (n->binary.dest != 0) emit("push %s", reg_ax);
+      char f[] = "__divxixx";
+      snprintf(f, sizeof(f), "__div%ci%zu", *instr, irs2sz(n->binary.size) * 8);
 
-      if (n->binary.a.type != IRT_REG || n->binary.dest != n->binary.a.reg) {
-         emit("mov %s, %s", dest, a);
-      }
-      if (n->binary.dest != 0) {
-         emit("push %s", reg_ax);
-         emit("mov %s, %s", eax, dest);
-      }
-      if (n->binary.b.type != IRT_REG) {
-         emit("push %s", reg_bx(IRS_PTR));
-         emit("mov %s, %s", reg_bx(IRS_PTR), b);
-         b = reg_bx(IRS_PTR);
-      }
+      emit("push %s", b);
+      emit("push %s", a);
 
-      emit("%s %s", instr, b);
-      if (n->binary.b.type != IRT_REG)
-         emit("pop %s", reg_bx(IRS_PTR));
+      emit("call %s", f);
+      emit("add %s, %zu", reg_sp, REGSIZE * 2);
 
       if (n->binary.dest != 0) {
-         emit("mov %s, %s", dest, eax);
+         emit("mov %s, %s", mreg(n->binary.dest), reg_ax);
          emit("pop %s", reg_ax);
       }
-      emit("pop %s", reg_dx);
+
+      request_builtin(f);
+
       return n->next;
    }
    case IR_BEGIN_SCOPE:

@@ -44,20 +44,28 @@ struct target_info {
    const bool has_c99_array; // variable-length array support?
 };
 
+struct builtin_func {
+   const char* name;
+   const char* code;
+   bool requested;
+};
+
 extern const struct target_info target_info;
 extern unsigned asm_indent;
+extern struct builtin_func builtin_funcs[];
+extern const size_t num_builtin_funcs;
 struct function;
 
 void emit_init(FILE*);
 void emit_free(void);
-
 void emit(const char*, ...);
 void emitraw(const char*, ...);
-
 void emit_unit(const char**);
-
 int assemble(const char* source, const char* output);
-
 uintmax_t target_get_umax(enum ir_value_size);
+bool is_builtin_func(const char*);
+void reset_buitins(void);
+size_t irs2sz(enum ir_value_size);
+void request_builtin(const char* name);
 
 #endif /* FILE_TARGET_H */

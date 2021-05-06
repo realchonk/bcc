@@ -92,6 +92,11 @@ static void emit_end(void) {
    }
 
    asm_indent = 0;
+   for (size_t i = 0; i < num_builtin_funcs; ++i) {
+      if (builtin_funcs[i].requested)
+         emit("%s:\n%s", builtin_funcs[i].name, builtin_funcs[i].code);
+   }
+
    if (strdb) {
       emit("\nsection .rodata\n__strings:");
       size_t i = 0;

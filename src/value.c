@@ -462,6 +462,8 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
    }
    case EXPR_FCALL:
    {
+      if (is_builtin_func(e->fcall.name))
+         parse_warn(&e->begin, "'%s' is a compiler-specific builtin-function.", e->fcall.name);
       struct function* callee = unit_get_func(e->fcall.name);
       if (!callee) {
          parse_warn(&e->begin, "function '%s' is not declared.", e->fcall.name);

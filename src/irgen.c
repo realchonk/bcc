@@ -397,7 +397,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          n = new_node(IR_ARRAYLEN);
          n->lookup.reg = creg++;
          if ((n->lookup.var_idx = scope_find_var_idx(scope, &n->lookup.scope, t->str)) == SIZE_MAX)
-            parse_error(&t->begin, "array %s not found");
+            parse_error(&t->begin, "array %s not found", t->str);
 
          tmp = new_node(IR_UDIV);
          tmp->binary.size = IRS_PTR;
