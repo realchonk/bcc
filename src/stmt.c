@@ -150,7 +150,7 @@ struct statement* parse_stmt(struct scope* scope) {
    case KW_RETURN:
       lexer_skip();
       stmt->type = STMT_RETURN;
-      stmt->expr = lexer_matches(TK_SEMICOLON) ? NULL : parse_expr();
+      stmt->expr = lexer_matches(TK_SEMICOLON) ? NULL : parse_expr(scope);
       struct function* f = stmt->parent->func;
       if (stmt->expr) {
          if (f->type->type == VAL_VOID) parse_error(&stmt->expr->begin, "return a value in a void-function");
@@ -165,7 +165,7 @@ struct statement* parse_stmt(struct scope* scope) {
       lexer_skip();
       lexer_expect(TK_LPAREN);
       stmt->type = STMT_IF;
-      stmt->ifstmt.cond = parse_expr();
+      stmt->ifstmt.cond = parse_expr(scope);
       lexer_expect(TK_RPAREN);
       stmt->ifstmt.true_case = parse_stmt(scope);
       stmt->ifstmt.false_case = lexer_match(KW_ELSE) ? parse_stmt(scope) : NULL;
@@ -175,7 +175,7 @@ struct statement* parse_stmt(struct scope* scope) {
       lexer_skip();
       lexer_expect(TK_LPAREN);
       stmt->type = STMT_WHILE;
-      stmt->whileloop.cond = parse_expr();
+      stmt->whileloop.cond = parse_expr(scope);
       lexer_expect(TK_RPAREN);
       stmt->whileloop.stmt = parse_stmt(scope);
       stmt->end = stmt->whileloop.stmt->end;
@@ -186,7 +186,7 @@ struct statement* parse_stmt(struct scope* scope) {
       stmt->whileloop.stmt = parse_stmt(scope);
       lexer_expect(KW_WHILE);
       lexer_expect(TK_LPAREN);
-      stmt->whileloop.cond = parse_expr();
+      stmt->whileloop.cond = parse_expr(scope);
       lexer_expect(TK_RPAREN);
       stmt->end = lexer_expect(TK_SEMICOLON).end;
       break;
@@ -223,11 +223,11 @@ struct statement* parse_stmt(struct scope* scope) {
          cond->type = EXPR_UINT;
          cond->begin = cond->end = outer->begin;
          cond->uVal = 1;
-      } else cond = parse_expr();
+      } else cond = parse_expr(scope);
       stmt->whileloop.cond = cond;
       lexer_expect(TK_SEMICOLON);
       
-      stmt->whileloop.end = lexer_matches(TK_RPAREN) ? NULL : parse_expr();
+      stmt->whileloop.end = lexer_matches(TK_RPAREN) ? NULL : parse_expr(scope);
       lexer_expect(TK_RPAREN);
       stmt->whileloop.stmt = parse_stmt(outer->scope);
       
@@ -238,7 +238,7 @@ struct statement* parse_stmt(struct scope* scope) {
       break;
    }
    default: {
-      struct value_type* vtype = parse_value_type();
+      struct value_type* vtype = parse_value_type(scope);
       if (vtype) {
          if (vtype->type == VAL_VOID)
             parse_error(&vtype->begin, "invalid use of incomplete type void");
@@ -255,7 +255,7 @@ struct statement* parse_stmt(struct scope* scope) {
                vtype->pointer.array.dsize = NULL;
                goto skip_asize;
             }
-            struct expression* expr = parse_expr();
+            struct expression* expr = parse_expr(scope);
             struct value val;
             if (try_eval_expr(expr, &val)) {
                if (val.type->type != VAL_INT)
@@ -279,7 +279,7 @@ struct statement* parse_stmt(struct scope* scope) {
          }
       skip_asize:
 
-         var.init = lexer_match(TK_EQ) ? parse_expr() : NULL;
+         var.init = lexer_match(TK_EQ) ? parse_expr(scope) : NULL;
          var.end = lexer_expect(TK_SEMICOLON).end;
          var.type = vtype;
 
@@ -325,7 +325,7 @@ struct statement* parse_stmt(struct scope* scope) {
          stmt->end = var.end;
       } else {
          stmt->type = STMT_EXPR;
-         stmt->expr = parse_expr();
+         stmt->expr = parse_expr(scope);
          stmt->end = lexer_expect(TK_SEMICOLON).end;
       }
       break;

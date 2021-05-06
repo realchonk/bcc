@@ -4,7 +4,7 @@
 #include "lex.h"
 #include "ir.h"
 
-struct cunit cunit = { NULL, NULL };
+struct cunit cunit = { NULL};
 
 void parse_unit(void) {
    buf_free(cunit.funcs);
@@ -12,6 +12,16 @@ void parse_unit(void) {
       bool has_begin = false;
       unsigned attrs = 0;
       struct source_pos begin;
+
+      if (lexer_match(KW_TYPEDEF)) {
+         struct typerename alias;
+         alias.type = parse_value_type(NULL);
+         alias.name = lexer_expect(TK_NAME).str;
+         alias.begin = alias.type->begin;
+         alias.end = lexer_expect(TK_SEMICOLON).end;
+         buf_push(cunit.renames, alias);
+         continue;
+      }
 
       while (lexer_matches(KW_EXTERN) || lexer_matches(KW_STATIC)) {
          const struct token tk = lexer_next();
@@ -33,7 +43,7 @@ void parse_unit(void) {
       if ((attrs & (ATTR_EXTERN | ATTR_STATIC)) == (ATTR_EXTERN | ATTR_STATIC))
          parse_error(&begin, "variable cannot be static and extern at the same time");
 
-      struct value_type* type = parse_value_type();
+      struct value_type* type = parse_value_type(NULL);
       istr_t name = lexer_expect(TK_NAME).str;
 
       if (!has_begin) begin = type->begin;
@@ -57,7 +67,7 @@ void parse_unit(void) {
          if (unit_get_var(name))
             parse_error(&begin, "global variable '%s' already declared", name);
          if (lexer_match(TK_LBRACK)) {
-            struct expression* expr = parse_expr();
+            struct expression* expr = parse_expr(NULL);
             struct value val;
             if (!try_eval_expr(expr, &val))
                parse_error(&expr->begin, "gloal VLAs are not allowed.");
@@ -71,7 +81,7 @@ void parse_unit(void) {
             lexer_expect(TK_RBRACK);
          }
          if (lexer_match(TK_EQ)) {
-            var.init = parse_expr_no_comma();
+            var.init = parse_expr_no_comma(NULL);
             if (!try_eval_expr(var.init, &var.const_init))
                parse_error(&var.init->begin, "global variables may only be initialized with a constant value");
             var.has_const_value = true;
@@ -116,6 +126,14 @@ struct variable* unit_get_var(const char* name) {
    for (size_t i = 0; i < buf_len(cunit.vars); ++i) {
       if (name == cunit.vars[i].name)
          return &cunit.vars[i];
+   }
+   return NULL;
+}
+struct typerename* unit_get_typedef(const char* name) {
+   name = strint(name);
+   for (size_t i = 0; i < buf_len(cunit.renames); ++i) {
+      if (name == cunit.renames[i].name)
+         return &cunit.renames[i];
    }
    return NULL;
 }

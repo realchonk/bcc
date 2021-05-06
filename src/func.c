@@ -19,7 +19,7 @@ struct function* parse_func_part(struct value_type* type, istr_t name) {
             break;
          }
          struct variable var;
-         var.type = parse_value_type();
+         var.type = parse_value_type(NULL);
          if (var.type->type == VAL_VOID) {
             if (func->params)
                parse_error(&var.type->begin, "incomplete type void");

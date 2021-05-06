@@ -77,7 +77,7 @@ extern const char* value_type_str[NUM_VALS];
 struct expression;
 struct scope;
 
-struct value_type* parse_value_type(void);
+struct value_type* parse_value_type(struct scope*);
 void free_value_type(struct value_type*);
 void print_value_type(FILE*, const struct value_type*);
 struct value_type* get_value_type(struct scope*, const struct expression*);
@@ -88,6 +88,7 @@ struct value_type* make_array_vt(struct value_type*);
 bool try_eval_expr(const struct expression*, struct value*);
 size_t sizeof_value(const struct value_type*, bool decay);
 struct value_type* decay(struct value_type*);
+bool var_is_declared(istr_t, struct scope*);
 
 bool is_castable(const struct value_type* old, const struct value_type* type, bool implicit);
 

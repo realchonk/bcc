@@ -30,6 +30,7 @@ enum expression_type {
 };
 extern const char* expr_type_str[NUM_EXPRS];
 struct value_type;
+struct scope;
 
 struct expression {
    enum expression_type type;
@@ -82,8 +83,8 @@ struct expression {
    };
 };
 
-struct expression* parse_expr(void);
-struct expression* parse_expr_no_comma(void);
+struct expression* parse_expr(struct scope*);
+struct expression* parse_expr_no_comma(struct scope*);
 
 struct expression* new_expr(void);
 void print_expr_tree(FILE*, const struct expression*);

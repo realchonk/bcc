@@ -35,6 +35,9 @@ struct expression* new_expr(void) {
    else return expr;
 }
 
+static struct scope* scope;
+
+static struct expression* expr_comma(void);
 static struct expression* expr_assign(void);
 static struct expression* expr_unary(void);
 static struct expression* expr_prim(void) {
@@ -86,7 +89,7 @@ static struct expression* expr_prim(void) {
       }
       break;
    case TK_LPAREN:
-      expr->cast.type = parse_value_type();
+      expr->cast.type = parse_value_type(scope);
       if (expr->cast.type) {
          if (expr->cast.type->type == VAL_VOID)
             parse_error(&expr->begin, "cast to incomplete type void");
@@ -96,14 +99,14 @@ static struct expression* expr_prim(void) {
          expr->end = expr->cast.expr->end;
       } else {
          expr->type = EXPR_PAREN;
-         expr->expr = parse_expr();
+         expr->expr = expr_comma();
          lexer_expect(TK_RPAREN);
       }
       break;
    case KW_SIZEOF:
       expr->type = EXPR_SIZEOF;
       if (lexer_match(TK_LPAREN)) {
-         struct value_type* vt = parse_value_type();
+         struct value_type* vt = parse_value_type(scope);
          expr->szof.has_expr = vt == NULL;
          if (!vt) expr->szof.expr = expr_unary();
          else expr->szof.type = vt;
@@ -135,7 +138,7 @@ static struct expression* expr_prim(void) {
          add->type = EXPR_BINARY;
          add->binary.op.type = TK_PLUS;
          add->binary.left = expr;
-         add->binary.right = optim_expr(parse_expr());
+         add->binary.right = optim_expr(expr_comma());
          add->begin = expr->begin;
          add->end = lexer_expect(TK_RBRACK).end;
          
@@ -398,7 +401,7 @@ static struct expression* expr_assign(void) {
    return left;
 }
 
-struct expression* parse_expr(void) {
+static struct expression* expr_comma(void) {
    struct expression* expr = expr_assign();
    if (!lexer_match(TK_COMMA)) return expr;
    struct expression* comma = new_expr();
@@ -409,9 +412,15 @@ struct expression* parse_expr(void) {
    do {
       buf_push(comma->comma, expr_assign());
    } while (lexer_match(TK_COMMA));
-   return optim_expr(comma);
+   return expr;
 }
-struct expression* parse_expr_no_comma(void) {
+
+struct expression* parse_expr(struct scope* s) {
+   scope = s;
+   return optim_expr(expr_comma());
+}
+struct expression* parse_expr_no_comma(struct scope* s) {
+   scope = s;
    return optim_expr(expr_assign());
 }
 

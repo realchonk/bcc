@@ -82,6 +82,7 @@ const char* token_type_str[NUM_TOKENS] = {
    [KW_AUTO]      = "auto",
    [KW_EXTERN]    = "extern",
    [KW_STATIC]    = "static",
+   [KW_TYPEDEF]   = "typedef",
 };
 
 void token_init(void) {

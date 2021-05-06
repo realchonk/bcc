@@ -80,7 +80,7 @@ static struct value_type* make_int(enum integer_size sz, bool is_unsigned) {
 }
 
 // const unsigned int* const
-struct value_type* parse_value_type(void) {
+struct value_type* parse_value_type(struct scope* scope) {
    bool has_begon = false;
    bool has_signedness = false;
    struct value_type* vt = new_vt();
@@ -165,6 +165,17 @@ struct value_type* parse_value_type(void) {
       if (vt->type != NUM_VALS) parse_error(&tk.begin, "invalid combination of signed or unsigned and void");
       vt->type = VAL_AUTO;
       break;
+   case TK_NAME:
+   {
+      if (!has_begon && scope && var_is_declared(tk.str, scope)) return NULL;
+      struct typerename* td = unit_get_typedef(tk.str);
+      if (!td) parse_error(&tk.begin, "type %s not found");
+      if (vt->type != NUM_VALS) parse_error(&tk.begin, "invalid type specifiers");
+      lexer_skip();
+      free_value_type(vt);
+      vt = copy_value_type(td->type);
+      break;
+   }
    default: break;
    }
    if (vt->type == NUM_VALS) {
@@ -590,4 +601,7 @@ size_t sizeof_value(const struct value_type* vt, bool decay) {
    default:
       panic("sizeof_value(): invalid value type '%s'", value_type_str[vt->type]);
    }
+}
+bool var_is_declared(istr_t name, struct scope* scope) {
+   return (scope && scope_find_var(scope, name)) || unit_get_var(name);
 }
