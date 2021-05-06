@@ -167,10 +167,10 @@ struct value_type* parse_value_type(struct scope* scope) {
       break;
    case TK_NAME:
    {
-      if (!has_begon && scope && var_is_declared(tk.str, scope)) return NULL;
+      if (vt->type != NUM_VALS) return vt;
+      else if (!has_begon && scope && var_is_declared(tk.str, scope)) return NULL;
       struct typerename* td = unit_get_typedef(tk.str);
-      if (!td) parse_error(&tk.begin, "type %s not found");
-      if (vt->type != NUM_VALS) parse_error(&tk.begin, "invalid type specifiers");
+      if (!td) return NULL;
       lexer_skip();
       free_value_type(vt);
       vt = copy_value_type(td->type);
@@ -603,5 +603,5 @@ size_t sizeof_value(const struct value_type* vt, bool decay) {
    }
 }
 bool var_is_declared(istr_t name, struct scope* scope) {
-   return (scope && scope_find_var(scope, name)) || unit_get_var(name);
+   return (scope && scope_find_var(scope, name)) || unit_get_var(name) || unit_get_func(name);
 }

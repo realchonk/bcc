@@ -1,6 +1,3 @@
 bcc
 obj
-test/test.asm
-test/test.o
-test/test.ir
-test/test
+test/tester

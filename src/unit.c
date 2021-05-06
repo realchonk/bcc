@@ -9,19 +9,21 @@ struct cunit cunit = { NULL};
 void parse_unit(void) {
    buf_free(cunit.funcs);
    while (!lexer_match(TK_EOF)) {
-      bool has_begin = false;
-      unsigned attrs = 0;
-      struct source_pos begin;
-
-      if (lexer_match(KW_TYPEDEF)) {
+      if (lexer_matches(KW_TYPEDEF)) {
          struct typerename alias;
+         alias.begin = lexer_next().begin;
          alias.type = parse_value_type(NULL);
+         if (!alias.type)
+            parse_error(&alias.end, "failed to parse type");
          alias.name = lexer_expect(TK_NAME).str;
-         alias.begin = alias.type->begin;
          alias.end = lexer_expect(TK_SEMICOLON).end;
          buf_push(cunit.renames, alias);
          continue;
       }
+
+      bool has_begin = false;
+      unsigned attrs = 0;
+      struct source_pos begin;
 
       while (lexer_matches(KW_EXTERN) || lexer_matches(KW_STATIC)) {
          const struct token tk = lexer_next();

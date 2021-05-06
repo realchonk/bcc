@@ -48,7 +48,7 @@ install:
 	install -Dm644 bcc.1 $(PREFIX)/$(MANDIR)/bcc.1
 
 test:
-	make -C test run
+	make -C test
 
 
 .PHONY: all clean todo install test
