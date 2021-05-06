@@ -78,25 +78,37 @@ static bool run_test(const struct test_case* test) {
    bool r = true;
    const size_t len = strlen(test->output);
    if (len) {
-      FILE* process = popen(TEST_BINARY, "r");
-      if (!process) panic("failed to invoke " TEST_BINARY);
+      int pipes[2];
+      if (pipe(pipes) != 0) panic("failed to pipe()");
+      pid_t pid = fork();
+      if (pid < 0) panic("failed to fork()");
+      if (pid == 0) {
+         close(pipes[0]);                       // close read end
+         close(STDOUT_FILENO);                  // close stdout
+         if (dup(pipes[1]) != STDOUT_FILENO)    // redirect stdout to pipes[1]
+            panic("failed to redirect");
+         execl(TEST_BINARY, TEST_BINARY, NULL);
+         fprintf(stderr, "failed to execl %s: %s\n", TEST_BINARY, strerror(errno));
+         _exit(1);
+      } else {
+         int wstatus;
+         close(pipes[1]);
 
-      char* buffer = malloc(len + 1);
+         char* buffer = malloc(len + 1);
+         if ((size_t)read(pipes[0], buffer, len) != len || memcmp(buffer, test->output, len)) {
+            r = false;
+            cause = "output did not match";
+         }
+         free(buffer);
 
-      ssize_t len_input = fread(buffer, 1, len, process);
-      if (len_input < 0) {
-         r = false;
-         cause = "failed to read input";
-      }
-      else if ((size_t)len_input != len || memcmp(buffer, test->output, len)) {
-         r = false;
-         cause = "output did not match";
-      }
-
-      free(buffer);
-      if (pclose(process) != test->ret_val) {
-         r = false;
-         cause = "return value did not match";
+         waitpid(pid, &wstatus, 0);
+         if (!WIFEXITED(wstatus)) {
+            r = false;
+            cause = "process did not exit properly";
+         } else if (WEXITSTATUS(wstatus) != test->ret_val) {
+            r = false;
+            cause = "return value did not match";
+         }
       }
    } else {
       pid_t pid = fork();

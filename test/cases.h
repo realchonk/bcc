@@ -44,5 +44,31 @@
    .output = "",
    .ret_val = 4,
 },
+{
+   .name = "for-array",
+   .compiles = true,
+   .source =
+      "int printf(const char*, ...);\n"
+      "int main(void) {\n"
+      "  int arr[8];\n"
+      "  for (unsigned i = 0; i < arraylen(arr); ++i) {\n"
+      "     arr[i] = i;\n"
+      "  }\n"
+      "  for (unsigned i = 0; i < arraylen(arr); ++i) {\n"
+      "     printf(\"arr[%u]=%u\\n\", i, arr[i]);\n"
+      "  }\n"
+      "  return 42;\n"
+      "}",
+   .output =
+      "arr[0]=0\n"
+      "arr[1]=1\n"
+      "arr[2]=2\n"
+      "arr[3]=3\n"
+      "arr[4]=4\n"
+      "arr[5]=5\n"
+      "arr[6]=6\n"
+      "arr[7]=7\n",
+   .ret_val = 42,
+},
  
 

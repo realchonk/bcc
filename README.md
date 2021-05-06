@@ -22,5 +22,5 @@ Installing the compiler to a different location (eg. /usr)<br>
 ```make PREFIX=/usr install```<br>
 
 ## Testing
-Preliminary testing can be performed with:<br>
+Testing can be performed with:<br>
 ```make test```
