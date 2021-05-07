@@ -1,0 +1,1 @@
+../i386/check_deps.sh

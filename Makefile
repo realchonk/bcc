@@ -2,6 +2,7 @@ VER="0.4"
 
 ifeq ($(TARGET),)
 ARCH=$(shell ./util/getarch.sh)
+TARGET=$(ARCH)
 else
 ARCH=$(shell ./util/getarch.sh $(TARGET))
 endif
@@ -26,7 +27,7 @@ target_includes=$(wildcard src/$(ARCH)/*.h)
 
 all: bcc
 
-bcc: check_arch obj/$(ARCH) $(objects)
+bcc: check_arch check_deps obj/$(ARCH) $(objects)
 	$(LD) -o $@ $(objects) $(LDFLAGS) $(LIBS)
 
 obj:
@@ -56,6 +57,9 @@ test:
 	make -C test
 
 check_arch:
-	@!([ -z "$(ARCH)" ] && echo "Unsupported TARGET $(TARGET)" && exit 0)
+	@!([ -z "$(ARCH)" ] && echo "Unsupported target architecture '$(TARGET)'")
+
+check_deps:
+	@if [ -f "./src/$(ARCH)/check_deps.sh" ]; then ./src/$(ARCH)/check_deps.sh >/dev/null; fi
 
 .PHONY: all clean todo install test check_arch
