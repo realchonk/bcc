@@ -1,5 +1,5 @@
 # The Brainlet C Compiler
-![Picture](util/bcc.png "Brainlet C")<br>
+<img src="util/bcc.png" width="256"><br>
 
 ## Description
 This is my third iteration of compiler design and implementation.<br>
