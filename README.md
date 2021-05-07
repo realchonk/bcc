@@ -1,4 +1,5 @@
-# Compiler for a C-like language
+# The Brainlet C Compiler
+![Picture](util/bcc.png "Brainlet C")<br>
 
 ## Description
 This is my third iteration of compiler design and implementation.<br>
