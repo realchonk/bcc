@@ -152,5 +152,18 @@
       "}",
    .output = "",
    .ret_val = 55,
+},
+{
+   .name = "pointer-arithmetic",
+   .compiles = true,
+   .source =
+      "int printf(const char*, ...);\n"
+      "int main(void) {\n"
+      "  int* a = (int*)(sizeof(int) * 12);\n"
+      "  int* b = (int*)(sizeof(int) * 10);\n"
+      "  printf(\"%d\\n\", a - b);\n"
+      "}",
+   .output = "2\n",
+   .ret_val = 0,
 }
 

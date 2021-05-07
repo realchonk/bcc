@@ -7,3 +7,4 @@ Planned features:
 - add more optimization techniques
 - adding switch/case
 - adding labels & goto
+- implement function pointers
