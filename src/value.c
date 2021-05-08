@@ -242,6 +242,7 @@ struct value_type* parse_value_type(struct scope* scope) {
       struct value_type* ptr = new_vt();
       ptr->type = VAL_POINTER;
       ptr->pointer.type = vt;
+      ptr->pointer.is_array = false;
       ptr->begin = tk2.begin;
       ptr->end = tk2.end;
       while (lexer_match(KW_CONST)) ptr->is_const = true;

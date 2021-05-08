@@ -46,6 +46,8 @@ void parse_unit(void) {
          parse_error(&begin, "variable cannot be static and extern at the same time");
 
       struct value_type* type = parse_value_type(NULL);
+      if (!type)
+         parse_error(&begin, "failed to parse type");
 
       if (type->type == VAL_ENUM) {
          buf_push(cunit.enums, copy_enum(type->venum));

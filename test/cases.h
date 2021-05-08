@@ -197,5 +197,31 @@
       "int f(void) { return 32; }\n"
       "int f(void) { return 42; }\n"
       "int main(void) { return f(); }\n",
+},
+{
+   .name = "undefined type global variable",
+   .compiles = false,
+   .source =
+      "undefined a;\n"
+      "int main() {}",
+},
+{
+   .name = "undefined type local variable",
+   .compiles = false,
+   .source =
+      "int main() { undefined a; }",
+},
+{
+   .name = "undefined type function",
+   .compiles = false,
+   .source =
+      "undefined a();\n"
+      "int main() {}",
+},
+{
+   .name = "undefined type parameter",
+   .compiles = false,
+   .source =
+      "int main(undefined a) {}"
 }
 
