@@ -34,6 +34,9 @@ static bool ptreq(const struct value_type* a, const struct value_type* b) {
    default:          panic("ptreq(): invalid value type '%u'", a->type);
    }
 }
+bool value_type_equal(const struct value_type* a, const struct value_type* b) {
+   return a->is_const == b->is_const && ptreq(a, b);
+}
 void print_value_type(FILE* file, const struct value_type* val) {
    switch (val->type) {
    case VAL_INT:

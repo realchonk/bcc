@@ -55,6 +55,8 @@ void parse_unit(void) {
             const struct enum_entry* e = &type->venum->entries[i];
             if (find_constant(e->name, NULL))
                parse_error(&type->begin, "constant '%s' already defined", e->name);
+            else if (unit_get_var(e->name) || unit_get_func(e->name))
+               parse_error(&type->begin, "'%s' already declared", e->name);
             buf_push(cunit.constants, *e);
          }
          if (lexer_match(TK_SEMICOLON)) continue;
@@ -66,6 +68,13 @@ void parse_unit(void) {
       
       if (lexer_matches(TK_LPAREN)) {
          struct function* func = parse_func_part(type, name);
+         {
+            struct function* f = unit_get_func(name);
+            if (f) {
+               if (f->scope)
+                  parse_error(&begin, "function '%s' already defined", name);
+            }
+         }
          func->begin = begin;
          func->attrs = attrs;
          buf_push(cunit.funcs, func);
@@ -80,8 +89,17 @@ void parse_unit(void) {
          var.name = name;
          var.begin = begin;
          var.attrs = attrs;
-         if (unit_get_var(name))
-            parse_error(&begin, "global variable '%s' already declared", name);
+         {
+            struct variable* v = unit_get_var(name);
+            if (v) {
+               if (!(v->attrs & ATTR_EXTERN))
+                  parse_error(&begin, "global variable '%s' already declared", name);
+               if (!value_type_equal(v->type, var.type))
+                  parse_error(&begin, "incompatible types");
+            }
+         }
+         if (unit_get_func(name))
+            parse_error(&begin, "function with name '%s' already exists", name);
          if (lexer_match(TK_LBRACK)) {
             struct expression* expr = parse_expr(NULL);
             struct value val;
@@ -98,6 +116,8 @@ void parse_unit(void) {
          }
          if (lexer_match(TK_EQ)) {
             var.init = parse_expr_no_comma(NULL);
+            if (var.attrs & ATTR_EXTERN)
+               parse_error(&var.init->begin, "cannot initialize extern variable");
             if (!try_eval_expr(var.init, &var.const_init))
                parse_error(&var.init->begin, "global variables may only be initialized with a constant value");
             var.has_const_value = true;

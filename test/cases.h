@@ -180,4 +180,22 @@
    .output = "",
    .ret_val = 1,
 },
+{
+   .name = "extern-var",
+   .compiles = true,
+   .source =
+      "extern int val;\n"
+      "int val = 42;\n"
+      "int main(void) { return val; }",
+   .output = "",
+   .ret_val = 42,
+},
+{
+   .name = "multiple definitions of f",
+   .compiles = false,
+   .source =
+      "int f(void) { return 32; }\n"
+      "inf f(void) { return 42: }\n"
+      "int main(void) { return f(); }\n",
+}
 

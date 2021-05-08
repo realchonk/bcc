@@ -10,7 +10,6 @@ static istr_t* defined = NULL;
 static struct stack_alloc_entry** stack_alloc;
 static struct stack_alloc_entry* stack_cur_alloc;
 
-
 static const char* nasm_size(enum ir_value_size s) {
    switch (s) {
    case IRS_BYTE:
@@ -60,6 +59,12 @@ static void emit_begin(void) {
    emit("default rel");
    emit("section .text");
    emit("extern memcpy");
+   for (size_t i = 0; i < buf_len(cunit.vars); ++i) {
+      const struct variable* v = &cunit.vars[i];
+      if (!(v->attrs & ATTR_EXTERN))
+         buf_push(defined, v->name);
+      else buf_push(unresolved, v->name);
+   }
 }
 static void emit_end(void) {
    for (size_t i = 0; i < buf_len(unresolved); ++i) {
@@ -114,10 +119,8 @@ static void emit_end(void) {
       for (size_t i = 0; i < buf_len(cunit.vars); ++i) {
          const struct variable* var = &cunit.vars[i];
          const struct value_type* type = var->type;
-         if (var->attrs & ATTR_EXTERN) {
-            emit("extern %s", var->name);
+         if (var->attrs & ATTR_EXTERN)
             continue;
-         }
          if (!(var->attrs & ATTR_STATIC))
             emit("global %s", var->name);
          emit("%s:", var->name);

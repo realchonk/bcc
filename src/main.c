@@ -23,6 +23,11 @@ static istr_t replace_ending(const char* s, const char* end) {
    return strint(new_str);
 }
 
+static const char* remove_asm_filename;
+static void remove_asm_file(void) {
+   remove(remove_asm_filename);
+}
+
 int main(int argc, char* argv[]) {
    const char* output_file = NULL;
    int level = 'c';
@@ -91,6 +96,8 @@ int main(int argc, char* argv[]) {
    if (level == 'c') {
       asm_filename = tmpnam(NULL);
       asm_file = fopen(asm_filename, "w");
+      remove_asm_filename = asm_filename;
+      atexit(remove_asm_file);
    } else asm_file = output;
 
    lexer_init(source, source_file);
@@ -107,7 +114,6 @@ int main(int argc, char* argv[]) {
    if (level == 'c') {
       ec = assemble(asm_filename, output_file);
       if (ec != 0) panic("assembler returned: %d", ec);
-      remove(asm_filename);
    }
    return ec;
 }

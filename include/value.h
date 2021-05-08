@@ -105,5 +105,6 @@ bool var_is_declared(istr_t, struct scope*);
 bool is_castable(const struct value_type* old, const struct value_type* type, bool implicit);
 struct enumeration* copy_enum(const struct enumeration*);
 struct value_type* make_int(enum integer_size sz, bool is_unsigned);
+bool value_type_equal(const struct value_type*, const struct value_type*);
 
 #endif /* FILE_VALUE_H */

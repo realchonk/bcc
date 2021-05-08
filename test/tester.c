@@ -15,7 +15,6 @@
 #define COLOR_BOLD_RED     "\033[1;31m"
 #define COLOR_GREEN        "\033[32m"
 #define COLOR_RED          "\033[31m"
-#define COLOR_DFL          "\033[0m"
 
 #define BCC "../bcc -c -O2 -w -o "
 #define LINKER "gcc"
@@ -73,7 +72,7 @@ static bool run_test(const struct test_case* test) {
       if (compiled) cause = "invalid compilation success";
       else cause = "failed to compile";
       goto failed;
-   }
+   } else if (!test->compiles) goto success;
 
    bool r = true;
    const size_t len = strlen(test->output);
@@ -130,11 +129,12 @@ static bool run_test(const struct test_case* test) {
    }
 
    if (!r) goto failed;
-   printf(COLOR_BOLD_GREEN "TEST '%s' PASSED\n" COLOR_DFL, test->name);
+success:
+   printf(COLOR_BOLD_GREEN "TEST '%s' PASSED\033[0m\n", test->name);
    return true;
 failed:
-   printf(COLOR_BOLD_RED "TEST '%s' FAILED\n" COLOR_DFL, test->name);
-   printf(COLOR_RED "%s.\n", cause);
+   printf(COLOR_BOLD_RED "TEST '%s' FAILED\033[0m\n", test->name);
+   printf(COLOR_RED "%s.\033[0m\n", cause);
    return false;
 }
 
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
       const char* name = argv[1];
       struct test_case* t = get_case(name);
       if (!t) {
-         printf(COLOR_RED "TEST '%s' NOT FOUND\n" COLOR_DFL, name);
+         printf(COLOR_RED "TEST '%s' NOT FOUND\033[0m\n", name);
          return 1;
       }
       const bool r = run_test(t);
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
          if (!run_test(&cases[i])) ++failed;
       }
 
-      printf("%s%zu out of %zu tests passed\n" COLOR_DFL, failed ? COLOR_RED : COLOR_GREEN, num - failed, num);
+      printf("%s%zu out of %zu tests passed\033[0m\n", failed ? COLOR_RED : COLOR_GREEN, num - failed, num);
       return failed ? 2 : 0;
    }
 }
