@@ -7,11 +7,11 @@ else
 ARCH=$(shell ./util/getarch.sh $(TARGET))
 endif
 
-CC=cc
-CFLAGS += -c -g -std=c99 -Og -Iinclude -Wall -Wextra -D_XOPEN_SOURCE=700 -Wno-missing-braces
+CC=cc -c -g -std=c99 -Og
+CFLAGS += -Iinclude -Wall -Wextra -D_XOPEN_SOURCE=700 -Wno-missing-braces -Wno-array-bounds
 CFLAGS += -DBCC_ARCH=\"$(ARCH)\" -DBCC_$(ARCH)=1 -DBCC_VER=\"$(VER)\"
 
-LD=$(CC)
+LD=cc
 LDFLAGS=
 LIBS=-lm
 
@@ -53,6 +53,7 @@ install:
 	install -Dm755 bcc $(PREFIX)/$(BINDIR)/bcc
 	install -Dm644 bcc.1 $(PREFIX)/$(MANDIR)/bcc.1
 
+check: test
 test:
 	make -C test
 
@@ -62,4 +63,4 @@ check_arch:
 check_deps:
 	@if [ -f "./src/$(ARCH)/check_deps.sh" ]; then ./src/$(ARCH)/check_deps.sh >/dev/null; fi
 
-.PHONY: all clean todo install test check_arch
+.PHONY: all clean todo install test check check_arch check_deps

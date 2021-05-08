@@ -79,7 +79,7 @@ static bool run_test(const struct test_case* test) {
    } else if (!test->compiles) goto success;
 
    bool r = true;
-   const size_t len = strlen(test->output);
+   const size_t len = test->output ? strlen(test->output) : 0;
    if (len) {
       int pipes[2];
       if (pipe(pipes) != 0) panic("failed to pipe()");

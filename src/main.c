@@ -85,20 +85,23 @@ int main(int argc, char* argv[]) {
       case 'A':   output_file = "-"; break;
       }
    }
-   FILE* output;
-   if (level != 'c') {
-      if (strcmp(output_file, "-") == 0) output = stdout;
-      else output = fopen(output_file, "w");
-   }
-
+   FILE* output = NULL;
    const char* asm_filename;
    FILE* asm_file;
    if (level == 'c') {
       asm_filename = tmpnam(NULL);
       asm_file = fopen(asm_filename, "w");
+      if (!asm_file)
+         panic("failed to open '%s'", asm_filename);
       remove_asm_filename = asm_filename;
       atexit(remove_asm_file);
-   } else asm_file = output;
+   } else {
+      if (!strcmp(output_file, "-")) output = stdout;
+      else output = fopen(output_file, "w");
+      if (!output)
+         panic("failed to open '%s'", output_file);
+      asm_file = output;
+   }
 
    lexer_init(source, source_file);
    if (level == 'S' || level == 'c') emit_init(asm_file);
@@ -114,6 +117,6 @@ int main(int argc, char* argv[]) {
    if (level == 'c') {
       ec = assemble(asm_filename, output_file);
       if (ec != 0) panic("assembler returned: %d", ec);
-   }
+   } else if (output) fclose(output);
    return ec;
 }

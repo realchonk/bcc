@@ -26,5 +26,6 @@ struct variable* unit_get_var(const char*);
 struct typerename* unit_get_typedef(const char*);
 void free_unit(void);
 bool find_constant(const char*, intmax_t*);
+struct enumeration* unit_get_enum(const char*);
 
 #endif /* FILE_UNIT_H */

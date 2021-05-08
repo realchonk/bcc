@@ -50,7 +50,11 @@ void parse_unit(void) {
          parse_error(&begin, "failed to parse type");
 
       if (type->type == VAL_ENUM) {
-         buf_push(cunit.enums, copy_enum(type->venum));
+         if (type->venum->name) {
+            if (unit_get_enum(type->venum->name))
+               parse_error(&type->begin, "enum '%s' already defined", type->venum->name);
+            buf_push(cunit.enums, copy_enum(type->venum));
+         }
 
          // add all entries as constants
          for (size_t i = 0; i < buf_len(type->venum->entries); ++i) {
@@ -184,4 +188,12 @@ bool find_constant(const char* name, intmax_t* value) {
       }
    }
    return false;
+}
+struct enumeration* unit_get_enum(const char* name) {
+   name = strint(name);
+   for (size_t i = 0; i < buf_len(cunit.enums); ++i) {
+      if (name == cunit.enums[i]->name)
+         return cunit.enums[i];
+   }
+   return NULL;
 }
