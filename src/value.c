@@ -353,7 +353,7 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
       return type;
    case EXPR_NAME: {
       const struct variable* var = scope_find_var(scope, e->str);
-      if (!var) var = func_find_var(scope->func, e->str);
+      if (!var) var = func_find_param(scope->func, e->str);
       if (!var) var = unit_get_var(e->str);
       if (find_constant(e->str, NULL)) return make_int(INT_INT, false);
       if (!var) parse_error(&e->begin, "undeclared variable '%s'", e->str);

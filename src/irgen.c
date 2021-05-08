@@ -54,7 +54,7 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
       n = new_node(IR_LOOKUP);
       idx = scope_find_var_idx(scope, &n->lookup.scope, e->str);
       if (idx == SIZE_MAX) {
-         idx = func_find_var_idx(scope->func, e->str);
+         idx = func_find_param_idx(scope->func, e->str);
          if (idx == SIZE_MAX) {
             struct variable* var = unit_get_var(e->str);
             if (!var) {

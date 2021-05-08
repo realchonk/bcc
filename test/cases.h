@@ -246,3 +246,27 @@
       "enum A {};"
       "int main(void) {}"
 },
+{
+   .name = "multiple declarations of local variables",
+   .compiles = false,
+   .source =
+      "int main(void) {"
+      "  int a;"
+      "  int a;"
+      "}",
+},
+{
+   .name = "declaration of variable+parameter with the same name",
+   .compiles = false,
+   .source =
+      "int main(int argc) {"
+      "  int argc;"
+      "}"
+},
+{
+   .name = "multiple parameters with the same name",
+   .compiles = false,
+   .source =
+      "int main(int argc, int argc) {"
+      "}"
+},

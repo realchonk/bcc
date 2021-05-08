@@ -245,6 +245,9 @@ struct statement* parse_stmt(struct scope* scope) {
          struct variable var;
          var.name = lexer_expect(TK_NAME).str;
          var.begin = vtype->begin;
+         
+         if (!scope->parent && func_find_param(scope->func, var.name))
+            parse_error(&var.begin, "redefinition of parameter as variable");
 
          // TODO: add multi-dimensional arrays
          if (lexer_match(TK_LBRACK)) {
