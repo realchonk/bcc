@@ -54,22 +54,26 @@ static void write_test(const char* s) {
    fwrite(s, 1, strlen(s), file);
    fclose(file);
 }
-static bool compile_test(void) {
+static int compile_test(void) {
    int ec = system(BCC TEST_OBJECT " " TEST_SOURCE);
    if (ec < 0 || ec == 127) panic("failed to invoke bcc");
    else if (ec != 0) return false;
 
    ec = system(LINKER " -o " TEST_BINARY " " TEST_OBJECT);
    if (ec < 0 || ec == 127) panic("failed to invoke linker");
-   else return ec == 0;
+   else return ec;
 }
 
 static bool run_test(const struct test_case* test) {
    const char* cause;
    write_test(test->source);
-   const bool compiled = compile_test();
-   if (compiled != test->compiles) {
-      if (compiled) cause = "invalid compilation success";
+   const int compiler_ec = compile_test();
+   if (compiler_ec == 139) {
+      cause = "compiler crashed";
+      goto failed;
+   }
+   if (!compiler_ec != test->compiles) {
+      if (!compiler_ec) cause = "invalid compilation success";
       else cause = "failed to compile";
       goto failed;
    } else if (!test->compiles) goto success;

@@ -195,7 +195,7 @@
    .compiles = false,
    .source =
       "int f(void) { return 32; }\n"
-      "inf f(void) { return 42: }\n"
+      "int f(void) { return 42; }\n"
       "int main(void) { return f(); }\n",
 }
 
