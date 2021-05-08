@@ -45,9 +45,10 @@ enum ir_value_size vt2irs(const struct value_type* vt) {
 }
 
 static ir_node_t* ir_expr(struct scope* scope, const struct expression* e);
-static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e) {
+static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, bool* is_lv) {
    ir_node_t* n;
    size_t idx;
+   *is_lv = true;
    switch (e->type) {
    case EXPR_NAME:
       n = new_node(IR_LOOKUP);
@@ -56,7 +57,17 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e) {
          idx = func_find_var_idx(scope->func, e->str);
          if (idx == SIZE_MAX) {
             struct variable* var = unit_get_var(e->str);
-            if (!var) parse_error(&e->begin, "undeclared variable '%s'", e->str);
+            if (!var) {
+               intmax_t val;
+               if (find_constant(e->str, &val)) {
+                  n->type = IR_LOAD;
+                  n->load.dest = creg++;
+                  n->load.value = val;
+                  n->load.size = IRS_INT;
+                  *is_lv = false;
+                  return n;
+               } else parse_error(&e->begin, "undeclared variable '%s'", e->str);
+            }
             n->type = IR_GLOOKUP;
             n->lstr.str = e->str;
             n->lstr.reg = creg++;
@@ -191,16 +202,35 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       ir_append(n, tmp);
       break;
    case EXPR_NAME:
+   {
+      bool is_lv;
+      n = ir_lvalue(scope, e, &is_lv);
+      if (is_lv) {
+         tmp = new_node(IR_READ);
+         tmp->move.dest = tmp->move.src = creg - 1;
+         tmp->move.size = irs;
+         ir_append(n, tmp);
+      }
+      break;
+   }
    case EXPR_INDIRECT:
-      n = ir_lvalue(scope, e);
+   {
+      bool is_lv;
+      n = ir_lvalue(scope, e, &is_lv);
+      if (!is_lv) parse_error(&e->begin, "expected lvalue");
       tmp = new_node(IR_READ);
       tmp->move.dest = tmp->move.src = creg - 1;
       tmp->move.size = irs;
       ir_append(n, tmp);
       break;
+   }
    case EXPR_ASSIGN:
+   {
+      bool is_lv;
       n = ir_expr(scope, e->assign.right);
-      ir_append(n, ir_lvalue(scope, e->assign.left));
+      tmp = ir_lvalue(scope, e->assign.left, &is_lv);
+      if (!is_lv) parse_error(&e->binary.op.begin, "expected lvalue");
+      ir_append(n, tmp);
       tmp = new_node(IR_WRITE);
       tmp->move.size = irs;
       tmp->move.dest = creg - 1;
@@ -208,9 +238,12 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       --creg;
       ir_append(n, tmp);
       break;
+   }
    case EXPR_ADDROF:
    {
-      n = ir_lvalue(scope, e->expr);
+      bool is_lv;
+      n = ir_lvalue(scope, e->expr, &is_lv);
+      if (!is_lv) parse_error(&e->begin, "expected lvalue");
       struct value_type* ve = get_value_type(scope, e->expr);  
       if (ve->type == VAL_POINTER && ve->pointer.is_array) {
          tmp = new_node(IR_READ);
@@ -271,8 +304,11 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       n->lstr.str = e->str;
       break;
    case EXPR_PREFIX:
+   {
+      bool is_lv;
       ++creg;
-      n = ir_lvalue(scope, e->unary.expr);
+      n = ir_lvalue(scope, e->unary.expr, &is_lv);
+      if (!is_lv) parse_error(&e->unary.expr->begin, "expected lvalue");
       --creg;
 
       tmp = new_node(IR_READ);
@@ -296,9 +332,13 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       tmp->move.size = irs;
       ir_append(n, tmp);
       break;
+   }
    case EXPR_SUFFIX:
+   {
+      bool is_lv;
       ++creg;
-      n = ir_lvalue(scope, e->unary.expr);
+      n = ir_lvalue(scope, e->unary.expr, &is_lv);
+      if (!is_lv) parse_error(&e->unary.expr->begin, "expected lvalue");
       --creg;
 
       tmp = new_node(IR_READ);
@@ -331,6 +371,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       tmp->binary.size = irs;
       ir_append(n, tmp);
       break;
+   }
    case EXPR_COMMA:
    {
       const size_t nreg = creg;

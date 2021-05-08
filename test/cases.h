@@ -165,5 +165,19 @@
       "}",
    .output = "2\n",
    .ret_val = 0,
-}
+},
+{
+   .name = "enum",
+   .compiles = true,
+   .source =
+      "enum values {\n"
+      "  VAL_A,\n"
+      "  VAL_B,\n"
+      "};"
+      "int main(void) {\n"
+      "  return VAL_B;\n"
+      "}",
+   .output = "",
+   .ret_val = 1,
+},
 

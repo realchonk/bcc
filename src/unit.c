@@ -46,6 +46,20 @@ void parse_unit(void) {
          parse_error(&begin, "variable cannot be static and extern at the same time");
 
       struct value_type* type = parse_value_type(NULL);
+
+      if (type->type == VAL_ENUM) {
+         buf_push(cunit.enums, copy_enum(type->venum));
+
+         // add all entries as constants
+         for (size_t i = 0; i < buf_len(type->venum->entries); ++i) {
+            const struct enum_entry* e = &type->venum->entries[i];
+            if (find_constant(e->name, NULL))
+               parse_error(&type->begin, "constant '%s' already defined", e->name);
+            buf_push(cunit.constants, *e);
+         }
+         if (lexer_match(TK_SEMICOLON)) continue;
+      }
+
       istr_t name = lexer_expect(TK_NAME).str;
 
       if (!has_begin) begin = type->begin;
@@ -138,4 +152,14 @@ struct typerename* unit_get_typedef(const char* name) {
          return &cunit.renames[i];
    }
    return NULL;
+}
+bool find_constant(const char* name, intmax_t* value) {
+   name = strint(name);
+   for (size_t i = 0; i < buf_len(cunit.constants); ++i) {
+      if (name == cunit.constants[i].name) {
+         if (value) *value = cunit.constants[i].value;
+         return true;
+      }
+   }
+   return false;
 }

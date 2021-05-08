@@ -584,4 +584,12 @@ bool expr_is_lvalue(const struct expression* e) {
    default:          return false;
    }
 }
+struct value parse_const_expr(void) {
+   struct expression* expr = parse_expr(NULL);
+   struct value val;
+   if (!try_eval_expr(expr, &val))
+      parse_error(&expr->begin, "expected constant expression");
+   free_expr(expr);
+   return val;
+}
 

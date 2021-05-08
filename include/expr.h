@@ -94,4 +94,6 @@ void free_expr(struct expression*);
 
 bool expr_is_lvalue(const struct expression*);
 
+struct value parse_const_expr(void);
+
 #endif /* FILE_EXPR_H */

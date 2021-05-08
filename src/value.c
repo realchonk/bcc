@@ -22,6 +22,7 @@ const char* value_type_str[NUM_VALS] = {
    "floating-point number",
    "pointer",
    "void",
+   "enum",
 };
 
 static bool ptreq(const struct value_type* a, const struct value_type* b) {
@@ -59,6 +60,10 @@ void free_value_type(struct value_type* val) {
    case VAL_POINTER:
       free_value_type(val->pointer.type);
       break;
+   case VAL_ENUM:
+      buf_free(val->venum->entries);
+      free(val->venum);
+      break;
    default:
       break;
    }
@@ -71,7 +76,7 @@ static struct value_type* new_vt(void) {
    else return vt;
 }
 
-static struct value_type* make_int(enum integer_size sz, bool is_unsigned) {
+struct value_type* make_int(enum integer_size sz, bool is_unsigned) {
    struct value_type* vt = new_vt();
    vt->type = VAL_INT;
    vt->integer.size = sz;
@@ -81,12 +86,14 @@ static struct value_type* make_int(enum integer_size sz, bool is_unsigned) {
 
 // const unsigned int* const
 struct value_type* parse_value_type(struct scope* scope) {
+   struct value_type* vt = new_vt();
    bool has_begon = false;
    bool has_signedness = false;
-   struct value_type* vt = new_vt();
    vt->type = NUM_VALS;
    vt->integer.is_unsigned = false;
    vt->is_const = false;
+   
+
 
    while (lexer_matches(KW_CONST) || lexer_matches(KW_SIGNED) || lexer_matches(KW_UNSIGNED)) {
       const struct token tk = lexer_next();
@@ -109,6 +116,41 @@ struct value_type* parse_value_type(struct scope* scope) {
       if (!has_begon) {
          has_begon = true;
          vt->begin = tk.begin;
+      }
+   }
+
+   if (lexer_matches(KW_ENUM)) {
+      vt->type = VAL_ENUM;
+      if (has_begon) lexer_next();
+      else vt->begin = lexer_next().begin;
+      vt->venum = malloc(sizeof(struct enumeration));
+      if (!vt->venum) panic("parse_value_type(): failed to allocate enum");
+      if (lexer_matches(TK_NAME)) {
+         const struct token tk = lexer_next();
+         vt->venum->name = tk.str;
+         vt->end = tk.end;
+      } else vt->venum->name = NULL;
+      vt->venum->entries = NULL;
+      vt->venum->is_definition = lexer_match(TK_CLPAREN);
+      if (vt->venum->is_definition) {
+         intmax_t counter = 0;
+         do {
+            if (lexer_matches(TK_CRPAREN)) break;
+            struct enum_entry e;
+            e.name = lexer_expect(TK_NAME).str;
+            if (lexer_match(TK_EQ)) {
+               struct value val = parse_const_expr();
+               if (val.type->type != VAL_INT)
+                  parse_error(&val.begin, "expected integer value");
+               e.value = val.iVal;
+               counter = e.value + 1;
+            } else e.value = counter++;
+            buf_push(vt->venum->entries, e);
+         } while (lexer_match(TK_COMMA));
+         vt->end = lexer_expect(TK_CRPAREN).end;
+      } else {
+         if (!vt->venum->name)
+            parse_error(&vt->end, "expected name");
       }
    }
    struct token tk = lexer_peek();
@@ -257,6 +299,10 @@ struct value_type* common_value_type_free(struct value_type* a, struct value_typ
 struct value_type* decay(struct value_type* vt) {
    if (vt->type == VAL_POINTER && vt->pointer.is_array) {
       vt->pointer.is_array = false;
+   } else if (vt->type == VAL_ENUM) {
+      vt->type = VAL_INT;
+      vt->integer.is_unsigned = false;
+      vt->integer.size = INT_INT;
    }
    return vt;
 }
@@ -305,6 +351,7 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
       const struct variable* var = scope_find_var(scope, e->str);
       if (!var) var = func_find_var(scope->func, e->str);
       if (!var) var = unit_get_var(e->str);
+      if (find_constant(e->str, NULL)) return make_int(INT_INT, false);
       if (!var) parse_error(&e->begin, "undeclared variable '%s'", e->str);
       return copy_value_type(var->type);
    }
@@ -606,4 +653,15 @@ size_t sizeof_value(const struct value_type* vt, bool decay) {
 }
 bool var_is_declared(istr_t name, struct scope* scope) {
    return (scope && scope_find_var(scope, name)) || unit_get_var(name) || unit_get_func(name);
+}
+struct enumeration* copy_enum(const struct enumeration* e) {
+   struct enumeration* ne = malloc(sizeof(struct enumeration));
+   if (!ne) panic("copy_enum(): failed to allocate enum");
+   ne->name = e->name;
+   ne->entries = NULL;
+   if ((ne->is_definition = e->is_definition)) {
+      for (size_t i = 0; i < buf_len(e->entries); ++i)
+         buf_push(ne->entries, e->entries[i]);
+   }
+   return ne;
 }

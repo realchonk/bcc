@@ -1,7 +1,7 @@
 Planned features:
 - improve test-suite
-- add support for RISC-V (at least 32-bit)
-- struct, union, enum...
+- port to other architectures (like RISC-V, ARM)
+- struct, union
 - Improve warnings
 - implement a C pre-processor
 - add more optimization techniques

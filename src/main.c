@@ -107,6 +107,7 @@ int main(int argc, char* argv[]) {
    if (level == 'c') {
       ec = assemble(asm_filename, output_file);
       if (ec != 0) panic("assembler returned: %d", ec);
+      remove(asm_filename);
    }
    return ec;
 }

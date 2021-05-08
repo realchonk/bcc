@@ -32,6 +32,10 @@
    }
 
 bool try_eval_expr(const struct expression* e, struct value* val) {
+   if (val) {
+      val->begin = e->begin;
+      val->end = e->end;
+   }
    switch (e->type) {
    case EXPR_PAREN:
       return try_eval_expr(e->expr, val);

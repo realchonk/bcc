@@ -16,6 +16,7 @@ enum value_base_type {
    VAL_POINTER,
    VAL_VOID,
    VAL_AUTO,
+   VAL_ENUM,
 
    NUM_VALS,
 };
@@ -33,6 +34,16 @@ enum fp_size {
    FP_DOUBLE,
 
    NUM_FPS,
+};
+
+struct enum_entry {
+   istr_t name;
+   intmax_t value;
+};
+struct enumeration {
+   istr_t name;                  // optional
+   struct enum_entry* entries;
+   bool is_definition;
 };
 
 struct value_type {
@@ -58,10 +69,12 @@ struct value_type {
             };
          } array;
       } pointer;
+      struct enumeration* venum;
    };
 };
 
 struct value {
+   struct source_pos begin, end;
    struct value_type* type;
    union {
       istr_t sVal;
@@ -89,7 +102,8 @@ bool try_eval_expr(const struct expression*, struct value*);
 size_t sizeof_value(const struct value_type*, bool decay);
 struct value_type* decay(struct value_type*);
 bool var_is_declared(istr_t, struct scope*);
-
 bool is_castable(const struct value_type* old, const struct value_type* type, bool implicit);
+struct enumeration* copy_enum(const struct enumeration*);
+struct value_type* make_int(enum integer_size sz, bool is_unsigned);
 
 #endif /* FILE_VALUE_H */
