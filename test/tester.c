@@ -55,11 +55,11 @@ static void write_test(const char* s) {
    fclose(file);
 }
 static int compile_test(void) {
-   int ec = system(BCC TEST_OBJECT " " TEST_SOURCE);
+   int ec = system(BCC TEST_OBJECT " " TEST_SOURCE " 2>/dev/null");
    if (ec < 0 || ec == 127) panic("failed to invoke bcc");
-   else if (ec != 0) return false;
+   else if (ec != 0) return ec;
 
-   ec = system(LINKER " -o " TEST_BINARY " " TEST_OBJECT);
+   ec = system(LINKER " -o " TEST_BINARY " " TEST_OBJECT " 2>/dev/null");
    if (ec < 0 || ec == 127) panic("failed to invoke linker");
    else return ec;
 }
@@ -134,10 +134,10 @@ static bool run_test(const struct test_case* test) {
 
    if (!r) goto failed;
 success:
-   printf(COLOR_BOLD_GREEN "TEST '%s' PASSED\033[0m\n", test->name);
+   printf(COLOR_BOLD_GREEN "TEST '%s' %s\033[0m\n", test->name, test->compiles ? "PASS" : "XFAIL");
    return true;
 failed:
-   printf(COLOR_BOLD_RED "TEST '%s' FAILED\033[0m\n", test->name);
+   printf(COLOR_BOLD_RED "TEST '%s' FAIL\033[0m\n", test->name);
    printf(COLOR_RED "%s.\033[0m\n", cause);
    return false;
 }
