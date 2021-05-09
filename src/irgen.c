@@ -521,93 +521,77 @@ ir_node_t* irgen_stmt(const struct statement* s) {
       return ir_append(n, tmp);
    case STMT_VARDECL:
    {
-      const struct variable* var = &s->parent->vars[s->var_idx];
-      if (var->type->type == VAL_POINTER && var->type->pointer.is_array) {
-         n = new_node(IR_ALLOCA);
-         n->alloca.dest = creg;
-         n->alloca.var = var;
-         if (var->type->pointer.array.has_const_size) {
-            n->alloca.size.type = IRT_UINT;
-            n->alloca.size.uVal = sizeof_value(var->type, false);
-         } else {
-            tmp = irgen_expr(s->parent, var->type->pointer.array.dsize);
-            ir_node_t* mul = new_node(IR_UMUL);
-            mul->binary.size = IRS_PTR;
-            mul->binary.dest = creg - 1;
-            mul->binary.a.type = IRT_REG;
-            mul->binary.a.reg = creg - 1;
-            mul->binary.b.type = IRT_UINT;
-            mul->binary.b.uVal = sizeof_value(var->type->pointer.type, false);
-            ir_append(tmp, mul);
+      n = new_node(IR_NOP);
+      for (size_t i = 0; i < s->var_decl.num; ++i) {
+         const struct variable* var = &s->parent->vars[s->var_decl.idx + i];
+         ir_node_t* cur;
+         if (var->type->type == VAL_POINTER && var->type->pointer.is_array) {
+            cur = new_node(IR_ALLOCA);
+            cur->alloca.dest = creg;
+            cur->alloca.var = var;
+            if (var->type->pointer.array.has_const_size) {
+               cur->alloca.size.type = IRT_UINT;
+               cur->alloca.size.uVal = sizeof_value(var->type, false);
+            } else {
+               tmp = irgen_expr(s->parent, var->type->pointer.array.dsize);
+               ir_node_t* mul = new_node(IR_UMUL);
+               mul->binary.size = IRS_PTR;
+               mul->binary.dest = creg - 1;
+               mul->binary.a.type = IRT_REG;
+               mul->binary.a.reg = creg - 1;
+               mul->binary.b.type = IRT_UINT;
+               mul->binary.b.uVal = sizeof_value(var->type->pointer.type, false);
+               ir_append(tmp, mul);
 
-            n->alloca.size.type = IRT_REG;
-            n->alloca.size.reg = --creg;
-            ir_append(tmp, n);
-            n = tmp;
+               cur->alloca.size.type = IRT_REG;
+               cur->alloca.size.reg = --creg;
+               ir_append(tmp, cur);
+               cur = tmp;
+            }
+            // creg is ptr to array
+            tmp = new_node(IR_LOOKUP);
+            tmp->lookup.reg = creg + 1;
+            tmp->lookup.scope = s->parent;
+            tmp->lookup.var_idx = s->var_decl.idx + i;
+            ir_append(cur, tmp);
+
+            tmp = new_node(IR_WRITE);
+            tmp->move.dest = creg + 1;
+            tmp->move.src = creg;
+            tmp->move.size = IRS_PTR;
+            ir_append(cur, tmp);
+
+            if (var->init) {
+               tmp = new_node(IR_LSTR);
+               tmp->lstr.str = var->init->str;
+               tmp->lstr.reg = creg + 1;
+               ir_append(cur, tmp);
+
+               tmp = new_node(IR_COPY);
+               tmp->copy.dest = creg;
+               tmp->copy.src = creg + 1;
+               tmp->copy.len = my_min(var->type->pointer.array.size, strlen(var->init->str) + 1);
+               ir_append(cur, tmp);
+            }
          }
-         // creg is ptr to array
-         tmp = new_node(IR_LOOKUP);
-         tmp->lookup.reg = creg + 1;
-         tmp->lookup.scope = s->parent;
-         tmp->lookup.var_idx = s->var_idx;
-         ir_append(n, tmp);
+         else if (var->init) {
+            struct expression* init = var->init;
+            cur = ir_expr(s->parent, init);
+            tmp = new_node(IR_LOOKUP);
+            tmp->lookup.reg = creg;
+            tmp->lookup.scope = s->parent;
+            tmp->lookup.var_idx = s->var_decl.idx + i;
+            ir_append(cur, tmp);
 
-         tmp = new_node(IR_WRITE);
-         tmp->move.dest = creg + 1;
-         tmp->move.src = creg;
-         tmp->move.size = IRS_PTR;
-         ir_append(n, tmp);
-
-         if (var->init) {
-            // TODO: implement non-string array initialization
-            /*ir_node_t* param;
-            tmp = new_node(IR_IFCALL);
-            tmp->ifcall.name = "memcpy";
-            tmp->ifcall.dest = 0;
-            tmp->ifcall.params = NULL;
-
-            param = new_node(IR_NOP);
-            buf_push(tmp->ifcall.params, param);
-            
-            param = new_node(IR_LSTR);
-            param->lstr.reg = 0;
-            param->lstr.str = var->init->str;
-            buf_push(tmp->ifcall.params, param);
-            
-            param = new_node(IR_LOAD);
-            param->load.dest = 0;
-            param->load.value = my_min(var->type->pointer.array.size, strlen(var->init->str) + 1);
-            param->load.size = IRS_PTR;
-            buf_push(tmp->ifcall.params, param);*/
-
-            tmp = new_node(IR_LSTR);
-            tmp->lstr.str = var->init->str;
-            tmp->lstr.reg = creg + 1;
-            ir_append(n, tmp);
-
-            tmp = new_node(IR_COPY);
-            tmp->copy.dest = creg;
-            tmp->copy.src = creg + 1;
-            tmp->copy.len = my_min(var->type->pointer.array.size, strlen(var->init->str) + 1);
-            ir_append(n, tmp);
-         }
+            tmp = new_node(IR_WRITE);
+            tmp->move.size = vt2irs(var->type);
+            tmp->move.dest = creg;
+            tmp->move.src = creg - 1;
+            ir_append(cur, tmp);
+            --creg;
+         } else cur = new_node(IR_NOP);
+         ir_append(n, cur);
       }
-      else if (var->init) {
-         struct expression* init = var->init;
-         n = ir_expr(s->parent, init);
-         tmp = new_node(IR_LOOKUP);
-         tmp->lookup.reg = creg;
-         tmp->lookup.scope = s->parent;
-         tmp->lookup.var_idx = s->var_idx;
-         ir_append(n, tmp);
-
-         tmp = new_node(IR_WRITE);
-         tmp->move.size = vt2irs(var->type);
-         tmp->move.dest = creg;
-         tmp->move.src = creg - 1;
-         ir_append(n, tmp);
-         --creg;
-      } else n = new_node(IR_NOP);
       return n;
    }
    case STMT_IF:

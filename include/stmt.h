@@ -30,7 +30,6 @@ struct statement {
    union {
       struct expression* expr;
       struct scope* scope;
-      size_t var_idx;
       struct {
          struct expression* cond;
          struct statement* true_case;
@@ -41,6 +40,10 @@ struct statement {
          struct statement* stmt;
          struct expression* end; // optional, unused for do-while
       } whileloop;
+      struct {
+         struct value_type* type;
+         size_t idx, num;
+      } var_decl;
    };
 };
 

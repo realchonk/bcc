@@ -270,3 +270,28 @@
       "int main(int argc, int argc) {"
       "}"
 },
+{
+   .name = "multi-variable declaration",
+   .compiles = true,
+   .source =
+      "int main(void) {"
+      "  int a, b;"
+      "  a = 32;"
+      "  b = 45;"
+      "  return a + b;"
+      "}",
+   .output = "",
+   .ret_val = 77,
+},
+{
+   .name = "declaration of int+array",
+   .compiles = true,
+   .source =
+      "int main(void) {"
+      "  int a[10], b;"
+      "  b = arraylen(a);"
+      "  return b;"
+      "}",
+   .output = "",
+   .ret_val = 10,
+},

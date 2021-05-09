@@ -61,7 +61,7 @@ struct function* parse_func_part(struct value_type* type, istr_t name) {
 
 static void print_param(FILE* file, const struct variable* var) {
    print_value_type(file, var->type);
-   fprintf(file, " %s", var->name);
+   if (var->name) fprintf(file, " %s", var->name);
 }
 
 void print_func(FILE* file, const struct function* func) {

@@ -41,6 +41,9 @@ void free_stmt(struct statement* s) {
    case STMT_SCOPE:
       free_scope(s->scope);
       break;
+   case STMT_VARDECL:
+      free_value_type(s->var_decl.type);
+      break;
    default: break;
    }
    free(s);
@@ -83,23 +86,26 @@ void print_stmt(FILE* file, const struct statement* s) {
       fputs(");", file);
       break;
    case STMT_VARDECL: {
-      const struct variable* var = &s->parent->vars[s->var_idx];
-      if (!var) panic("print_stmt(): var == NULL");
-      if (var->type->type == VAL_POINTER && var->type->pointer.is_array) {
-         print_value_type(file, var->type->pointer.type);
-         fprintf(file, " %s[", var->name);
-         if (var->type->pointer.array.has_const_size) {
-            fprintf(file, "%zu", var->type->pointer.array.size);
+      print_value_type(file, s->var_decl.type);
+      for (size_t i = 0; i < s->var_decl.num; ++i) {
+         const struct variable* var = &s->parent->vars[i + s->var_decl.idx];
+         if (!var) panic("print_stmt(): var == NULL");
+         if (i != 0) fputc(',', file);
+         if (var->type->type == VAL_POINTER && var->type->pointer.is_array) {
+            print_value_type(file, var->type->pointer.type);
+            fprintf(file, " %s[", var->name);
+            if (var->type->pointer.array.has_const_size) {
+               fprintf(file, "%zu", var->type->pointer.array.size);
+            } else {
+               print_expr(file, var->type->pointer.array.dsize);
+            }
+            fputc(']', file);
          } else {
-            print_expr(file, var->type->pointer.array.dsize);
-         }
-         fputc(']', file);
-      } else {
-         print_value_type(file, var->type);
-         fprintf(file, " %s", var->name);
-         if (var->init) {
-            fputs(" = ", file);
-            print_expr(file, var->init);
+            fprintf(file, " %s", var->name);
+            if (var->init) {
+               fputs(" = ", file);
+               print_expr(file, var->init);
+            }
          }
       }
       fputc(';', file);
@@ -238,94 +244,103 @@ struct statement* parse_stmt(struct scope* scope) {
       break;
    }
    default: {
-      struct value_type* vtype = parse_value_type(scope);
-      if (vtype) {
-         if (vtype->type == VAL_VOID)
-            parse_error(&vtype->begin, "invalid use of incomplete type void");
-         struct variable var;
-         var.name = lexer_expect(TK_NAME).str;
-         var.begin = vtype->begin;
-         
-         if (!scope->parent && func_find_param(scope->func, var.name))
-            parse_error(&var.begin, "redefinition of parameter as variable");
+      struct value_type* base_type = parse_value_type(scope);
+      if (base_type) {
+         if (base_type->type == VAL_VOID)
+            parse_error(&base_type->begin, "invalid use of incomplete type void");
 
-         // TODO: add multi-dimensional arrays
-         if (lexer_match(TK_LBRACK)) {
-            vtype = make_array_vt(vtype);
-            if (lexer_match(TK_RBRACK)) {
-               //parse_error(&vtype->end, "expected array size");
-               vtype->pointer.array.has_const_size = false;
-               vtype->pointer.array.dsize = NULL;
-               goto skip_asize;
-            }
-            struct expression* expr = parse_expr(scope);
-            struct value val;
-            if (try_eval_expr(expr, &val)) {
-               if (val.type->type != VAL_INT)
-                  parse_error(&expr->begin, "expected integer size");
-               else if (!val.type->integer.is_unsigned && val.iVal < 0)
-                  parse_error(&expr->begin, "negative array size");
-               else if (val.uVal == 0)
-                  parse_error(&expr->begin, "zero length array");
-               vtype->pointer.array.has_const_size = true;
-               vtype->pointer.array.size = val.uVal;
-            } else {
-               if (!target_info.has_c99_array)
-                  parse_error(&expr->begin, BCC_ARCH " does not support C99 arrays.");
-               struct value_type* st = get_value_type(scope, expr);
-               if (st->type != VAL_INT)
-                  parse_error(&expr->begin, "expected integer size");
-               vtype->pointer.array.has_const_size = false;
-               vtype->pointer.array.dsize = expr;
-            }
-            vtype->end = lexer_expect(TK_RBRACK).end;
-         }
-      skip_asize:
-
-         var.init = lexer_match(TK_EQ) ? parse_expr(scope) : NULL;
-         var.end = lexer_expect(TK_SEMICOLON).end;
-         var.type = vtype;
-
-         if (vtype->type == VAL_POINTER && vtype->pointer.is_array && var.init) {
-            if (!vtype->pointer.array.has_const_size && vtype->pointer.array.dsize)
-               parse_error(&var.init->begin, "initializing a variable-length array is not supported");
-            if (vtype->pointer.type->type == VAL_INT && vtype->pointer.type->integer.size == INT_CHAR) {
-               if (var.init->type == EXPR_STRING) {
-                  const char* str = var.init->str;
-                  const size_t len = strlen(str) + 1;
-                  if (vtype->pointer.array.has_const_size) {
-                     if (len < vtype->pointer.array.size)
-                        parse_warn(&var.init->begin, "array is too small to fit string, cutting off");
-                  } else {
-                     vtype->pointer.array.has_const_size = true;
-                     vtype->pointer.array.size = len;
-                  }
-               } else parse_error(&var.init->begin, "only string literal initialization supported");
-            }
-            else parse_error(&var.init->begin, "array initialization is only supported for char []");
-         }
-
-         if (vtype->type == VAL_AUTO) {
-            if (!var.init) parse_error(&var.end, "auto variable expects initializer");
-            var.type = decay(get_value_type(scope, var.init));
-            var.type->is_const = vtype->is_const;
-            free_value_type(vtype);
-            vtype = var.type;
-         }
-
-         if (var.init) {
-            struct value_type* old = get_value_type(scope, var.init);
-            if (!is_castable(old, var.type, true))
-               parse_error(&var.init->begin, "incompatible init value type");
-            free_value_type(old);
-         } else if (vtype->is_const && (vtype->type != VAL_POINTER || !vtype->pointer.is_array))
-            parse_error(&var.end, "expected init value for const variable");
-         
-         stmt->var_idx = scope_add_var(scope, &var);
-         if (stmt->var_idx == SIZE_MAX) parse_error(&var.begin, "variable '%s' is already declared.", var.name);
+         stmt->var_decl.num = 0;
+         stmt->var_decl.idx = buf_len(scope->vars);
+         stmt->var_decl.type = base_type;
          stmt->type = STMT_VARDECL;
-         stmt->begin = var.begin;
-         stmt->end = var.end;
+         stmt->begin = base_type->begin;
+         do {
+            struct value_type* vtype = copy_value_type(base_type);
+            struct variable var;
+            const struct token name_tk = lexer_expect(TK_NAME);
+            var.name = name_tk.str;
+            var.begin = base_type->begin;
+            
+            if (!scope->parent && func_find_param(scope->func, var.name))
+               parse_error(&var.begin, "redefinition of parameter as variable");
+    
+            // TODO: add multi-dimensional arrays
+            if (lexer_match(TK_LBRACK)) {
+               vtype = make_array_vt(vtype);
+               if (lexer_match(TK_RBRACK)) {
+                  //parse_error(&vtype->end, "expected array size");
+                  vtype->pointer.array.has_const_size = false;
+                  vtype->pointer.array.dsize = NULL;
+                  goto skip_asize;
+               }
+               struct expression* expr = parse_expr(scope);
+               struct value val;
+               if (try_eval_expr(expr, &val)) {
+                  if (val.type->type != VAL_INT)
+                     parse_error(&expr->begin, "expected integer size");
+                  else if (!val.type->integer.is_unsigned && val.iVal < 0)
+                     parse_error(&expr->begin, "negative array size");
+                  else if (val.uVal == 0)
+                     parse_error(&expr->begin, "zero length array");
+                  vtype->pointer.array.has_const_size = true;
+                  vtype->pointer.array.size = val.uVal;
+               } else {
+                  if (!target_info.has_c99_array)
+                     parse_error(&expr->begin, BCC_ARCH " does not support C99 arrays.");
+                  struct value_type* st = get_value_type(scope, expr);
+                  if (st->type != VAL_INT)
+                     parse_error(&expr->begin, "expected integer size");
+                  vtype->pointer.array.has_const_size = false;
+                  vtype->pointer.array.dsize = expr;
+               }
+               vtype->end = lexer_expect(TK_RBRACK).end;
+            }
+         skip_asize:
+    
+            var.init = lexer_match(TK_EQ) ? parse_expr_no_comma(scope) : NULL;
+            var.end = var.init ? var.init->end : name_tk.end;
+            var.type = vtype;
+    
+            if (vtype->type == VAL_POINTER && vtype->pointer.is_array && var.init) {
+               if (!vtype->pointer.array.has_const_size && vtype->pointer.array.dsize)
+                  parse_error(&var.init->begin, "initializing a variable-length array is not supported");
+               if (vtype->pointer.type->type == VAL_INT && vtype->pointer.type->integer.size == INT_CHAR) {
+                  if (var.init->type == EXPR_STRING) {
+                     const char* str = var.init->str;
+                     const size_t len = strlen(str) + 1;
+                     if (vtype->pointer.array.has_const_size) {
+                        if (len < vtype->pointer.array.size)
+                           parse_warn(&var.init->begin, "array is too small to fit string, cutting off");
+                     } else {
+                        vtype->pointer.array.has_const_size = true;
+                        vtype->pointer.array.size = len;
+                     }
+                  } else parse_error(&var.init->begin, "only string literal initialization supported");
+               }
+               else parse_error(&var.init->begin, "array initialization is only supported for char []");
+            }
+    
+            if (vtype->type == VAL_AUTO) {
+               if (!var.init) parse_error(&var.end, "auto variable expects initializer");
+               var.type = decay(get_value_type(scope, var.init));
+               var.type->is_const = vtype->is_const;
+               free_value_type(vtype);
+               vtype = var.type;
+            }
+    
+            if (var.init) {
+               struct value_type* old = get_value_type(scope, var.init);
+               if (!is_castable(old, var.type, true))
+                  parse_error(&var.init->begin, "incompatible init value type");
+               free_value_type(old);
+            } else if (vtype->is_const && (vtype->type != VAL_POINTER || !vtype->pointer.is_array))
+               parse_error(&var.end, "expected init value for const variable");
+            
+            if (scope_add_var(scope, &var) == SIZE_MAX)
+               parse_error(&var.begin, "variable '%s' is already declared.", var.name);
+            ++stmt->var_decl.num;
+         } while (lexer_match(TK_COMMA));
+         stmt->end = lexer_expect(TK_SEMICOLON).end;
       } else {
          stmt->type = STMT_EXPR;
          stmt->expr = parse_expr(scope);
