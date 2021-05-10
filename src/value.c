@@ -564,6 +564,7 @@ struct value_type* copy_value_type(const struct value_type* vt) {
       }
       break;
    case VAL_VOID:
+   case VAL_AUTO:
       break;
    default: panic("copy_value_type(): unsupported value type '%d'", vt->type);
    }

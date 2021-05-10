@@ -162,7 +162,8 @@ struct statement* parse_stmt(struct scope* scope) {
          if (f->type->type == VAL_VOID) parse_error(&stmt->expr->begin, "return a value in a void-function");
          struct value_type* old = get_value_type(stmt->parent, stmt->expr);
          if (!is_castable(old, f->type, true))
-            parse_error(&stmt->expr->begin, "invalid return type");
+            parse_error(&stmt->expr->begin, "invalid implicit conversion from '%s' to '%s'",
+                  value_type_str[old->type], value_type_str[f->type->type]);
          free_value_type(old);
       } else if (f->type->type != VAL_VOID) parse_error(&stmt->end, "expected return value");
       stmt->end = lexer_expect(TK_SEMICOLON).end;

@@ -270,6 +270,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    }
    case IR_IFCALL:
+   case IR_FCALL:
    {
       const size_t np = buf_len(n->ifcall.params);
       size_t i;
@@ -329,7 +330,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       emit("call %s", n->ifcall.name);
       emit("add %s, %u", reg_sp, padding + REGSIZE * np);
 #endif
-      if (n->ifcall.dest != 0) {
+      if (n->ifcall.dest != 0 && n->type != IR_FCALL) {
          emit("mov %s, %s", mreg(n->ifcall.dest), reg_ax);
       }
       for (size_t i = n->ifcall.dest; i != 0; --i) {

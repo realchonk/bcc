@@ -7,7 +7,6 @@
       "  printf(\"Hello World\\n\");"
       "}",
    .output = "Hello World\n",
-   .ret_val = 0,
 },
 {
    .name = "sizeof(array)",
@@ -17,7 +16,6 @@
       "  int arr[10];"
       "  return sizeof(arr);"
       "}",
-   .output = "",
    .ret_val = 40,
 },
 {
@@ -31,7 +29,6 @@
       "  printf(\"%u\", arraylen(arr));"
       "}",
    .output = "10",
-   .ret_val = 0,
 },
 {
    .name = "typedef",
@@ -41,7 +38,6 @@
       "int main(void) {"
       "  return sizeof(uint_t);"
       "}",
-   .output = "",
    .ret_val = 1,
 },
 {
@@ -112,7 +108,6 @@
       ".....\n"
       ".....\n"
       ".....\n",
-   .ret_val = 0,
 },
 {
    .name = "modulo",
@@ -138,7 +133,6 @@
       "  printf(\"%u\", sizeof(arr));"
       "}",
    .output = "10",
-   .ret_val = 0,
 },
 {
    .name = "fibonacci",
@@ -150,7 +144,6 @@
       "int main(void) {"
       "  return fib(10);"
       "}",
-   .output = "",
    .ret_val = 55,
 },
 {
@@ -164,7 +157,6 @@
       "  printf(\"%d\", a - b);"
       "}",
    .output = "2",
-   .ret_val = 0,
 },
 {
    .name = "enum",
@@ -177,7 +169,6 @@
       "int main(void) {"
       "  return VAL_B;"
       "}",
-   .output = "",
    .ret_val = 1,
 },
 {
@@ -187,7 +178,6 @@
       "extern int val;"
       "int val = 42;"
       "int main(void) { return val; }",
-   .output = "",
    .ret_val = 42,
 },
 {
@@ -235,8 +225,6 @@
       "  VAL_B"
       "};"
       "int main(void) { return VAL_B; }",
-   .output = "",
-   .ret_val = 0,
 },
 {
    .name = "multiple definitions of enum",
@@ -280,7 +268,6 @@
       "  b = 45;"
       "  return a + b;"
       "}",
-   .output = "",
    .ret_val = 77,
 },
 {
@@ -292,7 +279,6 @@
       "  b = arraylen(a);"
       "  return b;"
       "}",
-   .output = "",
    .ret_val = 10,
 },
 {
@@ -303,7 +289,6 @@
       "int main(void) {"
       "  return a + b;"
       "}",
-   .output = "",
    .ret_val = 44,
 },
 {
@@ -314,6 +299,28 @@
       "int main(void) {"
       "  return (sizeof(a) == (sizeof(int) * 10)) + (sizeof(b) == sizeof(int));"
       "}",
-   .output = "",
    .ret_val = 2,
+},
+{
+   .name = "comma-expression",
+   .compiles = true,
+   .source =
+      "int main(void) {"
+      "  return 42, 3;"
+      "}",
+   .ret_val = 3,
+},
+{
+   .name = "void-function",
+   .compiles = true,
+   .source =
+      "int printf(const char*, ...);"
+      "static void puti(int i) {"
+      "  printf(\"%d\\n\", i);"
+      "  return;"
+      "}"
+      "int main(void) {"
+      "  puti(42);"
+      "}",
+   .output = "42\n",
 },

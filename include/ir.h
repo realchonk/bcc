@@ -38,7 +38,7 @@ enum ir_node_type {
    IR_PROLOGUE,      // .func       | beginning of a function
    IR_EPILOGUE,      // .func       | ending of a function
    IR_IICAST,        // .iicast     | integer-to-integer cast
-   IR_IFCALL,        // .ifcall     | function call w/ optional integer return value
+   IR_IFCALL,        // .ifcall     | function call w/ integer return value
    IR_FPARAM,        // .fparam     | load address of function parameter
    IR_LSTR,          // .lstr       | load address of string
    IR_ISTEQ,         // .binary     | set if integer equal
@@ -59,6 +59,7 @@ enum ir_node_type {
    IR_COPY,          // .copy       | copy array
    IR_ARRAYLEN,      // .lookup     | get length of variable-length array
    IR_GLOOKUP,       // .lstr       | get address of global variable
+   IR_FCALL,         // .ifcall     | function call w/ return-type void
 
    NUM_IR_NODES,
 };
@@ -69,6 +70,7 @@ enum ir_value_size {
    IRS_INT,
    IRS_LONG,
    IRS_PTR,
+   IRS_VOID,
 
    NUM_IR_SIZES,
 };
@@ -133,7 +135,7 @@ typedef struct ir_node {
       } iicast;
       struct {
          istr_t name;
-         ir_reg_t dest;
+         ir_reg_t dest;             // only used with IR_IFCALL
          struct ir_node** params;
       } ifcall;
       struct {

@@ -58,9 +58,9 @@ int main(int argc, char* argv[]) {
          break;
       }
       case 'V':
-         printf("bcc %s\nCopyright (C) Benjamin Stürz.\n"
+         printf("bcc %s\nCopyleft Benjamin Stürz.\n"
                "This software is distributed under the terms of the GPLv2\n"
-               "Compiled for %s\n", BCC_VER, BCC_ARCH);
+               "Compiled on %s for %s\n", BCC_VER, __DATE__, BCC_ARCH);
          return 0;
       case 'm':
          buf_push(target_opts, optarg);

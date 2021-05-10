@@ -9,7 +9,9 @@ const char* ir_size_str[NUM_IR_SIZES] = {
    [IRS_INT]   = "int",
    [IRS_LONG]  = "long",
    [IRS_PTR]   = "ptr",
+   [IRS_VOID]  = "void",
 };
+
 const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_NOP]          = "nop",
    [IR_MOVE]         = "move",
@@ -61,7 +63,8 @@ const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_ALLOCA]       = "alloca",
    [IR_COPY]         = "copy",
    [IR_ARRAYLEN]     = "arraylen",
-   [IR_GLOOKUP]      = "glookup"
+   [IR_GLOOKUP]      = "glookup",
+   [IR_FCALL]        = "fcall",
 };
 const char* ir_value_type_str[NUM_IR_VALUES] = {
    [IRT_REG]         = "register",
@@ -173,6 +176,10 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
          fprintf(file, ", R%u", n->ifcall.params[i]);
       */
       break;
+   case IR_FCALL:
+      fprintf(file, "%s", n->ifcall.name);
+      break;
+
    case IR_FPARAM:
       fprintf(file, " R%u, %s", n->fparam.reg, n->fparam.func->params[n->fparam.idx].name);
       break;

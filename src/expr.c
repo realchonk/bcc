@@ -412,7 +412,7 @@ static struct expression* expr_comma(void) {
    do {
       buf_push(comma->comma, expr_assign());
    } while (lexer_match(TK_COMMA));
-   return expr;
+   return comma;
 }
 
 struct expression* parse_expr(struct scope* s) {

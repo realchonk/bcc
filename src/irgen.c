@@ -29,6 +29,8 @@ static istr_t make_label(size_t i) {
 
 enum ir_value_size vt2irs(const struct value_type* vt) {
    switch (vt->type) {
+   case VAL_VOID:
+      return IRS_VOID;
    case VAL_INT:
       switch (vt->integer.size) {
       case INT_CHAR:    return IRS_CHAR;
@@ -272,9 +274,11 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    {
       struct function* func = unit_get_func(e->fcall.name);
       if (!func) parse_error(&e->begin, "function '%s' not found", e->fcall.name);
+      const bool has_rv = func->type->type != VAL_VOID;
       n = new_node(IR_IFCALL);
+      if (!has_rv) n ->type = IR_FCALL;
       n->ifcall.name = func->name;
-      n->ifcall.dest = creg;
+      if (has_rv) n->ifcall.dest = creg;
       n->ifcall.params = NULL;
 
       for (size_t i = 0; i < buf_len(e->fcall.params); ++i) {
