@@ -295,3 +295,25 @@
    .output = "",
    .ret_val = 10,
 },
+{
+   .name = "multi-global-variable declaration",
+   .compiles = true,
+   .source =
+      "int a = 13, b = 31;"
+      "int main(void) {"
+      "  return a + b;"
+      "}",
+   .output = "",
+   .ret_val = 44,
+},
+{
+   .name = "global declaration of int+array",
+   .compiles = true,
+   .source =
+      "int a[10], b;"
+      "int main(void) {"
+      "  return (sizeof(a) == (sizeof(int) * 10)) + (sizeof(b) == sizeof(int));"
+      "}",
+   .output = "",
+   .ret_val = 2,
+},

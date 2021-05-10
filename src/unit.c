@@ -68,7 +68,8 @@ void parse_unit(void) {
          if (lexer_match(TK_SEMICOLON)) continue;
       }
 
-      istr_t name = lexer_expect(TK_NAME).str;
+      const struct token name_tk = lexer_expect(TK_NAME);
+      istr_t name = name_tk.str;
 
       if (!has_begin) begin = type->begin;
       
@@ -90,46 +91,61 @@ void parse_unit(void) {
             func->ir_code = optim_ir_nodes(irgen_func(func));
          }
       } else {
-         struct variable var;
-         var.type = type;
-         var.name = name;
-         var.begin = begin;
-         var.attrs = attrs;
-         {
-            struct variable* v = unit_get_var(name);
-            if (v) {
-               if (!(v->attrs & ATTR_EXTERN))
-                  parse_error(&begin, "global variable '%s' already declared", name);
-               if (!value_type_equal(v->type, var.type))
-                  parse_error(&begin, "incompatible types");
+         bool first = true;
+         do {
+            struct value_type* vt = copy_value_type(type);
+            struct variable var;
+            struct source_pos name_end;
+            var.type = vt;
+            if (first) {
+               var.name = name;
+               name_end = name_tk.end;
+               first = false;
+            } else {
+               const struct token tk = lexer_expect(TK_NAME);
+               var.begin = tk.begin;
+               var.name = tk.str;
+               name_end = tk.end;
             }
-         }
-         if (unit_get_func(name))
-            parse_error(&begin, "function with name '%s' already exists", name);
-         if (lexer_match(TK_LBRACK)) {
-            struct expression* expr = parse_expr(NULL);
-            struct value val;
-            if (!try_eval_expr(expr, &val))
-               parse_error(&expr->begin, "gloal VLAs are not allowed.");
-            else if (val.type->type != VAL_INT)
-               parse_error(&expr->begin, "size of array must be an integer.");
-            else if (!val.type->integer.is_unsigned && val.iVal < 0)
-               parse_error(&expr->begin, "size of array must be positive.");
-            var.type = make_array_vt(val.type);
-            var.type->pointer.array.has_const_size = true;
-            var.type->pointer.array.size = val.uVal;
-            lexer_expect(TK_RBRACK);
-         }
-         if (lexer_match(TK_EQ)) {
-            var.init = parse_expr_no_comma(NULL);
-            if (var.attrs & ATTR_EXTERN)
-               parse_error(&var.init->begin, "cannot initialize extern variable");
-            if (!try_eval_expr(var.init, &var.const_init))
-               parse_error(&var.init->begin, "global variables may only be initialized with a constant value");
-            var.has_const_value = true;
-         } else var.init = NULL;
-         var.end = lexer_expect(TK_SEMICOLON).end;
-         buf_push(cunit.vars, var);
+            var.begin = begin;
+            var.attrs = attrs;
+            {
+               struct variable* v = unit_get_var(var.name);
+               if (v) {
+                  if (!(v->attrs & ATTR_EXTERN))
+                     parse_error(&begin, "global variable '%s' already declared", name);
+                  if (!value_type_equal(v->type, var.type))
+                     parse_error(&begin, "incompatible types");
+               }
+            }
+            if (unit_get_func(name))
+               parse_error(&begin, "function with name '%s' already exists", name);
+            if (lexer_match(TK_LBRACK)) {
+               struct expression* expr = parse_expr(NULL);
+               struct value val;
+               if (!try_eval_expr(expr, &val))
+                  parse_error(&expr->begin, "gloal VLAs are not allowed.");
+               else if (val.type->type != VAL_INT)
+                  parse_error(&expr->begin, "size of array must be an integer.");
+               else if (!val.type->integer.is_unsigned && val.iVal < 0)
+                  parse_error(&expr->begin, "size of array must be positive.");
+               var.type = make_array_vt(val.type);
+               var.type->pointer.array.has_const_size = true;
+               var.type->pointer.array.size = val.uVal;
+               lexer_expect(TK_RBRACK);
+            }
+            if (lexer_match(TK_EQ)) {
+               var.init = parse_expr_no_comma(NULL);
+               if (var.attrs & ATTR_EXTERN)
+                  parse_error(&var.init->begin, "cannot initialize extern variable");
+               if (!try_eval_expr(var.init, &var.const_init))
+                  parse_error(&var.init->begin, "global variables may only be initialized with a constant value");
+               var.has_const_value = true;
+            } else var.init = NULL;
+            var.end = var.init ? var.init->end : name_end;
+            buf_push(cunit.vars, var);
+         } while (lexer_match(TK_COMMA));
+         lexer_expect(TK_SEMICOLON);
       }
    }
 }
