@@ -65,6 +65,12 @@ int main(int argc, char* argv[]) {
       case 'm':
          buf_push(target_opts, optarg);
          break;
+      case ':':
+         fprintf(stderr, "bcc: missing argument for '-%c'\n", optopt);
+         return 1;
+      case '?':
+         fprintf(stderr, "bcc: invalid option '-%c'\n", optopt);
+         return 1;
       default: goto print_usage;
       }
    }
@@ -74,11 +80,17 @@ int main(int argc, char* argv[]) {
       return 1;
    }
    const char* source_file = argv[optind];
-   FILE* source = fopen(source_file, "r");
-   if (!source) panic("failed to access '%s'", source_file);
+   FILE* source;
+   if (!strcmp(source_file, "-")) source = stdin;
+   else source = fopen(source_file, "r");
+   if (!source) {
+      fprintf(stderr, "bcc: failed to open '%s': %s\n", source_file, strerror(errno));
+      return 1;
+   }
    
    if (!output_file) {
-      switch (level) {
+      if (source == stdin) output_file = "-";
+      else switch (level) {
       case 'c':   output_file = replace_ending(source_file, target_info.fend_obj); break;
       case 'S':   output_file = replace_ending(source_file, target_info.fend_asm); break;
       case 'i':   output_file = replace_ending(source_file, "ir"); break;
