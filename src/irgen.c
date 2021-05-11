@@ -117,6 +117,24 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       struct value_type* vl = get_value_type(scope, e->binary.left);
       struct value_type* vr = get_value_type(scope, e->binary.right);
       n = ir_expr(scope, e->binary.left);
+      if (e->binary.op.type == TK_PIPI || e->binary.op.type == TK_AMPAMP) {
+         const istr_t lbl = make_label(clbl++);
+         n = ir_expr(scope, e->binary.left);
+         tmp = new_node(e->binary.op.type == TK_PIPI ? IR_JMPIF : IR_JMPIFN);
+         tmp->cjmp.label = lbl;
+         tmp->cjmp.reg = --creg;
+         tmp->cjmp.size = vt2irs(vl);
+         ir_append(n, tmp);
+
+         ir_append(n, ir_expr(scope, e->binary.right));
+         tmp = new_node(IR_LABEL);
+         tmp->str = lbl;
+         ir_append(n, tmp);
+         free_value_type(vl);
+         free_value_type(vr);
+         break;
+      }
+      
       if (irs != vt2irs(vl)) {
          tmp = new_node(IR_IICAST);
          tmp->iicast.dest = tmp->iicast.src = creg - 1;
@@ -166,8 +184,8 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       case TK_LE:    tmp->type = is_unsigned ? IR_USTLT : IR_ISTLT; break;
       case TK_LEEQ:  tmp->type = is_unsigned ? IR_USTLE : IR_ISTLE; break;
       case TK_AMP:   tmp->type = IR_IAND; break;
-      case TK_PIPE:  tmp->type = IR_IAND; break;
-      case TK_XOR:   tmp->type = IR_IAND; break;
+      case TK_PIPE:  tmp->type = IR_IOR; break;
+      case TK_XOR:   tmp->type = IR_IXOR; break;
       default:       panic("ir_expr(): unsupported binary operator '%s'", token_type_str[e->binary.op.type]);
       }
       ir_append(n, tmp);

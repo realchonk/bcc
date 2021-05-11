@@ -427,6 +427,11 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
          free_value_type(vl);
          free_value_type(vr);
          return make_int(INT_INT, false);
+      case TK_AMPAMP:
+      case TK_PIPI:
+         free_value_type(vl);
+         free_value_type(vr);
+         return make_int(INT_INT, false);
       case TK_PLUS:
          if (check1and(vl, vr, VAL_POINTER))
             parse_error(&e->binary.op.begin, "addition of pointers");

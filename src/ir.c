@@ -65,6 +65,8 @@ const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_ARRAYLEN]     = "arraylen",
    [IR_GLOOKUP]      = "glookup",
    [IR_FCALL]        = "fcall",
+   [IR_BAND]         = "band",
+   [IR_BOR]          = "bor",
 };
 const char* ir_value_type_str[NUM_IR_VALUES] = {
    [IRT_REG]         = "register",
@@ -152,6 +154,8 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
    case IR_USTGE:
    case IR_USTLT:
    case IR_USTLE:
+   case IR_BAND:
+   case IR_BOR:
       fprintf(file, ".%s R%u, ", ir_size_str[n->binary.size], n->binary.dest);
       print_ir_value(file, &n->binary.a);
       fputs(", ", file);

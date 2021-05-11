@@ -324,3 +324,23 @@
       "}",
    .output = "42\n",
 },
+{
+   .name = "boolean and",
+   .compiles = true,
+   .source =
+      "int main(void) {"
+      "  int a = 3, b = 1;"
+      "  return a && b;"
+      "}",
+   .ret_val = 1,
+},
+{
+   .name = "boolean or",
+   .compiles = true,
+   .source =
+      "int main(void) {"
+      "  int a = 3, b = 1;"
+      "  return a || b;"
+      "}",
+   .ret_val = 3,
+},
