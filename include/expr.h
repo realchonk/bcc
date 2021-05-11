@@ -5,26 +5,26 @@
 #include "buf.h"
 
 enum expression_type {
-   EXPR_PAREN,
-   EXPR_INT,
-   EXPR_UINT,
-   EXPR_FLOAT,
-   EXPR_CHAR,
-   EXPR_STRING,
-   EXPR_NAME,
-   EXPR_UNARY,
-   EXPR_BINARY,
-   EXPR_PREFIX,
-   EXPR_SUFFIX,
-   EXPR_ADDROF,
-   EXPR_INDIRECT,
-   EXPR_TERNARY,
-   EXPR_ASSIGN,
-   EXPR_COMMA,
-   EXPR_CAST,
-   EXPR_FCALL,
-   EXPR_SIZEOF,
-   EXPR_ARRAYLEN,
+   EXPR_PAREN,       // .expr       | sub-expression
+   EXPR_INT,         // .iVal       | signed integer literal
+   EXPR_UINT,        // .uVal       | unsigned integer literal
+   EXPR_FLOAT,       // .fVal       | floating-point literal
+   EXPR_CHAR,        // .ch         | character literal
+   EXPR_STRING,      // .str        | string literal
+   EXPR_NAME,        // .str        | identifier
+   EXPR_UNARY,       // .unary      | unary expression
+   EXPR_BINARY,      // .binary     | binary expression
+   EXPR_PREFIX,      // .unary      | prefix increment/decrement
+   EXPR_SUFFIX,      // .unary      | suffix increment/decrement
+   EXPR_ADDROF,      // .expr       | address-of
+   EXPR_INDIRECT,    // .expr       | dereference/indirection
+   EXPR_TERNARY,     // .ternary    | ternary/if-else-expression
+   EXPR_ASSIGN,      // .binary     | assignment
+   EXPR_COMMA,       // .comma      | comma/multi-expression
+   EXPR_CAST,        // .cast       | type conversion
+   EXPR_FCALL,       // .fcall      | function call
+   EXPR_SIZEOF,      // .szof       | sizeof operator
+   EXPR_ARRAYLEN,    // .expr       | arraylen operator
 
    NUM_EXPRS,
 };
@@ -93,6 +93,7 @@ void print_expr(FILE*, const struct expression*);
 void free_expr(struct expression*);
 
 bool expr_is_lvalue(const struct expression*);
+bool expr_is_pure(const struct expression*);
 
 struct value parse_const_expr(void);
 

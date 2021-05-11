@@ -3,6 +3,7 @@
 #include "target.h"
 #include "error.h"
 #include "parser.h"
+#include "optim.h"
 #include "lex.h"
 
 const char* stmt_type_str[NUM_STMTS] = {
@@ -350,5 +351,38 @@ struct statement* parse_stmt(struct scope* scope) {
       break;
    }
    }
-   return stmt;
+   return optim_stmt(stmt);
+}
+bool stmt_is_pure(const struct statement* s) {
+   switch (s->type) {
+   case STMT_NOP:
+      return true;
+
+   case STMT_EXPR:
+      return expr_is_pure(s->expr);
+   case STMT_IF:
+      return expr_is_pure(s->ifstmt.cond)
+         && stmt_is_pure(s->ifstmt.true_case)
+         && stmt_is_pure(s->ifstmt.false_case);
+   case STMT_SCOPE:
+      for (size_t i = 0; i < buf_len(s->scope->body); ++i) {
+         if (!stmt_is_pure(s->scope->body[i]))
+            return false;
+      }
+      return true;
+
+   case STMT_WHILE:
+   case STMT_DO_WHILE:
+      // TODO: implement check if this is a infinite-loop
+      return false;
+
+   case STMT_RETURN:
+   case STMT_BREAK:
+   case STMT_CONTINUE:
+   case STMT_VARDECL:
+      return false;
+   case NUM_STMTS:
+      break;
+   }
+   panic("stmt_is_pure(): unreachable reached");
 }

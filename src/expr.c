@@ -580,7 +580,10 @@ bool expr_is_lvalue(const struct expression* e) {
    switch (e->type) {
    case EXPR_PAREN:  return expr_is_lvalue(e->expr);
    case EXPR_INDIRECT:
+   case EXPR_ASSIGN:
+   case EXPR_PREFIX:
    case EXPR_NAME:   return true;
+   case EXPR_COMMA:  return expr_is_lvalue(e->comma[buf_len(e->comma) - 1]);
    default:          return false;
    }
 }
@@ -592,4 +595,48 @@ struct value parse_const_expr(void) {
    free_expr(expr);
    return val;
 }
+bool expr_is_pure(const struct expression* e) {
+   switch (e->type) {
+   case EXPR_INT:
+   case EXPR_UINT:
+   case EXPR_STRING:
+   case EXPR_CHAR:
+   case EXPR_FLOAT:
+   case EXPR_NAME:
+   case EXPR_ADDROF:
+   case EXPR_INDIRECT:
+   case EXPR_CAST:
+   case EXPR_SIZEOF:
+   case EXPR_ARRAYLEN:
+      return true;
 
+   case EXPR_PAREN:
+      return expr_is_pure(e->expr);
+   case EXPR_UNARY:
+      return expr_is_pure(e->unary.expr);
+   case EXPR_BINARY:
+      return expr_is_pure(e->binary.left) && expr_is_pure(e->binary.right);
+   case EXPR_TERNARY:
+      return expr_is_pure(e->ternary.cond)
+         && expr_is_pure(e->ternary.true_case)
+         && expr_is_pure(e->ternary.false_case);
+   case EXPR_COMMA:
+      for (size_t i = 0; i < buf_len(e->comma); ++i) {
+         if (!expr_is_pure(e->comma[i])) return false;
+      }
+      return true;
+
+   case EXPR_PREFIX:
+   case EXPR_SUFFIX:
+   case EXPR_ASSIGN:
+      return false;
+
+   case EXPR_FCALL:
+      // TODO: check if function is pure
+      return false;
+   
+   case NUM_EXPRS:
+      break;
+   }
+   panic("expr_is_pure(): unreachable reached");
+}

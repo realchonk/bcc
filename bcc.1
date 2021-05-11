@@ -1,4 +1,4 @@
-.TH bcc 1 "2021-05-06"
+.TH bcc 1 "2021-05-11"
 
 .SH NAME
 bcc - brainlet C compiler
@@ -158,6 +158,8 @@ Supported optimization techniques:
 - multiply to shift (-O1)
 .RE
 - fusion of memory instructions for x86 (-O2)
+.RE
+- dead-code elimination (-O1)
 
 .SH TARGETS
 Currently supported target architectures:
