@@ -245,7 +245,11 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
             case IRS_BYTE:
             case IRS_CHAR:    mask = 0x000000ff; break;
             case IRS_SHORT:   mask = 0x0000ffff; break;
-            case IRS_INT:     mask = 0xffffffff; break;
+#if BCC_x86_64
+            case IRS_INT:
+               emit("mov %s, %s", reg32(n->iicast.dest), reg32(n->iicast.dest));
+               fallthrough;
+#endif
             default:          mask = 0;
             }
             if (mask) emit("and %s, 0x%jx", mreg(n->iicast.dest), (uintmax_t)mask);
@@ -446,8 +450,8 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       reg_op(dest, n->binary.dest, n->binary.size);
 
       emit("cmp %s, %s", a, b);
-      if (n->binary.size > 1) emit("mov %s, 0", dest); // xor changes eflags
       emit("%s %s", instr, reg8(n->binary.dest));
+      if (n->binary.size > IRS_CHAR) emit("movzx %s, %s", dest, reg8(n->binary.dest));
       return n->next;
    }
    case IR_LABEL:
@@ -527,8 +531,9 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       reg_op(reg, n->unary.reg, n->unary.size);
       reg_op(lower, n->unary.reg, IRS_BYTE);
       emit("test %s, %s", reg, reg);
-      emit("mov %s, 0", reg);
       emit("setz %s", lower);
+      if (n->unary.size > IRS_CHAR)
+         emit("movzx %s, %s", reg, lower);
       return n->next;
    }
 
