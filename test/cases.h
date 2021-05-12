@@ -344,3 +344,13 @@
       "}",
    .ret_val = 3,
 },
+{
+   .name = "boolean not",
+   .compiles = true,
+   .source =
+      "int main(void) {"
+      "  int a = 1;"
+      "  return !a;"
+      "}",
+   .ret_val = 0,
+},

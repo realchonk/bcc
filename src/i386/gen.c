@@ -465,7 +465,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
    jmpif:;
       const char* reg;
       reg_op(reg, n->cjmp.reg, n->cjmp.size);
-      emit("cmp %s, 0", reg);
+      emit("test %s, %s", reg, reg);
       emit("%s %s", instr, n->cjmp.label);
       return n->next;
    }
@@ -520,6 +520,17 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
    case IR_GLOOKUP:
       emit("lea %s, [%s]", mreg(n->lstr.reg), n->lstr.str);
       return n->next;
+   case IR_BNOT:
+   {
+      const char* reg;
+      const char* lower;
+      reg_op(reg, n->unary.reg, n->unary.size);
+      reg_op(lower, n->unary.reg, IRS_BYTE);
+      emit("test %s, %s", reg, reg);
+      emit("mov %s, 0", reg);
+      emit("setz %s", lower);
+      return n->next;
+   }
 
    default: panic("emit_ir(): unsupported ir_node type '%s'", ir_node_type_str[n->type]);
    }
