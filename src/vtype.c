@@ -22,6 +22,7 @@ const char* value_type_str[NUM_VALS] = {
    "floating-point number",
    "pointer",
    "void",
+   "auto",
    "enum",
 };
 
@@ -568,6 +569,9 @@ struct value_type* copy_value_type(const struct value_type* vt) {
          else copy->pointer.array.dsize = vt->pointer.array.dsize;
       }
       break;
+   case VAL_ENUM:
+      copy->venum = copy_enum(vt->venum);
+      break;
    case VAL_VOID:
    case VAL_AUTO:
       break;
@@ -586,6 +590,7 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
       switch (type->type) {
       case VAL_INT:
       case VAL_FLOAT:
+      case VAL_ENUM:
          return true;
       case VAL_POINTER:
          return !implicit;
@@ -598,6 +603,8 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
          fallthrough;
       case VAL_FLOAT:
          return true;
+      case VAL_ENUM:
+         return !implicit;
       case VAL_POINTER:
          return false;
       default: panic("is_castable(): invalid value type '%u'", type->type);
@@ -605,6 +612,7 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
    case VAL_POINTER:
       switch (type->type) {
       case VAL_INT:
+      case VAL_ENUM:
          return !implicit;
       case VAL_POINTER:
          if (old->pointer.type->is_const && !type->pointer.type->is_const && implicit)
@@ -613,6 +621,16 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
          if (!ptreq(old->pointer.type, type->pointer.type) && implicit)
             parse_warn(&old->begin, "implicit pointer conversion");
          return true;
+      default: panic("is_castable(): invalid value type '%u'", type->type);
+      }
+   case VAL_ENUM:
+      switch (type->type) {
+      case VAL_ENUM:
+      case VAL_INT:
+      case VAL_FLOAT:
+         return true;
+      case VAL_POINTER:
+         return !implicit;
       default: panic("is_castable(): invalid value type '%u'", type->type);
       }
    default: panic("is_castable(): invalid value type '%u'", type->type);
@@ -657,6 +675,8 @@ size_t sizeof_value(const struct value_type* vt, bool decay) {
       default:
          panic("sizeof_value(): invalid integer size '%s'", integer_size_str[vt->integer.size]);
       }
+   case VAL_ENUM:
+      return target_info.size_int;
    default:
       panic("sizeof_value(): invalid value type '%s'", value_type_str[vt->type]);
    }

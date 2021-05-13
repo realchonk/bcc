@@ -42,6 +42,7 @@ enum ir_value_size vt2irs(const struct value_type* vt) {
       }
    case VAL_FLOAT:      panic("vt2irs(): floating-point values are currently not supported by the IR backend.");
    case VAL_POINTER:    return IRS_PTR;
+   case VAL_ENUM:       return IRS_INT;
    default:             panic("vt2irs(): invalid value type '%d'", vt->type);
    }
 }

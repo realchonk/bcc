@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "token.h"
 
+struct value_type;
 
 enum attribute {
    ATTR_EXTERN    = 0x0001,
@@ -40,9 +41,19 @@ struct enum_entry {
    istr_t name;
    intmax_t value;
 };
+struct struct_entry {
+   struct value_type* type;
+   istr_t name;
+};
+
 struct enumeration {
    istr_t name;                  // optional
    struct enum_entry* entries;
+   bool is_definition;
+};
+struct structure {
+   istr_t name;
+   struct struct_entry* entries;
    bool is_definition;
 };
 
@@ -70,6 +81,7 @@ struct value_type {
          } array;
       } pointer;
       struct enumeration* venum;
+      struct structure* vstruct;
    };
 };
 

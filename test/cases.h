@@ -354,3 +354,32 @@
       "}",
    .ret_val = 0,
 },
+{
+   .name = "typedef unnamed enum",
+   .compiles = true,
+   .source =
+      "typedef enum {"
+      "  VAL_A,"
+      "  VAL_B,"
+      "} e_t;"
+      "int main(void) {"
+      "  e_t e = VAL_B;"
+      "  return e;"
+      "}",
+   .ret_val = 1,
+},
+{
+   .name = "typedef enum",
+   .compiles = true,
+   .source =
+      "enum E {"
+      "  VAL_A,"
+      "  VAL_B,"
+      "};"
+      "typedef enum E e_t;"
+      "int main(void) {"
+      "  e_t e = VAL_B;"
+      "  return e;"
+      "}",
+   .ret_val = 1,
+},

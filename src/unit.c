@@ -6,6 +6,25 @@
 
 struct cunit cunit = { NULL};
 
+static void add_enum(const struct value_type* type) {
+   if (type->venum->name && type->venum->is_definition) {
+      if (unit_get_enum(type->venum->name))
+         parse_error(&type->begin, "enum '%s' already defined", type->venum->name);
+      buf_push(cunit.enums, copy_enum(type->venum));
+   }
+
+   // add all entries as constants
+   for (size_t i = 0; i < buf_len(type->venum->entries); ++i) {
+      const struct enum_entry* e = &type->venum->entries[i];
+      if (find_constant(e->name, NULL))
+         parse_error(&type->begin, "constant '%s' already defined", e->name);
+      else if (unit_get_var(e->name) || unit_get_func(e->name))
+         parse_error(&type->begin, "'%s' already declared", e->name);
+      buf_push(cunit.constants, *e);
+   }
+
+}
+
 void parse_unit(void) {
    buf_free(cunit.funcs);
    while (!lexer_match(TK_EOF)) {
@@ -15,6 +34,8 @@ void parse_unit(void) {
          alias.type = parse_value_type(NULL);
          if (!alias.type)
             parse_error(&alias.end, "failed to parse type");
+         if (alias.type->type == VAL_ENUM)
+            add_enum(alias.type);
          alias.name = lexer_expect(TK_NAME).str;
          alias.end = lexer_expect(TK_SEMICOLON).end;
          buf_push(cunit.renames, alias);
@@ -50,21 +71,7 @@ void parse_unit(void) {
          parse_error(&begin, "failed to parse type");
 
       if (type->type == VAL_ENUM) {
-         if (type->venum->name) {
-            if (unit_get_enum(type->venum->name))
-               parse_error(&type->begin, "enum '%s' already defined", type->venum->name);
-            buf_push(cunit.enums, copy_enum(type->venum));
-         }
-
-         // add all entries as constants
-         for (size_t i = 0; i < buf_len(type->venum->entries); ++i) {
-            const struct enum_entry* e = &type->venum->entries[i];
-            if (find_constant(e->name, NULL))
-               parse_error(&type->begin, "constant '%s' already defined", e->name);
-            else if (unit_get_var(e->name) || unit_get_func(e->name))
-               parse_error(&type->begin, "'%s' already declared", e->name);
-            buf_push(cunit.constants, *e);
-         }
+         add_enum(type);
          if (lexer_match(TK_SEMICOLON)) continue;
       }
 

@@ -244,6 +244,7 @@ static struct token lexer_impl(void) {
       case '-':
          if (input_match('-')) return (struct token){ TK_MIMI, start, pos, 0 };
          else if (input_match('=')) return (struct token){ TK_MIEQ, start, pos, 0 };
+         else if (input_match('>')) return (struct token){ TK_ARROW, start, pos, 0 };
          else return (struct token){ TK_MINUS, start, pos, 0 };
       case '*':
          if (input_match('=')) return (struct token){ TK_STEQ, start, pos, 0 };

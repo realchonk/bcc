@@ -55,6 +55,7 @@ const char* token_type_str[NUM_TOKENS] = {
    [TK_QMARK]     = "?",
    [TK_DDD]       = "...",
    [TK_DOT]       = ".",
+   [TK_ARROW]     = "->",
    
    [TK_EOF]       = "end of file",
 
@@ -84,6 +85,7 @@ const char* token_type_str[NUM_TOKENS] = {
    [KW_STATIC]    = "static",
    [KW_TYPEDEF]   = "typedef",
    [KW_ENUM]      = "enum",
+   [KW_STRUCT]    = "struct",
 };
 
 void token_init(void) {
