@@ -18,6 +18,7 @@ enum value_base_type {
    VAL_VOID,
    VAL_AUTO,
    VAL_ENUM,
+   VAL_STRUCT,
 
    NUM_VALS,
 };
@@ -118,5 +119,6 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
 struct enumeration* copy_enum(const struct enumeration*);
 struct value_type* make_int(enum integer_size sz, bool is_unsigned);
 bool value_type_equal(const struct value_type*, const struct value_type*);
+struct structure* copy_struct(const struct structure*);
 
 #endif /* FILE_VALUE_H */

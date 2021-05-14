@@ -9,7 +9,7 @@ struct cunit cunit = { NULL};
 static void add_enum(const struct value_type* type) {
    if (type->venum->name && type->venum->is_definition) {
       if (unit_get_enum(type->venum->name))
-         parse_error(&type->begin, "enum '%s' already defined", type->venum->name);
+         parse_error(&type->begin, "'enum %s' already defined", type->venum->name);
       buf_push(cunit.enums, copy_enum(type->venum));
    }
 
@@ -23,6 +23,13 @@ static void add_enum(const struct value_type* type) {
       buf_push(cunit.constants, *e);
    }
 
+}
+static void add_struct(const struct value_type* type) {
+   if (type->vstruct->name && type->vstruct->is_definition) {
+      if (unit_get_struct(type->vstruct->name))
+         parse_error(&type->begin, "'struct %s' already defined", type->vstruct->name);
+      buf_push(cunit.structs, copy_struct(type->vstruct));
+   }
 }
 
 void parse_unit(void) {
@@ -72,6 +79,9 @@ void parse_unit(void) {
 
       if (type->type == VAL_ENUM) {
          add_enum(type);
+         if (lexer_match(TK_SEMICOLON)) continue;
+      } else if (type->type == VAL_STRUCT) {
+         add_struct(type);
          if (lexer_match(TK_SEMICOLON)) continue;
       }
 
@@ -212,11 +222,17 @@ bool find_constant(const char* name, intmax_t* value) {
    }
    return false;
 }
-struct enumeration* unit_get_enum(const char* name) {
-   name = strint(name);
+struct enumeration* unit_get_enum(istr_t name) {
    for (size_t i = 0; i < buf_len(cunit.enums); ++i) {
       if (name == cunit.enums[i]->name)
          return cunit.enums[i];
+   }
+   return NULL;
+}
+struct structure* unit_get_struct(istr_t name) {
+   for (size_t i = 0; i < buf_len(cunit.structs); ++i) {
+      if (name == cunit.structs[i]->name)
+         return cunit.structs[i];
    }
    return NULL;
 }

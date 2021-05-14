@@ -383,3 +383,31 @@
       "}",
    .ret_val = 1,
 },
+{
+   .name = "sizeof(struct)",
+   .compiles = true,
+   .source =
+      "struct A {"
+      "  int a;"
+      "  int b;"
+      "};"
+      "int main(void) {"
+      "  struct A a;"
+      "  return sizeof(a) / sizeof(int);"
+      "}",
+   .ret_val = 2,
+},
+{
+   .name = "struct-member",
+   .compiles = true,
+   .source =
+      "struct A {"
+      "  int a;"
+      "  int b;"
+      "};"
+      "int main(void) {"
+      "  struct A a;"
+      "  a.a = 42;"
+      "  return a.a;"
+      "}"
+},

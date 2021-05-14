@@ -24,6 +24,7 @@ const char* value_type_str[NUM_VALS] = {
    "void",
    "auto",
    "enum",
+   "struct",
 };
 
 static bool ptreq(const struct value_type* a, const struct value_type* b) {
@@ -54,6 +55,34 @@ void print_value_type(FILE* file, const struct value_type* val) {
    case VAL_VOID:
       fputs("void", file);
       break;
+   case VAL_ENUM:
+      fputs("enum", file);
+      if (val->venum->name)
+         fprintf(file, " %s", val->venum->name);
+      if (val->venum->is_definition) {
+         fputs(" {\n", file);
+         for (size_t i = 0; i < buf_len(val->venum->entries); ++i) {
+            const struct enum_entry* e = &val->venum->entries[i];
+            fprintf(file, "\t%s = %jd,\n", e->name, e->value);
+         }
+         fputc('}', file);
+      }
+      break;
+   case VAL_STRUCT:
+      fputs("struct", file);
+      if (val->vstruct->name)
+         fprintf(file, " %s", val->vstruct->name);
+      if (val->vstruct->is_definition) {
+         fputs(" {\n", file);
+         for (size_t i = 0; i < buf_len(val->vstruct->entries); ++i) {
+            const struct struct_entry* e = &val->vstruct->entries[i];
+            fputc('\t', file);
+            print_value_type(file, e->type);
+            fprintf(file, " %s;\n", e->name);
+         }
+         fputc('}', file);
+      }
+      break;
    default: panic("print_value_type(): invalid value type '%d'", val->type);
    }
    if (val->is_const) fputs(" const", file);
@@ -68,6 +97,11 @@ void free_value_type(struct value_type* val) {
       buf_free(val->venum->entries);
       free(val->venum);
       break;
+   case VAL_STRUCT:
+      for (size_t i = 0; i < buf_len(val->vstruct->entries); ++i)
+         free_value_type(val->vstruct->entries[i].type);
+      buf_free(val->vstruct->entries);
+      free(val->vstruct);
    default:
       break;
    }
@@ -156,6 +190,29 @@ struct value_type* parse_value_type(struct scope* scope) {
          if (!vt->venum->name)
             parse_error(&vt->end, "expected name");
       }
+   } else if (lexer_matches(KW_STRUCT)) {
+      vt->type = VAL_STRUCT;
+      if (has_begon) lexer_next();
+      else vt->begin = lexer_next().begin;
+      vt->vstruct = malloc(sizeof(struct structure));
+      if (!vt->venum) panic("parse_value_type(): failed to allocate struct");
+      if (lexer_matches(TK_NAME)) {
+         const struct token tk = lexer_next();
+         vt->vstruct->name = tk.str;
+         vt->end = tk.end;
+      } else vt->vstruct->name = NULL;
+      vt->vstruct->entries = NULL;
+      vt->vstruct->is_definition = lexer_match(TK_CLPAREN);
+      if (vt->vstruct->is_definition && !lexer_match(TK_CRPAREN)) {
+         do {
+            struct struct_entry e;
+            e.type = parse_value_type(scope);
+            e.name = lexer_expect(TK_NAME).str;
+            lexer_expect(TK_SEMICOLON);
+            buf_push(vt->vstruct->entries, e);
+         } while (!lexer_match(TK_CRPAREN));
+      } else if (!vt->venum->name)
+         parse_error(&vt->end, "expected name");
    }
    struct token tk = lexer_peek();
    switch (tk.type) {
@@ -572,6 +629,9 @@ struct value_type* copy_value_type(const struct value_type* vt) {
    case VAL_ENUM:
       copy->venum = copy_enum(vt->venum);
       break;
+   case VAL_STRUCT:
+      copy->vstruct = copy_struct(vt->vstruct);
+      break;
    case VAL_VOID:
    case VAL_AUTO:
       break;
@@ -677,6 +737,20 @@ size_t sizeof_value(const struct value_type* vt, bool decay) {
       }
    case VAL_ENUM:
       return target_info.size_int;
+   case VAL_STRUCT:
+   {
+      struct structure* s;
+      if (vt->vstruct->is_definition)
+         s = vt->vstruct;
+      else s = unit_get_struct(vt->vstruct->name);
+      if (!s)
+         parse_error(&vt->begin, "failed to find 'struct %s'", vt->vstruct->name);
+      size_t sz = 0;
+      for (size_t i = 0; i < buf_len(s->entries); ++i) {
+         sz += sizeof_value(s->entries[i].type, false);
+      }
+      return sz;
+   }
    default:
       panic("sizeof_value(): invalid value type '%s'", value_type_str[vt->type]);
    }
@@ -691,4 +765,15 @@ struct enumeration* copy_enum(const struct enumeration* e) {
          buf_push(ne->entries, e->entries[i]);
    }
    return ne;
+}
+struct structure* copy_struct(const struct structure* s) {
+   struct structure* ns = malloc(sizeof(struct structure));
+   if (!ns) panic("copy_struct(): failed to allocate struct");
+   ns->name = s->name;
+   ns->entries = NULL;
+   if ((ns->is_definition = s->is_definition)) {
+      for (size_t i = 0; i < buf_len(s->entries); ++i)
+         buf_push(ns->entries, s->entries[i]);
+   }
+   return ns;
 }

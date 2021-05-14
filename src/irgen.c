@@ -174,8 +174,8 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       case TK_PLUS:  tmp->type = IR_IADD; break;
       case TK_MINUS: tmp->type = IR_ISUB; break;
       case TK_STAR:  tmp->type = is_unsigned ? IR_UMUL : IR_IMUL; break;
-      case TK_SLASH: tmp->type = is_unsigned ? IR_UMUL : IR_IDIV; break;
-      case TK_PERC:  tmp->type = is_unsigned ? IR_UMUL : IR_IMOD; break;
+      case TK_SLASH: tmp->type = is_unsigned ? IR_UDIV : IR_IDIV; break;
+      case TK_PERC:  tmp->type = is_unsigned ? IR_UMOD : IR_IMOD; break;
       case TK_GRGR:  tmp->type = IR_ILSL; break;
       case TK_LELE:  tmp->type = IR_ILSR; break;
       case TK_EQEQ:  tmp->type = IR_ISTEQ; break;
