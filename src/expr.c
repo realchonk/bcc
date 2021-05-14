@@ -27,6 +27,7 @@ const char* expr_type_str[NUM_EXPRS] = {
    [EXPR_FCALL]      = "function call",
    [EXPR_SIZEOF]     = "sizeof",
    [EXPR_ARRAYLEN]   = "arraylen",
+   [EXPR_MEMBER]     = "member",
 };
 
 struct expression* new_expr(void) {
@@ -127,13 +128,15 @@ static struct expression* expr_prim(void) {
    }
    
 
-   while (lexer_matches(TK_PLPL) || lexer_matches(TK_MIMI) || lexer_matches(TK_LBRACK)) {
+   while (lexer_matches(TK_PLPL) || lexer_matches(TK_MIMI) || lexer_matches(TK_LBRACK) || lexer_matches(TK_DOT)) {
       if (!expr_is_lvalue(expr))
          parse_error(&expr->begin, "expected lvalue");
       struct expression* tmp = new_expr();
       tk = lexer_next();
       tmp->begin = expr->begin;
-      if (tk.type == TK_LBRACK) {
+      switch (tk.type) {
+      case TK_LBRACK:
+      {
          struct expression* add = new_expr();
          add->type = EXPR_BINARY;
          add->binary.op.type = TK_PLUS;
@@ -145,11 +148,33 @@ static struct expression* expr_prim(void) {
          tmp->type = EXPR_INDIRECT;
          tmp->expr = add;
          tmp->end = add->end;
-      } else {
+         break;
+      }
+      case TK_PLPL:
+      case TK_MIMI:
          tmp->type = EXPR_SUFFIX;
          tmp->unary.op = tk;
          tmp->unary.expr = expr;
          tmp->end = tmp->unary.op.begin;
+         break;
+      case TK_DOT:
+      {
+         const struct token name = lexer_expect(TK_NAME);
+         tmp->type = EXPR_MEMBER;
+         tmp->member.base = expr;
+         tmp->member.name = name.str;
+         tmp->end = name.end;
+         struct value_type* bt = get_value_type(scope, tmp->member.base);
+         if (bt->type != VAL_STRUCT)
+            parse_error(&tmp->begin, "member expressions only apply to structs");
+         struct structure* st = real_struct(bt->vstruct);
+         if (!struct_get_member(st, name.str))
+            parse_error(&name.begin, "'struct %s' has no member '%s'", st->name, name.str);
+         free_value_type(bt);
+         break;
+      }
+      default:
+         panic("expr_prim(): invalid token '%s'", token_type_str[tk.type]);
       }
       expr = tmp;
    }
@@ -462,6 +487,9 @@ void free_expr(struct expression* e) {
          free_expr(e->fcall.params[i]);
       buf_free(e->fcall.params);
       break;
+   case EXPR_MEMBER:
+      free_expr(e->member.base);
+      break;
    case EXPR_SIZEOF:
       if (e->szof.has_expr) free_expr(e->szof.expr);
       else free_value_type(e->szof.type);
@@ -572,6 +600,10 @@ void print_expr(FILE* file, const struct expression* e) {
       else print_value_type(file, e->szof.type);
       fputc(')', file);
       break;
+   case EXPR_MEMBER:
+      print_expr(file, e->member.base);
+      fprintf(file, ".%s", e->member.name);
+      break;
    case NUM_EXPRS: break;
    }
 }
@@ -579,6 +611,7 @@ void print_expr(FILE* file, const struct expression* e) {
 bool expr_is_lvalue(const struct expression* e) {
    switch (e->type) {
    case EXPR_PAREN:  return expr_is_lvalue(e->expr);
+   case EXPR_MEMBER:
    case EXPR_INDIRECT:
    case EXPR_ASSIGN:
    case EXPR_PREFIX:
@@ -608,6 +641,7 @@ bool expr_is_pure(const struct expression* e) {
    case EXPR_CAST:
    case EXPR_SIZEOF:
    case EXPR_ARRAYLEN:
+   case EXPR_MEMBER:
       return true;
 
    case EXPR_PAREN:

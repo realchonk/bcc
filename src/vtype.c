@@ -598,6 +598,16 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
       }
       return copy_value_type(callee->type);
    }
+   case EXPR_MEMBER:
+   {
+      struct value_type* base = get_value_type(scope, e->member.base);
+      if (base->type != VAL_STRUCT)
+         parse_error(&base->begin, "is not a struct");
+      struct structure* st = real_struct(base->vstruct);
+      struct struct_entry* m = struct_get_member(st, e->member.name);
+      if (m) return copy_value_type(m->type);
+      else parse_error(&e->begin, "'struct %s' has no member '%s'", st->name, e->member.name);
+   }
    default: panic("get_value_type(): unsupported expression '%s'", expr_type_str[e->type]);
    }
 }
@@ -777,3 +787,28 @@ struct structure* copy_struct(const struct structure* s) {
    }
    return ns;
 }
+struct struct_entry* struct_get_member(struct structure* st, istr_t name) {
+   for (size_t i = 0; i < buf_len(st->entries); ++i) {
+      if (name == st->entries[i].name)
+         return &st->entries[i];
+   }
+   return NULL;
+}
+size_t struct_get_member_idx(struct structure* st, istr_t name) {
+   for (size_t i = 0; i < buf_len(st->entries); ++i) {
+      if (name == st->entries[i].name)
+         return i;
+   }
+   return SIZE_MAX;
+}
+size_t addrof_member(struct structure* st, size_t idx) {
+   size_t sz = 0;
+   for (size_t i = 0; i < idx; ++i) {
+      sz += sizeof_value(st->entries[i].type, false);
+   }
+   return sz;
+}
+struct structure* real_struct(struct structure* st) {
+   return st->is_definition ? st : unit_get_struct(st->name);
+}
+

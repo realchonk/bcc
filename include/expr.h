@@ -25,6 +25,7 @@ enum expression_type {
    EXPR_FCALL,       // .fcall      | function call
    EXPR_SIZEOF,      // .szof       | sizeof operator
    EXPR_ARRAYLEN,    // .expr       | arraylen operator
+   EXPR_MEMBER,      // .member     | st.member
 
    NUM_EXPRS,
 };
@@ -80,6 +81,10 @@ struct expression {
             struct value_type* type;
          };
       } szof;
+      struct {
+         struct expression* base;
+         istr_t name;
+      } member;
    };
 };
 

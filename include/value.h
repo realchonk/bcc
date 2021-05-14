@@ -120,5 +120,9 @@ struct enumeration* copy_enum(const struct enumeration*);
 struct value_type* make_int(enum integer_size sz, bool is_unsigned);
 bool value_type_equal(const struct value_type*, const struct value_type*);
 struct structure* copy_struct(const struct structure*);
+struct struct_entry* struct_get_member(struct structure*, istr_t);
+size_t addrof_member(struct structure*, size_t);
+struct structure* real_struct(struct structure*);
+size_t struct_get_member_idx(struct structure*, istr_t);
 
 #endif /* FILE_VALUE_H */

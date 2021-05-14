@@ -88,6 +88,25 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
    case EXPR_INDIRECT:
       n = ir_expr(scope, e->expr);
       return n;
+   case EXPR_MEMBER:
+   {
+      struct value_type* vt = get_value_type(scope, e->member.base);
+      struct structure* st = real_struct(vt->vstruct);
+      bool is_lv2;
+
+      n = ir_lvalue(scope, e->member.base, &is_lv2);
+      ir_node_t* tmp = new_node(IR_IADD);
+      tmp->binary.dest = creg - 1;
+      tmp->binary.a.type = IRT_REG;
+      tmp->binary.a.reg = creg - 1;
+      tmp->binary.b.type = IRT_UINT;
+      tmp->binary.b.uVal = addrof_member(st, struct_get_member_idx(st, e->member.name));
+      tmp->binary.size = IRS_PTR;
+      ir_append(n, tmp);
+
+      free_value_type(vt);
+      return n;
+   }
 
    default: panic("ir_lvalue(): unsupported expression '%s'", expr_type_str[e->type]);
    }
@@ -223,6 +242,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       ir_append(n, tmp);
       break;
    case EXPR_NAME:
+   case EXPR_MEMBER:
    {
       bool is_lv;
       n = ir_lvalue(scope, e, &is_lv);

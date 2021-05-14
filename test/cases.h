@@ -409,5 +409,15 @@
       "  struct A a;"
       "  a.a = 42;"
       "  return a.a;"
+      "}",
+   .ret_val = 42,
+},
+{
+   .name = "member-of-int",
+   .compiles = false,
+   .source =
+      "int main(void) {"
+      "  int a = 42;"
+      "  return a.i;"
       "}"
 },
