@@ -33,6 +33,7 @@ static bool ptreq(const struct value_type* a, const struct value_type* b) {
    case VAL_INT:     return (a->integer.is_unsigned == b->integer.is_unsigned) && (a->integer.size == b->integer.size);
    case VAL_FLOAT:   return a->fp.size == b->fp.size;
    case VAL_POINTER: return ptreq(a->pointer.type, b->pointer.type);
+   case VAL_STRUCT:  return a->vstruct->name == b->vstruct->name;
    default:          panic("ptreq(): invalid value type '%u'", a->type);
    }
 }

@@ -128,7 +128,9 @@ static struct expression* expr_prim(void) {
    }
    
 
-   while (lexer_matches(TK_PLPL) || lexer_matches(TK_MIMI) || lexer_matches(TK_LBRACK) || lexer_matches(TK_DOT)) {
+   while (lexer_matches(TK_PLPL) || lexer_matches(TK_MIMI)
+         || lexer_matches(TK_LBRACK) || lexer_matches(TK_DOT)
+         || lexer_matches(TK_ARROW)) {
       if (!expr_is_lvalue(expr))
          parse_error(&expr->begin, "expected lvalue");
       struct expression* tmp = new_expr();
@@ -167,6 +169,29 @@ static struct expression* expr_prim(void) {
          struct value_type* bt = get_value_type(scope, tmp->member.base);
          if (bt->type != VAL_STRUCT)
             parse_error(&tmp->begin, "member expressions only apply to structs");
+         struct structure* st = real_struct(bt->vstruct);
+         if (!struct_get_member(st, name.str))
+            parse_error(&name.begin, "'struct %s' has no member '%s'", st->name, name.str);
+         free_value_type(bt);
+         break;
+      }
+      case TK_ARROW:
+      {
+         const struct token name = lexer_expect(TK_NAME);
+         struct expression* sub = new_expr();
+         sub->type = EXPR_INDIRECT;
+         sub->begin = expr->begin;
+         sub->end = name.end;
+         sub->expr = expr;
+
+         tmp->type = EXPR_MEMBER;
+         tmp->member.base = sub;
+         tmp->member.name = name.str;
+         
+         struct value_type* bt = get_value_type(scope, tmp->member.base);
+         if (bt->type != VAL_STRUCT)
+            parse_error(&tmp->begin, "arrow expressions only apply to pointer to struct");
+      
          struct structure* st = real_struct(bt->vstruct);
          if (!struct_get_member(st, name.str))
             parse_error(&name.begin, "'struct %s' has no member '%s'", st->name, name.str);

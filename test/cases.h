@@ -421,3 +421,16 @@
       "  return a.i;"
       "}"
 },
+{
+   .name = "arrow-operator",
+   .compiles = true,
+   .source =
+      "struct A { int a; int b; };"
+      "int main(void) {"
+      "  struct A a;"
+      "  a.a = 42;"
+      "  const struct A* b = &a;"
+      "  return b->a;"
+      "}",
+   .ret_val = 42,
+},
