@@ -434,3 +434,29 @@
       "}",
    .ret_val = 42,
 },
+{
+   .name = "typedef struct",
+   .compiles = true,
+   .source =
+      "struct A { int a; int b; };"
+      "typedef struct A A;"
+      "int main(void) {"
+      "  A a;"
+      "  a.a = 42;"
+      "  return a.a;"
+      "}",
+   .ret_val = 42,
+},
+{
+   .name = "struct A & enum A",
+   .compiles = true,
+   .source =
+      "enum A { VAL_A, VAL_B };"
+      "struct A { enum A a; };"
+      "int main(void) {"
+      "  struct A a;"
+      "  a.a = VAL_B;"
+      "  return a.a;"
+      "}",
+   .ret_val = 1,
+},
