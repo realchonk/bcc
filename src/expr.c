@@ -33,7 +33,8 @@ const char* expr_type_str[NUM_EXPRS] = {
 struct expression* new_expr(void) {
    struct expression* expr = malloc(sizeof(struct expression));
    if (!expr) panic("failed to allocate expression");
-   else return expr;
+   expr->vtype = NULL;
+   return expr;
 }
 
 static struct scope* scope;
@@ -396,6 +397,7 @@ static struct expression* expr_ternary(void) {
       tmp->type = EXPR_TERNARY;
       tmp->begin = expr->begin;
       tmp->ternary.cond = expr;
+      get_value_type(scope, tmp->ternary.cond);
       tmp->ternary.true_case = expr_or();
       lexer_expect(TK_COLON);
       tmp->ternary.false_case = expr_ternary();
@@ -467,11 +469,15 @@ static struct expression* expr_comma(void) {
 
 struct expression* parse_expr(struct scope* s) {
    scope = s;
-   return optim_expr(expr_comma());
+   struct expression* e = expr_comma();
+   e->vtype = get_value_type(s, e);
+   return optim_expr(e);
 }
 struct expression* parse_expr_no_comma(struct scope* s) {
    scope = s;
-   return optim_expr(expr_assign());
+   struct expression* e = expr_assign();
+   e->vtype = get_value_type(s, e);
+   return optim_expr(e);
 }
 
 
@@ -526,6 +532,7 @@ void free_expr(struct expression* e) {
    case EXPR_NAME:
    case NUM_EXPRS:   break;
    }
+   if (e->vtype) free_value_type(e->vtype);
    free(e);
 }
 

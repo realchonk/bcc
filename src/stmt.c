@@ -226,16 +226,16 @@ struct statement* parse_stmt(struct scope* scope) {
       stmt->parent = outer->scope;
       struct expression* cond;
       if (lexer_matches(TK_SEMICOLON)) {
-         cond = malloc(sizeof(struct expression));
-         if (!cond) panic("parse_stmt(): failed to allocate expression");
+         cond = new_expr();
+         cond->vtype = NULL;
          cond->type = EXPR_UINT;
          cond->begin = cond->end = outer->begin;
          cond->uVal = 1;
-      } else cond = parse_expr(scope);
+      } else cond = parse_expr(outer->scope);
       stmt->whileloop.cond = cond;
       lexer_expect(TK_SEMICOLON);
       
-      stmt->whileloop.end = lexer_matches(TK_RPAREN) ? NULL : parse_expr(scope);
+      stmt->whileloop.end = lexer_matches(TK_RPAREN) ? NULL : parse_expr(outer->scope);
       lexer_expect(TK_RPAREN);
       stmt->whileloop.stmt = parse_stmt(outer->scope);
       

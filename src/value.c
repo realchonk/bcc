@@ -32,7 +32,7 @@
       return false; \
    }
 
-bool try_eval_expr(const struct expression* e, struct value* val) {
+bool try_eval_expr(struct expression* e, struct value* val) {
    if (val) {
       val->begin = e->begin;
       val->end = e->end;

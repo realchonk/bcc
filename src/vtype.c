@@ -370,7 +370,7 @@ struct value_type* decay(struct value_type* vt) {
    return vt;
 }
 
-struct value_type* get_value_type(struct scope* scope, const struct expression* e) {
+static struct value_type* get_value_type_impl(struct scope* scope, struct expression* e) {
    struct value_type* type;
    switch (e->type) {
    case EXPR_PAREN:
@@ -577,6 +577,8 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
    }
    case EXPR_FCALL:
    {
+      if (e->fcall.name == scope->func->name)
+         return copy_value_type(scope->func->type);
       if (is_builtin_func(e->fcall.name))
          parse_warn(&e->begin, "'%s' is a compiler-specific builtin-function.", e->fcall.name);
       struct function* callee = unit_get_func(e->fcall.name);
@@ -611,6 +613,12 @@ struct value_type* get_value_type(struct scope* scope, const struct expression* 
    }
    default: panic("get_value_type(): unsupported expression '%s'", expr_type_str[e->type]);
    }
+}
+struct value_type* get_value_type(struct scope* scope, struct expression* e) {
+   if (e->vtype) return copy_value_type(e->vtype);
+   struct value_type* vt = get_value_type_impl(scope, e);
+   e->vtype = vt;
+   return copy_value_type(vt);
 }
 
 struct value_type* copy_value_type(const struct value_type* vt) {

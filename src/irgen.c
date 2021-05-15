@@ -90,7 +90,7 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
       return n;
    case EXPR_MEMBER:
    {
-      struct value_type* vt = get_value_type(scope, e->member.base);
+      struct value_type* vt = e->member.base->vtype;
       struct structure* st = real_struct(vt->vstruct);
       bool is_lv2;
 
@@ -103,8 +103,6 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
       tmp->binary.b.uVal = addrof_member(st, struct_get_member_idx(st, e->member.name));
       tmp->binary.size = IRS_PTR;
       ir_append(n, tmp);
-
-      free_value_type(vt);
       return n;
    }
 
@@ -112,7 +110,7 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
    }
 }
 static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
-   struct value_type* vt = get_value_type(scope, e);
+   struct value_type* vt = e->vtype;
    const enum ir_value_size irs = vt2irs(vt);
    ir_node_t* n;
    ir_node_t* tmp;
@@ -134,8 +132,8 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    case EXPR_BINARY:
    {
       const bool is_unsigned = vt->type == VAL_POINTER || (vt->type == VAL_INT && vt->integer.is_unsigned);
-      struct value_type* vl = get_value_type(scope, e->binary.left);
-      struct value_type* vr = get_value_type(scope, e->binary.right);
+      struct value_type* vl = e->binary.left->vtype;
+      struct value_type* vr = e->binary.right->vtype;
       n = ir_expr(scope, e->binary.left);
       if (e->binary.op.type == TK_PIPI || e->binary.op.type == TK_AMPAMP) {
          const istr_t lbl = make_label(clbl++);
@@ -150,8 +148,6 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          tmp = new_node(IR_LABEL);
          tmp->str = lbl;
          ir_append(n, tmp);
-         free_value_type(vl);
-         free_value_type(vr);
          break;
       }
       
@@ -222,9 +218,6 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       }
 
       --creg;
-
-      free_value_type(vl);
-      free_value_type(vr);
       break;
    }
    case EXPR_UNARY:
@@ -515,7 +508,6 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    default:
       panic("ir_expr(): unsupported expression '%s'", expr_type_str[e->type]);
    }
-   free_value_type(vt);
    return n;
 }
 

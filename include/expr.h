@@ -36,6 +36,7 @@ struct scope;
 struct expression {
    enum expression_type type;
    struct source_pos begin, end;
+   struct value_type* vtype;
    union {
       struct expression* expr;
       struct expression** comma;
