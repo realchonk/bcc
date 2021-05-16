@@ -1,10 +1,10 @@
 Planned features:
-- improve test-suite
-- port to other architectures (like RISC-V, ARM)
-- Improve warnings
-- implement a C pre-processor
-- add more optimization techniques
-- adding switch/case
-- adding labels & goto
+- fix stack-alignment for x86
 - implement function pointers
-- fix System V-ABI compatibility arrays
+- implement a C pre-processor
+- improve test-suite
+- switch/case
+- labels & goto
+- more optimization techniques
+- improve warnings
+- port to other architectures (like RISC-V, ARM)
