@@ -31,6 +31,13 @@ static void add_struct(const struct value_type* type) {
       buf_push(cunit.structs, copy_struct(type->vstruct));
    }
 }
+static void add_union(const struct value_type* type) {
+   if (type->vstruct->name && type->vstruct->is_definition) {
+      if (unit_get_struct(type->vstruct->name))
+         parse_error(&type->begin, "'union %s' already defined", type->vstruct->name);
+      buf_push(cunit.unions, copy_struct(type->vstruct));
+   }
+}
 
 void parse_unit(void) {
    buf_free(cunit.funcs);
@@ -41,8 +48,19 @@ void parse_unit(void) {
          alias.type = parse_value_type(NULL);
          if (!alias.type)
             parse_error(&alias.end, "failed to parse type");
-         if (alias.type->type == VAL_ENUM)
+         switch (alias.type->type) {
+         case VAL_ENUM:
             add_enum(alias.type);
+            break;
+         case VAL_STRUCT:
+            add_struct(alias.type);
+            break;
+         case VAL_UNION:
+            add_union(alias.type);
+            break;
+         default:
+            break;
+         }
          alias.name = lexer_expect(TK_NAME).str;
          alias.end = lexer_expect(TK_SEMICOLON).end;
          buf_push(cunit.renames, alias);
@@ -82,6 +100,9 @@ void parse_unit(void) {
          if (lexer_match(TK_SEMICOLON)) continue;
       } else if (type->type == VAL_STRUCT) {
          add_struct(type);
+         if (lexer_match(TK_SEMICOLON)) continue;
+      } else if (type->type == VAL_UNION) {
+         add_union(type);
          if (lexer_match(TK_SEMICOLON)) continue;
       }
 
@@ -233,6 +254,13 @@ struct structure* unit_get_struct(istr_t name) {
    for (size_t i = 0; i < buf_len(cunit.structs); ++i) {
       if (name == cunit.structs[i]->name)
          return cunit.structs[i];
+   }
+   return NULL;
+}
+struct structure* unit_get_union(istr_t name) {
+   for (size_t i = 0; i < buf_len(cunit.unions); ++i) {
+      if (name == cunit.unions[i]->name)
+         return cunit.unions[i];
    }
    return NULL;
 }

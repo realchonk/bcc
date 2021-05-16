@@ -1,7 +1,6 @@
 Planned features:
 - improve test-suite
 - port to other architectures (like RISC-V, ARM)
-- struct, union
 - Improve warnings
 - implement a C pre-processor
 - add more optimization techniques

@@ -476,3 +476,64 @@
       "}",
    .ret_val = 42,
 },
+{
+   .name = "union",
+   .compiles = true,
+   .source =
+      "union A {"
+      "  int a;"
+      "  int b;"
+      "};"
+      "int main(void) {"
+      "  union A a;"
+      "  a.a = 42;"
+      "  return a.b;"
+      "}",
+   .ret_val = 42,
+},
+{
+   .name = "addr-of union-member",
+   .compiles = true,
+   .source =
+      "union A {"
+      "  int a;"
+      "  int b;"
+      "};"
+      "int main(void) {"
+      "  union A a;"
+      "  return &a.a == &a.b;"
+      "}",
+   .ret_val = 1,
+},
+{
+   .name = "sizeof(union)",
+   .compiles = true,
+   .source =
+      "union A {"
+      "  int a;"
+      "  byte b;"
+      "};"
+      "int main(void) {"
+      "  union A a;"
+      "  return sizeof(a) == sizeof(int);"
+      "}",
+   .ret_val = 1,
+},
+{
+   .name = "struct/union mismatch",
+   .compiles = false,
+   .source =
+      "struct A {};"
+      "int main(void) {"
+      "  union A a;"
+      "}",
+},
+{
+   .name = "union/struct mismatch",
+   .compiles = false,
+   .source =
+      "union A {};"
+      "int main(void) {"
+      "  struct A a;"
+      "}",
+},

@@ -15,6 +15,7 @@ struct cunit {
    struct enumeration** enums;
    struct enum_entry* constants;
    struct structure** structs;
+   struct structure** unions;
 };
 
 extern struct cunit cunit;
@@ -29,5 +30,6 @@ void free_unit(void);
 bool find_constant(const char*, intmax_t*);
 struct enumeration* unit_get_enum(istr_t);
 struct structure* unit_get_struct(istr_t);
+struct structure* unit_get_union(istr_t);
 
 #endif /* FILE_UNIT_H */

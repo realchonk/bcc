@@ -86,6 +86,7 @@ const char* token_type_str[NUM_TOKENS] = {
    [KW_TYPEDEF]   = "typedef",
    [KW_ENUM]      = "enum",
    [KW_STRUCT]    = "struct",
+   [KW_UNION]     = "union",
 };
 
 void token_init(void) {

@@ -19,6 +19,7 @@ enum value_base_type {
    VAL_AUTO,
    VAL_ENUM,
    VAL_STRUCT,
+   VAL_UNION,
 
    NUM_VALS,
 };
@@ -123,7 +124,7 @@ bool value_type_equal(const struct value_type*, const struct value_type*);
 struct structure* copy_struct(const struct structure*);
 struct struct_entry* struct_get_member(struct structure*, istr_t);
 size_t addrof_member(struct structure*, size_t);
-struct structure* real_struct(struct structure*);
+struct structure* real_struct(struct structure*, bool is_union);
 size_t struct_get_member_idx(struct structure*, istr_t);
 
 #endif /* FILE_VALUE_H */

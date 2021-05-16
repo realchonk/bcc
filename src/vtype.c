@@ -25,6 +25,7 @@ const char* value_type_str[NUM_VALS] = {
    "auto",
    "enum",
    "struct",
+   "union",
 };
 
 static bool ptreq(const struct value_type* a, const struct value_type* b) {
@@ -70,7 +71,8 @@ void print_value_type(FILE* file, const struct value_type* val) {
       }
       break;
    case VAL_STRUCT:
-      fputs("struct", file);
+   case VAL_UNION:
+      fputs(val->type == VAL_UNION ? "union" : "struct", file);
       if (val->vstruct->name)
          fprintf(file, " %s", val->vstruct->name);
       if (val->vstruct->is_definition) {
@@ -191,10 +193,10 @@ struct value_type* parse_value_type(struct scope* scope) {
          if (!vt->venum->name)
             parse_error(&vt->end, "expected name");
       }
-   } else if (lexer_matches(KW_STRUCT)) {
-      vt->type = VAL_STRUCT;
-      if (has_begon) lexer_next();
-      else vt->begin = lexer_next().begin;
+   } else if (lexer_matches(KW_STRUCT) || lexer_matches(KW_UNION)) {
+      const struct token tk_struct = lexer_next();
+      vt->type = tk_struct.type == KW_UNION ? VAL_UNION : VAL_STRUCT;
+      if (!has_begon) vt->begin = tk_struct.begin;
       vt->vstruct = malloc(sizeof(struct structure));
       if (!vt->vstruct) panic("parse_value_type(): failed to allocate struct");
       if (lexer_matches(TK_NAME)) {
@@ -594,9 +596,9 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
    case EXPR_MEMBER:
    {
       const struct value_type* base = get_value_type(scope, e->member.base);
-      if (base->type != VAL_STRUCT)
+      if (base->type != VAL_STRUCT && base->type != VAL_UNION)
          parse_error(&base->begin, "is not a struct");
-      struct structure* st = real_struct(base->vstruct);
+      struct structure* st = real_struct(base->vstruct, base->type == VAL_UNION);
       struct struct_entry* m = struct_get_member(st, e->member.name);
       if (m) return copy_value_type(m->type);
       else parse_error(&e->begin, "'struct %s' has no member '%s'", st->name, e->member.name);
@@ -637,6 +639,7 @@ struct value_type* copy_value_type(const struct value_type* vt) {
       copy->venum = copy_enum(vt->venum);
       break;
    case VAL_STRUCT:
+   case VAL_UNION:
       copy->vstruct = copy_struct(vt->vstruct);
       break;
    case VAL_VOID:
@@ -758,6 +761,21 @@ size_t sizeof_value(const struct value_type* vt, bool decay) {
       }
       return sz;
    }
+   case VAL_UNION:
+   {
+      struct structure* s;
+      if (vt->vstruct->is_definition)
+         s = vt->vstruct;
+      else s = unit_get_union(vt->vstruct->name);
+      if (!s)
+         parse_error(&vt->begin, "failed to find 'struct %s'", vt->vstruct->name);
+      size_t sz = 0;
+      for (size_t i = 0; i < buf_len(s->entries); ++i) {
+         const size_t tmp = sizeof_value(s->entries[i].type, false);
+         if (tmp > sz) sz = tmp;
+      }
+      return sz;
+   }
    default:
       panic("sizeof_value(): invalid value type '%s'", value_type_str[vt->type]);
    }
@@ -805,7 +823,7 @@ size_t addrof_member(struct structure* st, size_t idx) {
    }
    return sz;
 }
-struct structure* real_struct(struct structure* st) {
-   return st->is_definition ? st : unit_get_struct(st->name);
+struct structure* real_struct(struct structure* st, bool is_union) {
+   return st->is_definition ? st : (is_union ? unit_get_union(st->name) : unit_get_struct(st->name));
 }
 

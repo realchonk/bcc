@@ -91,18 +91,20 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
    case EXPR_MEMBER:
    {
       const struct value_type* vt = e->member.base->vtype;
-      struct structure* st = real_struct(vt->vstruct);
+      struct structure* st = real_struct(vt->vstruct, vt->type == VAL_UNION);
       bool is_lv2;
 
       n = ir_lvalue(scope, e->member.base, &is_lv2);
-      ir_node_t* tmp = new_node(IR_IADD);
-      tmp->binary.dest = creg - 1;
-      tmp->binary.a.type = IRT_REG;
-      tmp->binary.a.reg = creg - 1;
-      tmp->binary.b.type = IRT_UINT;
-      tmp->binary.b.uVal = addrof_member(st, struct_get_member_idx(st, e->member.name));
-      tmp->binary.size = IRS_PTR;
-      ir_append(n, tmp);
+      if (vt->type == VAL_STRUCT) {
+         ir_node_t* tmp = new_node(IR_IADD);
+         tmp->binary.dest = creg - 1;
+         tmp->binary.a.type = IRT_REG;
+         tmp->binary.a.reg = creg - 1;
+         tmp->binary.b.type = IRT_UINT;
+         tmp->binary.b.uVal = addrof_member(st, struct_get_member_idx(st, e->member.name));
+         tmp->binary.size = IRS_PTR;
+         ir_append(n, tmp);
+      }
       return n;
    }
 
