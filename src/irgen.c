@@ -90,7 +90,7 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
       return n;
    case EXPR_MEMBER:
    {
-      struct value_type* vt = e->member.base->vtype;
+      const struct value_type* vt = e->member.base->vtype;
       struct structure* st = real_struct(vt->vstruct);
       bool is_lv2;
 
@@ -110,7 +110,7 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
    }
 }
 static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
-   struct value_type* vt = e->vtype;
+   const struct value_type* vt = e->vtype;
    const enum ir_value_size irs = vt2irs(vt);
    ir_node_t* n;
    ir_node_t* tmp;
@@ -278,7 +278,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       bool is_lv;
       n = ir_lvalue(scope, e->expr, &is_lv);
       if (!is_lv) parse_error(&e->begin, "expected lvalue");
-      struct value_type* ve = get_value_type(scope, e->expr);  
+      const struct value_type* ve = get_value_type(scope, e->expr); 
       if (ve->type == VAL_POINTER && ve->pointer.is_array) {
          tmp = new_node(IR_READ);
          tmp->move.dest = tmp->move.src = creg - 1;
@@ -289,7 +289,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    }
    case EXPR_CAST:
    {
-      struct value_type* svt = get_value_type(scope, e->cast.expr);
+      const struct value_type* svt = get_value_type(scope, e->cast.expr);
       if (svt->type != VAL_INT && svt->type != VAL_POINTER)
          parse_error(&e->begin, "unsupported cast");
       n = ir_expr(scope, e->cast.expr);
@@ -298,7 +298,6 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       tmp->iicast.ds = irs;
       tmp->iicast.ss = vt2irs(svt);
       tmp->iicast.sign_extend = svt->type != VAL_POINTER && !svt->integer.is_unsigned;
-      free_value_type(svt);
       ir_append(n, tmp);
       break;
    }
@@ -315,7 +314,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
 
       for (size_t i = 0; i < buf_len(e->fcall.params); ++i) {
          struct expression* p = e->fcall.params[i];
-         struct value_type* vp = get_value_type(scope, p);
+         const struct value_type* vp = get_value_type(scope, p);
          ir_node_t* ir = ir_expr(scope, p);
          enum ir_value_size irs = i < buf_len(func->params) ? vt2irs(func->params[i].type) : IRS_INT;
          if (vt2irs(vp) != irs) {
@@ -329,7 +328,6 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          buf_push(n->ifcall.params, optim_ir_nodes(ir));
          --creg;
 
-         free_value_type(vp);
       }
       ++creg;
       break;
@@ -453,7 +451,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       n = new_node(IR_LOAD);
       n->load.dest = creg++;
       if (e->szof.has_expr) {
-         struct value_type* nvt = get_value_type(scope, e->szof.expr);
+         const struct value_type* nvt = get_value_type(scope, e->szof.expr);
          if (nvt->type == VAL_POINTER && nvt->pointer.is_array && !nvt->pointer.array.has_const_size) {
             struct expression* t = e->szof.expr;
             while (t->type == EXPR_PAREN) t = t->expr;
@@ -463,17 +461,15 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
             n->lookup.reg = creg - 1;
             if ((n->lookup.var_idx = scope_find_var_idx(scope, &n->lookup.scope, t->str)) == SIZE_MAX)
                parse_error(&t->begin, "array '%s' not found", t->str);
-            free_value_type(nvt);
             break;
          } else n->load.value = sizeof_value(nvt, false);
-         free_value_type(nvt);
       } else n->load.value = sizeof_value(e->szof.type, false);
       n->load.size = IRS_INT;
       break;
    }
    case EXPR_ARRAYLEN:
    {
-      struct value_type* nvt = get_value_type(scope, e->expr);
+      const struct value_type* nvt = get_value_type(scope, e->expr);
       if (nvt->type != VAL_POINTER || !nvt->pointer.is_array)
          parse_error(&e->expr->begin, "expected array value");
       
@@ -501,7 +497,6 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          n->load.value = nvt->pointer.array.size;
          n->load.size = IRS_INT;
       }
-      free_value_type(nvt);
       break;
    }
    
@@ -526,7 +521,7 @@ ir_node_t* irgen_stmt(const struct statement* s) {
    case STMT_RETURN:
       tmp = new_node(IR_RET);
       if (s->expr) {
-         struct value_type* vt = get_value_type(s->parent, s->expr);
+         const struct value_type* vt = get_value_type(s->parent, s->expr);
          if (vt->type == VAL_FLOAT) parse_error(&s->expr->begin, "floating-point numbers are not supported");
          enum ir_value_size irs = vt2irs(vt);
          n = ir_expr(s->parent, s->expr);
@@ -631,9 +626,8 @@ ir_node_t* irgen_stmt(const struct statement* s) {
    }
    case STMT_IF:
    {
-      struct value_type* vt = get_value_type(s->parent, s->ifstmt.cond);
+      const struct value_type* vt = get_value_type(s->parent, s->ifstmt.cond);
       const enum ir_value_size irs = vt2irs(vt);
-      free_value_type(vt);
 
       const bool has_false = s->ifstmt.false_case != NULL;
       istr_t lbl1 = make_label(clbl);
@@ -669,9 +663,8 @@ ir_node_t* irgen_stmt(const struct statement* s) {
    case STMT_WHILE:
    {
       const istr_t old_begin = begin_loop, old_end = end_loop;
-      struct value_type* vt = get_value_type(s->parent, s->whileloop.cond);
+      const struct value_type* vt = get_value_type(s->parent, s->whileloop.cond);
       const enum ir_value_size irs = vt2irs(vt);
-      free_value_type(vt);
 
       const istr_t begin = make_label(clbl);
       begin_loop = make_label(clbl + 1);
@@ -711,9 +704,8 @@ ir_node_t* irgen_stmt(const struct statement* s) {
    case STMT_DO_WHILE:
    {
       const istr_t old_begin = begin_loop, old_end = end_loop;
-      struct value_type* vt = get_value_type(s->parent, s->whileloop.cond);
+      const struct value_type* vt = get_value_type(s->parent, s->whileloop.cond);
       const enum ir_value_size irs = vt2irs(vt);
-      free_value_type(vt);
       begin_loop = make_label(clbl);
       end_loop = make_label(clbl + 1);
       clbl += 2;

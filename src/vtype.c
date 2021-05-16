@@ -196,7 +196,7 @@ struct value_type* parse_value_type(struct scope* scope) {
       if (has_begon) lexer_next();
       else vt->begin = lexer_next().begin;
       vt->vstruct = malloc(sizeof(struct structure));
-      if (!vt->venum) panic("parse_value_type(): failed to allocate struct");
+      if (!vt->vstruct) panic("parse_value_type(): failed to allocate struct");
       if (lexer_matches(TK_NAME)) {
          const struct token tk = lexer_next();
          vt->vstruct->name = tk.str;
@@ -212,7 +212,7 @@ struct value_type* parse_value_type(struct scope* scope) {
             lexer_expect(TK_SEMICOLON);
             buf_push(vt->vstruct->entries, e);
          } while (!lexer_match(TK_CRPAREN));
-      } else if (!vt->venum->name)
+      } else if (!vt->vstruct->name)
          parse_error(&vt->end, "expected name");
    }
    struct token tk = lexer_peek();
@@ -370,11 +370,11 @@ struct value_type* decay(struct value_type* vt) {
    return vt;
 }
 
-static struct value_type* get_value_type_impl(struct scope* scope, struct expression* e) {
+struct value_type* get_value_type_impl(struct scope* scope, struct expression* e) {
    struct value_type* type;
    switch (e->type) {
    case EXPR_PAREN:
-      return get_value_type(scope, e->expr);
+      return copy_value_type(get_value_type(scope, e->expr));
    case EXPR_INT:
    case EXPR_UINT:
       type = new_vt();
@@ -420,20 +420,19 @@ static struct value_type* get_value_type_impl(struct scope* scope, struct expres
    }
    case EXPR_ADDROF:
    {
-      struct value_type* ve = get_value_type(scope, e->expr);
+      const struct value_type* ve = get_value_type(scope, e->expr);
       if (ve->type == VAL_POINTER && ve->pointer.is_array)
-         return decay(ve);
+         return decay(copy_value_type(ve));
       type = new_vt();
       type->type = VAL_POINTER;
       type->is_const = true;
-      type->pointer.type = ve;
+      type->pointer.type = copy_value_type(ve);
       return type;
    }
    case EXPR_INDIRECT: {
-      struct value_type* tmp = get_value_type(scope, e->expr);
+      const struct value_type* tmp = get_value_type(scope, e->expr);
       if (tmp->type != VAL_POINTER) parse_error(&e->expr->begin, "cannot dereference a non-pointer");
       type = copy_value_type(tmp->pointer.type);
-      free_value_type(tmp);
       return type;
    }
    case EXPR_STRING:
@@ -443,28 +442,27 @@ static struct value_type* get_value_type_impl(struct scope* scope, struct expres
       type->pointer.type = make_int(INT_CHAR, target_info.unsigned_char);
       return type;
    case EXPR_COMMA:
-      return get_value_type(scope, e->comma[buf_len(e->comma) - 1]);
+      return copy_value_type(get_value_type(scope, e->comma[buf_len(e->comma) - 1]));
    case EXPR_SUFFIX:
-      type = get_value_type(scope, e->unary.expr);
+      type = copy_value_type(get_value_type(scope, e->unary.expr));
       if (type->is_const)
          parse_error(&e->begin, "assignment to const");
       type->is_const = true;
       return type;
    case EXPR_ASSIGN:
    {
-      struct value_type* vl = get_value_type(scope, e->assign.left);
-      struct value_type* vr = get_value_type(scope, e->assign.right);
+      const struct value_type* vl = get_value_type(scope, e->assign.left);
+      const struct value_type* vr = get_value_type(scope, e->assign.right);
       if (vl->is_const)
          parse_error(&e->begin, "assignment to const");
       else if (!is_castable(vr, vl, true))
          parse_error(&e->begin, "incompatible types");
-      free_value_type(vr);
-      return vl;
+      return copy_value_type(vl);
    }
    case EXPR_BINARY:
    {
-      struct value_type* vl = get_value_type(scope, e->binary.left);
-      struct value_type* vr = get_value_type(scope, e->binary.right);
+      const struct value_type* vl = get_value_type(scope, e->binary.left);
+      const struct value_type* vr = get_value_type(scope, e->binary.right);
       if (check1or(vl, vr, VAL_VOID))
          parse_error(&e->binary.op.begin, "binary operation on void");
       switch (e->binary.op.type) {
@@ -483,27 +481,23 @@ static struct value_type* get_value_type_impl(struct scope* scope, struct expres
             if (!ptreq(vl, vr))
                parse_error(&e->binary.op.begin, "comparisson between pointer of different types");
          }
-         free_value_type(vl);
-         free_value_type(vr);
          return make_int(INT_INT, false);
       case TK_AMPAMP:
       case TK_PIPI:
-         free_value_type(vl);
-         free_value_type(vr);
          return make_int(INT_INT, false);
       case TK_PLUS:
          if (check1and(vl, vr, VAL_POINTER))
             parse_error(&e->binary.op.begin, "addition of pointers");
          switch (vl->type) {
          case VAL_INT:
-            if (vr->type == VAL_POINTER) return free_value_type(vl), vr;
-            else return common_value_type_free(vl, vr, true);
+            if (vr->type == VAL_POINTER) return copy_value_type(vr);
+            else return common_value_type(vl, vr, true);
          case VAL_FLOAT:
             if (vr->type == VAL_POINTER)
                parse_error(&e->binary.op.begin, "addition of pointer and floating-point number");
-            else return common_value_type_free(vl, vr, true);
+            else return common_value_type(vl, vr, true);
          case VAL_POINTER:
-            if (vr->type == VAL_INT) return free_value_type(vr), decay(vl);
+            if (vr->type == VAL_INT) return decay(copy_value_type(vl));
             else if (vr->type == VAL_FLOAT)
                parse_error(&e->binary.op.begin, "addition of pointer and floating-point number");
             panic("get_value_type(): addition of pointer and '%s'", value_type_str[vr->type]);
@@ -515,20 +509,18 @@ static struct value_type* get_value_type_impl(struct scope* scope, struct expres
          case VAL_INT:
             if (vr->type == VAL_POINTER)
                parse_error(&e->binary.op.begin, "invalid types");
-            else return common_value_type_free(vl, vr, true);
+            else return common_value_type(vl, vr, true);
          case VAL_FLOAT:
             if (vr->type == VAL_POINTER)
                parse_error(&e->binary.op.begin, "invalid types");
-            else return common_value_type_free(vl, vr, true);
+            else return common_value_type(vl, vr, true);
          case VAL_POINTER:
             if (vr->type == VAL_FLOAT)
                parse_error(&e->binary.op.begin, "invalid types");
-            else if (vr->type == VAL_INT) return free_value_type(vr), decay(vl);
+            else if (vr->type == VAL_INT) return decay(copy_value_type(vl));
             else if (vr->type == VAL_POINTER) {
                if (!ptreq(vl->pointer.type, vr->pointer.type))
                   parse_error(&e->binary.op.begin, "incompatible pointer types");
-               free_value_type(vl);
-               free_value_type(vr);
                return make_int(target_info.ptrdiff_type, false);
             }
             else panic("get_value_type(): unsupported value type '%s'", value_type_str[vr->type]);
@@ -540,7 +532,7 @@ static struct value_type* get_value_type_impl(struct scope* scope, struct expres
       case TK_PERC:
          if (check1or(vl, vr, VAL_POINTER))
             parse_error(&e->binary.op.begin, "invalid use of pointer");
-         else return common_value_type_free(vl, vr, true);
+         else return common_value_type(vl, vr, true);
       case TK_AMP:
       case TK_PIPE:
       case TK_XOR:
@@ -548,19 +540,19 @@ static struct value_type* get_value_type_impl(struct scope* scope, struct expres
             parse_error(&e->binary.op.begin, "bitwise operation on floating-point number");
          else if (check1or(vl, vr, VAL_POINTER))
             parse_error(&e->binary.op.begin, "bitwise operation on pointer");
-         else return common_value_type_free(vl, vr, true);
+         else return common_value_type(vl, vr, true);
 
       default:
          panic("get_value_type(): binary operator '%s' not implemented", token_type_str[e->binary.op.type]);
       }
       panic("get_value_type(): reached unreachable");
    }
-      return common_value_type_free(get_value_type(scope, e->binary.left), get_value_type(scope, e->binary.right), true); // TODO
+      return common_value_type(get_value_type(scope, e->binary.left), get_value_type(scope, e->binary.right), true); // TODO
    case EXPR_TERNARY:
-      return common_value_type_free(get_value_type(scope, e->ternary.true_case), get_value_type(scope, e->ternary.false_case), true);
+      return common_value_type(get_value_type(scope, e->ternary.true_case), get_value_type(scope, e->ternary.false_case), true);
    case EXPR_PREFIX:
    case EXPR_UNARY:
-      type = get_value_type(scope, e->unary.expr);
+      type = copy_value_type(get_value_type(scope, e->unary.expr));
       if (e->type == EXPR_PREFIX && type->is_const)
          parse_error(&e->begin, "assignment to const");
       if (e->unary.op.type == TK_MINUS && type->type == VAL_INT && type->integer.is_unsigned)
@@ -569,10 +561,9 @@ static struct value_type* get_value_type_impl(struct scope* scope, struct expres
       return type;
    case EXPR_CAST:
    {
-      struct value_type* old = get_value_type(scope, e->cast.expr);
+      const struct value_type* old = get_value_type(scope, e->cast.expr);
       if (!is_castable(old, e->cast.type, false))
          parse_error(&e->begin, "invalid cast");
-      free_value_type(old);
       return copy_value_type(e->cast.type);
    }
    case EXPR_FCALL:
@@ -594,16 +585,15 @@ static struct value_type* get_value_type_impl(struct scope* scope, struct expres
          else if (!callee->variadic) parse_warn(&e->begin, "invalid number of parameters");
       }
       for (size_t i = 0; i < my_min(num_params, num_callee_params); ++i) {
-         struct value_type* vp = get_value_type(scope, e->fcall.params[i]);
+         const struct value_type* vp = get_value_type(scope, e->fcall.params[i]);
          if (!is_castable(vp, callee->params[i].type, true))
             parse_error(&e->begin, "invalid type of parameter %zu", i);
-         free_value_type(vp);
       }
       return copy_value_type(callee->type);
    }
    case EXPR_MEMBER:
    {
-      struct value_type* base = get_value_type(scope, e->member.base);
+      const struct value_type* base = get_value_type(scope, e->member.base);
       if (base->type != VAL_STRUCT)
          parse_error(&base->begin, "is not a struct");
       struct structure* st = real_struct(base->vstruct);
@@ -614,11 +604,9 @@ static struct value_type* get_value_type_impl(struct scope* scope, struct expres
    default: panic("get_value_type(): unsupported expression '%s'", expr_type_str[e->type]);
    }
 }
-struct value_type* get_value_type(struct scope* scope, struct expression* e) {
-   if (e->vtype) return copy_value_type(e->vtype);
-   struct value_type* vt = get_value_type_impl(scope, e);
-   e->vtype = vt;
-   return copy_value_type(vt);
+const struct value_type* get_value_type(struct scope* scope, struct expression* e) {
+   if (!e->vtype) e->vtype = get_value_type_impl(scope, e);
+   return e->vtype;
 }
 
 struct value_type* copy_value_type(const struct value_type* vt) {

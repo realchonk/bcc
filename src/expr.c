@@ -167,13 +167,12 @@ static struct expression* expr_prim(void) {
          tmp->member.base = expr;
          tmp->member.name = name.str;
          tmp->end = name.end;
-         struct value_type* bt = get_value_type(scope, tmp->member.base);
+         const struct value_type* bt = get_value_type(scope, tmp->member.base);
          if (bt->type != VAL_STRUCT)
             parse_error(&tmp->begin, "member expressions only apply to structs");
          struct structure* st = real_struct(bt->vstruct);
          if (!struct_get_member(st, name.str))
             parse_error(&name.begin, "'struct %s' has no member '%s'", st->name, name.str);
-         free_value_type(bt);
          break;
       }
       case TK_ARROW:
@@ -189,14 +188,13 @@ static struct expression* expr_prim(void) {
          tmp->member.base = sub;
          tmp->member.name = name.str;
          
-         struct value_type* bt = get_value_type(scope, tmp->member.base);
+         const struct value_type* bt = get_value_type(scope, tmp->member.base);
          if (bt->type != VAL_STRUCT)
             parse_error(&tmp->begin, "arrow expressions only apply to pointer to struct");
       
          struct structure* st = real_struct(bt->vstruct);
          if (!struct_get_member(st, name.str))
             parse_error(&name.begin, "'struct %s' has no member '%s'", st->name, name.str);
-         free_value_type(bt);
          break;
       }
       default:
@@ -470,13 +468,13 @@ static struct expression* expr_comma(void) {
 struct expression* parse_expr(struct scope* s) {
    scope = s;
    struct expression* e = expr_comma();
-   e->vtype = get_value_type(s, e);
+   get_value_type(s, e);
    return optim_expr(e);
 }
 struct expression* parse_expr_no_comma(struct scope* s) {
    scope = s;
    struct expression* e = expr_assign();
-   e->vtype = get_value_type(s, e);
+   get_value_type(s, e);
    return optim_expr(e);
 }
 
@@ -518,12 +516,10 @@ void free_expr(struct expression* e) {
          free_expr(e->fcall.params[i]);
       buf_free(e->fcall.params);
       break;
-   case EXPR_MEMBER:
-      free_expr(e->member.base);
-      break;
    case EXPR_SIZEOF:
       if (e->szof.has_expr) free_expr(e->szof.expr);
       else free_value_type(e->szof.type);
+   case EXPR_MEMBER:
    case EXPR_INT:
    case EXPR_UINT:
    case EXPR_STRING:

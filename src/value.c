@@ -41,15 +41,15 @@ bool try_eval_expr(struct expression* e, struct value* val) {
    case EXPR_PAREN:
       return try_eval_expr(e->expr, val);
    case EXPR_INT:
-      val->type = get_value_type(NULL, e);
+      val->type = copy_value_type(get_value_type(NULL, e));
       val->iVal = e->iVal;
       return true;
    case EXPR_UINT:
-      val->type = get_value_type(NULL, e);
+      val->type = copy_value_type(get_value_type(NULL, e));
       val->uVal = e->uVal;
       return true;
    case EXPR_FLOAT:
-      val->type = get_value_type(NULL, e);
+      val->type = copy_value_type(get_value_type(NULL, e));
       val->fVal = e->fVal;
       return true;
    case EXPR_BINARY:

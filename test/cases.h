@@ -460,3 +460,19 @@
       "}",
    .ret_val = 1,
 },
+{
+   .name = "struct in struct",
+   .compiles = true,
+   .source =
+      "struct A {"
+      "  struct {"
+      "     int c;"
+      "  } b;"
+      "};"
+      "int main(void) {"
+      "  struct A a;"
+      "  a.b.c = 42;"
+      "  return a.b.c;"
+      "}",
+   .ret_val = 42,
+},

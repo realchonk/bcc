@@ -161,11 +161,10 @@ struct statement* parse_stmt(struct scope* scope) {
       struct function* f = stmt->parent->func;
       if (stmt->expr) {
          if (f->type->type == VAL_VOID) parse_error(&stmt->expr->begin, "return a value in a void-function");
-         struct value_type* old = get_value_type(stmt->parent, stmt->expr);
+         const struct value_type* old = get_value_type(stmt->parent, stmt->expr);
          if (!is_castable(old, f->type, true))
             parse_error(&stmt->expr->begin, "invalid implicit conversion from '%s' to '%s'",
                   value_type_str[old->type], value_type_str[f->type->type]);
-         free_value_type(old);
       } else if (f->type->type != VAL_VOID) parse_error(&stmt->end, "expected return value");
       stmt->end = lexer_expect(TK_SEMICOLON).end;
       break;
@@ -289,7 +288,7 @@ struct statement* parse_stmt(struct scope* scope) {
                } else {
                   if (!target_info.has_c99_array)
                      parse_error(&expr->begin, BCC_ARCH " does not support C99 arrays.");
-                  struct value_type* st = get_value_type(scope, expr);
+                  const struct value_type* st = get_value_type(scope, expr);
                   if (st->type != VAL_INT)
                      parse_error(&expr->begin, "expected integer size");
                   vtype->pointer.array.has_const_size = false;
@@ -324,17 +323,16 @@ struct statement* parse_stmt(struct scope* scope) {
     
             if (vtype->type == VAL_AUTO) {
                if (!var.init) parse_error(&var.end, "auto variable expects initializer");
-               var.type = decay(get_value_type(scope, var.init));
+               var.type = decay(copy_value_type(get_value_type(scope, var.init)));
                var.type->is_const = vtype->is_const;
                free_value_type(vtype);
                vtype = var.type;
             }
     
             if (var.init) {
-               struct value_type* old = get_value_type(scope, var.init);
+               const struct value_type* old = get_value_type(scope, var.init);
                if (!is_castable(old, var.type, true))
                   parse_error(&var.init->begin, "incompatible init value type");
-               free_value_type(old);
             } else if (vtype->is_const && (vtype->type != VAL_POINTER || !vtype->pointer.is_array))
                parse_error(&var.end, "expected init value for const variable");
             
