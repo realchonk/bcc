@@ -537,3 +537,11 @@
       "  struct A a;"
       "}",
 },
+{
+   .name = "multi-delaration in struct",
+   .compiles = true,
+   .source =
+      "struct A { byte a, b; };"
+      "int main(void) { return sizeof(struct A); }",
+   .ret_val = 2,
+}

@@ -7,3 +7,4 @@ Planned features:
 - adding switch/case
 - adding labels & goto
 - implement function pointers
+- fix System V-ABI compatibility arrays

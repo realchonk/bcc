@@ -208,11 +208,15 @@ struct value_type* parse_value_type(struct scope* scope) {
       vt->vstruct->is_definition = lexer_match(TK_CLPAREN);
       if (vt->vstruct->is_definition && !lexer_match(TK_CRPAREN)) {
          do {
-            struct struct_entry e;
-            e.type = parse_value_type(scope);
-            e.name = lexer_expect(TK_NAME).str;
+            struct value_type* tt = parse_value_type(scope);
+            do {
+               struct struct_entry e;
+               e.type = copy_value_type(tt);
+               e.name = lexer_expect(TK_NAME).str;
+               buf_push(vt->vstruct->entries, e);
+            } while (lexer_match(TK_COMMA));
             lexer_expect(TK_SEMICOLON);
-            buf_push(vt->vstruct->entries, e);
+            free_value_type(tt);
          } while (!lexer_match(TK_CRPAREN));
       } else if (!vt->vstruct->name)
          parse_error(&vt->end, "expected name");
@@ -797,8 +801,12 @@ struct structure* copy_struct(const struct structure* s) {
    ns->name = s->name;
    ns->entries = NULL;
    if ((ns->is_definition = s->is_definition)) {
-      for (size_t i = 0; i < buf_len(s->entries); ++i)
-         buf_push(ns->entries, s->entries[i]);
+      for (size_t i = 0; i < buf_len(s->entries); ++i) {
+         struct struct_entry e;
+         e.type = copy_value_type(s->entries[i].type);
+         e.name = s->entries[i].name;
+         buf_push(ns->entries, e);
+       }
    }
    return ns;
 }
