@@ -183,6 +183,42 @@ static bool reorder_params(ir_node_t** n) {
    return success;
 }
 
+// (add R0, R0, 0) -> (nop)
+// (imul R0, R0, 1) -> (nop)
+// (imul R0, R0, 0) -> (load R0, 0)
+// (idiv R0, R0, 0) -> warning
+static bool add_zero(ir_node_t** n) {
+   bool success = false;
+   for (ir_node_t* cur = *n; cur; cur = cur->next) {
+      if (ir_isv(cur, IR_IADD, IR_ISUB, IR_ILSL, IR_ILSR, IR_IASR, IR_IOR, IR_IXOR, NUM_IR_NODES)
+         && cur->binary.b.type == IRT_UINT
+         && cur->binary.b.uVal == 0) {
+         cur->type = IR_NOP;
+         success = true;
+      } else if (ir_isv(cur, IR_IMUL, IR_UMUL, IR_IDIV, IR_UDIV, NUM_IR_NODES)
+         && cur->binary.b.type == IRT_UINT
+         && cur->binary.b.uVal == 1) {
+         cur->type = IR_NOP;
+         success = true;
+      } else if (ir_isv(cur, IR_IMUL, IR_UMUL, NUM_IR_NODES)
+         && cur->binary.b.type == IRT_UINT
+         && cur->binary.b.uVal == 0) {
+         const ir_reg_t dest = cur->binary.dest;
+         const enum ir_value_size sz = cur->binary.size;
+         cur->type = IR_LOAD;
+         cur->load.dest = dest;
+         cur->load.value = 0;
+         cur->load.size = sz;
+         success = true;
+      } else if (ir_isv(cur, IR_IDIV, IR_UDIV, NUM_IR_NODES)
+         && cur->binary.b.type == IRT_UINT
+         && cur->binary.b.uVal == 0) {
+         fprintf(stderr, "integer division by zero in IR code\n");
+      }
+   }
+   return success;
+}
+
 ir_node_t* optim_ir_nodes(ir_node_t* n) {
    if (optim_level < 1) return n;
    while (remove_nops(&n)
@@ -190,6 +226,7 @@ ir_node_t* optim_ir_nodes(ir_node_t* n) {
       || unmuldiv(&n)
       || fold(&n)
       || reorder_params(&n)
+      || add_zero(&n)
    );
    return n;
 }
