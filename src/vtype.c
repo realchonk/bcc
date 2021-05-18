@@ -101,11 +101,23 @@ void free_value_type(struct value_type* val) {
       free(val->venum);
       break;
    case VAL_STRUCT:
+   case VAL_UNION:
       for (size_t i = 0; i < buf_len(val->vstruct->entries); ++i)
          free_value_type(val->vstruct->entries[i].type);
       buf_free(val->vstruct->entries);
       free(val->vstruct);
-   default:
+      break;
+   case VAL_FUNC:
+      free_value_type(val->func.ret_val);
+      for (size_t i = 0; i < buf_len(val->func.params); ++i)
+         free_value_type(val->func.params[i]);
+      buf_free(val->func.params);
+      break;
+   case VAL_INT:
+   case VAL_FLOAT:
+   case VAL_VOID:
+   case VAL_AUTO:
+   case NUM_VALS:
       break;
    }
    free(val);

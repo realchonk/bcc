@@ -544,4 +544,15 @@
       "struct A { byte a, b; };"
       "int main(void) { return sizeof(struct A); }",
    .ret_val = 2,
-}
+},
+{
+   .name = "function pointer",
+   .compiles = true,
+   .source =
+      "int add(int a, int b) { return a + b; }"
+      "int main(void) {"
+      "  int(*f)(int, int) = &add;"
+      "  return f(3, 2);"
+      "}",
+   .ret_val = 5,
+},

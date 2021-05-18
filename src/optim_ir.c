@@ -195,7 +195,7 @@ static bool add_zero(ir_node_t** n) {
          && cur->binary.b.uVal == 0) {
          cur->type = IR_NOP;
          success = true;
-      } else if (ir_isv(cur, IR_IMUL, IR_UMUL, IR_IDIV, IR_UDIV, NUM_IR_NODES)
+      } else if (ir_isv(cur, IR_IMUL, IR_UMUL, IR_IDIV, IR_UDIV, IR_IAND, NUM_IR_NODES)
          && cur->binary.b.type == IRT_UINT
          && cur->binary.b.uVal == 1) {
          cur->type = IR_NOP;

@@ -1,5 +1,6 @@
 Planned features:
-- fix stack-alignment for x86
+
+Long term:
 - implement function pointers
 - implement a C pre-processor
 - improve test-suite
@@ -8,3 +9,6 @@ Planned features:
 - more optimization techniques
 - improve warnings
 - port to other architectures (like RISC-V, ARM)
+
+Short term:
+- fix stack-alignment for x86

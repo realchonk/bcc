@@ -20,6 +20,7 @@ enum value_base_type {
    VAL_ENUM,
    VAL_STRUCT,
    VAL_UNION,
+   VAL_FUNC,
 
    NUM_VALS,
 };
@@ -82,6 +83,12 @@ struct value_type {
             };
          } array;
       } pointer;
+      struct {
+         istr_t name; // optional
+         struct value_type* ret_val;
+         struct value_type** params;
+         bool variadic;
+      } func;
       struct enumeration* venum;
       struct structure* vstruct;
    };
