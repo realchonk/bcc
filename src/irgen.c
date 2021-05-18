@@ -40,7 +40,9 @@ enum ir_value_size vt2irs(const struct value_type* vt) {
       case INT_LONG:    return IRS_LONG;
       default:          panic("vt2irs(): invalid integer value '%d'", vt->integer.size);
       }
+#if !DISABLE_FP
    case VAL_FLOAT:      panic("vt2irs(): floating-point values are currently not supported by the IR backend.");
+#endif
    case VAL_POINTER:    return IRS_PTR;
    case VAL_ENUM:       return IRS_INT;
    default:             panic("vt2irs(): invalid value type '%d'", vt->type);
@@ -524,7 +526,9 @@ ir_node_t* irgen_stmt(const struct statement* s) {
       tmp = new_node(IR_RET);
       if (s->expr) {
          const struct value_type* vt = get_value_type(s->parent, s->expr);
+#if !DISABLE_FP
          if (vt->type == VAL_FLOAT) parse_error(&s->expr->begin, "floating-point numbers are not supported");
+#endif
          enum ir_value_size irs = vt2irs(vt);
          n = ir_expr(s->parent, s->expr);
          if (vt2irs(s->parent->func->type) != irs) {

@@ -21,6 +21,7 @@ Installing the compiler to /usr/local:<br>
 ```sudo make install```<br>
 Installing the compiler to a different location (eg. /usr)<br>
 ```make PREFIX=/usr install```<br>
+Disabling floating-point support can be done with DISABLE_FP=y as a make flag.<br>
 
 ## Testing
 Testing can be performed with:<br>

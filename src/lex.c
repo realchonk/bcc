@@ -168,6 +168,7 @@ static struct token lexer_impl(void) {
          return (struct token){ .type = TK_INTEGER, start, pos, .iVal = iVal };
       }
       while (isdigit(input_peek())) iVal = iVal * 10 + (input_next() - '0');
+#if !DISABLE_FP
       if (input_match('.')) {
          fpmax_t fVal = 0.0;
          int exp = 0;
@@ -191,6 +192,7 @@ static struct token lexer_impl(void) {
          while (isdigit(input_peek())) exp = exp * 10 + (input_next() - '0');
          return (struct token){ TK_FLOAT, start, pos, .fVal = (fpmax_t)iVal * powl(10.0, sign * exp) };
       }
+#endif
       return (struct token){ TK_INTEGER, start, pos, .iVal = iVal };
    } else if (isalpha(ch) || ch == '_') {
       char* buf = NULL;

@@ -144,6 +144,7 @@ static void emit_end(void) {
                panic("emit_begin(): unreachable reached");
             }
             break;
+#if !DISABLE_FP
          case VAL_FLOAT:
             switch (type->fp.size) {
             case FP_FLOAT:
@@ -156,6 +157,7 @@ static void emit_end(void) {
                panic("emit_begin(): unreachable reached");
             }
             break;
+#endif
          case VAL_POINTER:
 #if BCC_x86_64
             emitraw("dq ");

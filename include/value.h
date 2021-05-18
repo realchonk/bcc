@@ -13,7 +13,9 @@ enum attribute {
 
 enum value_base_type {
    VAL_INT,
+#if !DISABLE_FP
    VAL_FLOAT,
+#endif
    VAL_POINTER,
    VAL_VOID,
    VAL_AUTO,
@@ -69,9 +71,11 @@ struct value_type {
          enum integer_size size;
          bool is_unsigned;
       } integer;
+#if !DISABLE_FP
       struct {
          enum fp_size size;
       } fp;
+#endif
       struct {
          struct value_type* type;
          bool is_array;
@@ -101,7 +105,9 @@ struct value {
       istr_t sVal;
       intmax_t iVal;
       uintmax_t uVal;
+#if !DISABLE_FP
       fpmax_t fVal;
+#endif
    };
 };
 

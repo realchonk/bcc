@@ -6,7 +6,10 @@
 struct expression* optim_expr(struct expression* e) {
    if (optim_level < 1) return e;
    if (e->type == EXPR_INT || e->type == EXPR_UINT
-    || e->type == EXPR_STRING || e->type == EXPR_FLOAT
+    || e->type == EXPR_STRING 
+#if !DISABLE_FP
+    || e->type == EXPR_FLOAT
+#endif
     || e->type == EXPR_CHAR || optim_level < 1)
       return e;
    struct value result;
@@ -23,9 +26,11 @@ struct expression* optim_expr(struct expression* e) {
             e->iVal = result.iVal;
          }
          break;
+#if !DISABLE_FP
       case VAL_FLOAT:
          e->fVal = result.fVal;
          break;
+#endif
       default:
          panic("optim_expr(): invaid value type '%d'", result.type->type);
       }

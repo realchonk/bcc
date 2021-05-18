@@ -31,7 +31,9 @@ struct statement* optim_stmt(struct statement* s) {
          bool cond;
          switch (val.type->type) {
          case VAL_INT:     cond = val.iVal != 0; break;
+#if !DISABLE_FP
          case VAL_FLOAT:   cond = val.fVal != 0.0; break;
+#endif
          default:          goto end_if;
          }
          struct statement* branch;

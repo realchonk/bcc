@@ -7,6 +7,10 @@ else
 ARCH=$(shell ./util/getarch.sh $(TARGET))
 endif
 
+ifeq ($(DISABLE_FP),y)
+CFLAGS += -DDISABLE_FP=1
+endif
+
 CC=cc -c -g -std=c99 -Og
 CFLAGS += -Iinclude -Wall -Wextra -D_XOPEN_SOURCE=700 -Wno-missing-braces -Wno-array-bounds
 CFLAGS += -DBCC_ARCH=\"$(ARCH)\" -DBCC_$(ARCH)=1 -DBCC_VER=\"$(VER)\"
