@@ -63,7 +63,7 @@ void parse_unit(void) {
          }
          alias.name = lexer_expect(TK_NAME).str;
          alias.end = lexer_expect(TK_SEMICOLON).end;
-         buf_push(cunit.renames, alias);
+         buf_push(cunit.aliases, alias);
          continue;
       }
 
@@ -203,13 +203,15 @@ void print_ir_unit(FILE* file) {
    }
 }
 
-struct function* unit_get_func(const char* name) {
-   name = strint(name);
+size_t unit_get_func_idx(istr_t name) {
    for (size_t i = 0; i < buf_len(cunit.funcs); ++i) {
-      struct function* f = cunit.funcs[i];
-      if (name == f->name) return f;
+      if (name == cunit.funcs[i]->name) return i;
    }
-   return NULL;
+   return SIZE_MAX;
+}
+struct function* unit_get_func(istr_t name) {
+   const size_t idx = unit_get_func_idx(name);
+   return idx == SIZE_MAX ? NULL : cunit.funcs[idx];
 }
 void free_unit(void) {
    for (size_t i = 0; i < buf_len(cunit.funcs); ++i) {
@@ -217,31 +219,42 @@ void free_unit(void) {
    }
    buf_free(cunit.funcs);
 }
-struct variable* unit_get_var(const char* name) {
-   name = strint(name);
+size_t unit_get_var_idx(istr_t name) {
    for (size_t i = 0; i < buf_len(cunit.vars); ++i) {
       if (name == cunit.vars[i].name)
-         return &cunit.vars[i];
+         return i;
    }
-   return NULL;
+   return SIZE_MAX;
 }
-struct typerename* unit_get_typedef(const char* name) {
-   name = strint(name);
-   for (size_t i = 0; i < buf_len(cunit.renames); ++i) {
-      if (name == cunit.renames[i].name)
-         return &cunit.renames[i];
+struct variable* unit_get_var(istr_t name) {
+   const size_t idx = unit_get_var_idx(name);
+   return idx == SIZE_MAX ? NULL : &cunit.vars[idx];
+}
+
+size_t unit_get_typedef_idx(istr_t name) {
+   for (size_t i = 0; i < buf_len(cunit.aliases); ++i) {
+      if (name == cunit.aliases[i].name)
+         return i;
    }
-   return NULL;
+   return SIZE_MAX;
 }
-bool find_constant(const char* name, intmax_t* value) {
-   name = strint(name);
+struct typerename* unit_get_typedef(istr_t name) {
+   const size_t idx = unit_get_typedef_idx(name);
+   return idx == SIZE_MAX ? NULL : &cunit.aliases[idx];
+}
+size_t unit_get_const_idx(istr_t name) {
    for (size_t i = 0; i < buf_len(cunit.constants); ++i) {
-      if (name == cunit.constants[i].name) {
-         if (value) *value = cunit.constants[i].value;
-         return true;
-      }
+      if (name == cunit.constants[i].name)
+         return i;
    }
-   return false;
+   return SIZE_MAX;
+
+}
+bool find_constant(istr_t name, intmax_t* value) {
+   const size_t idx = unit_get_const_idx(name);
+   if (idx == SIZE_MAX) return false;
+   if (value) *value = cunit.constants[idx].value;
+   return true;
 }
 struct enumeration* unit_get_enum(istr_t name) {
    for (size_t i = 0; i < buf_len(cunit.enums); ++i) {
@@ -263,4 +276,37 @@ struct structure* unit_get_union(istr_t name) {
          return cunit.unions[i];
    }
    return NULL;
+}
+
+bool unit_find(istr_t name, struct symbol* sym) {
+   size_t idx;
+   if ((idx = unit_get_var_idx(name)) != SIZE_MAX) {
+      if (sym) {
+         sym->type = SYM_VAR;
+         sym->idx = idx;
+      }
+      return true;
+   }
+   if ((idx = unit_get_func_idx(name)) != SIZE_MAX) {
+      if (sym) {
+         sym->type = SYM_FUNC;
+         sym->idx = idx;
+      }
+      return true;
+   }
+   if ((idx = unit_get_typedef_idx(name)) != SIZE_MAX) {
+      if (sym) {
+         sym->type = SYM_ALIAS;
+         sym->idx = idx;
+      }
+      return true;
+   }
+   if ((idx = unit_get_const_idx(name)) != SIZE_MAX) {
+      if (sym) {
+         sym->type = SYM_CONST;
+         sym->idx = idx;
+      }
+      return true;
+   }
+   return false;
 }
