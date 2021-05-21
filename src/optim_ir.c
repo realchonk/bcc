@@ -3,6 +3,57 @@
 #include "optim.h"
 #include "bcc.h"
 
+// utility functions
+
+static bool reg_is_referenced(const ir_node_t* n, ir_reg_t reg) {
+   while (n) {
+      switch (n->type) {
+      case IR_MOVE:
+      case IR_READ:
+         if (n->move.src == reg) return true;
+         else if (n->move.dest == reg) return false;
+         break;
+      case IR_LOAD:
+         if (n->load.dest == reg) return true;
+         break;
+      case IR_IADD:
+      case IR_ISUB:
+      case IR_IAND:
+      case IR_IOR:
+      case IR_IXOR:
+      case IR_ILSL:
+      case IR_ILSR:
+      case IR_IASR:
+      case IR_IMUL:
+      case IR_IDIV:
+      case IR_IMOD:
+      case IR_UMUL:
+      case IR_UDIV:
+      case IR_UMOD:
+      case IR_ISTEQ:
+      case IR_ISTNE:
+      case IR_ISTGR:
+      case IR_ISTGE:
+      case IR_ISTLT:
+      case IR_ISTLE:
+      case IR_USTGR:
+      case IR_USTGE:
+      case IR_USTLT:
+      case IR_USTLE:
+         if ((n->binary.a.type == IRT_REG && n->binary.a.reg == reg)
+            || (n->binary.b.type == IRT_REG && n->binary.b.reg == reg))
+            return true;
+         else if (n->binary.dest == reg)
+            return false;
+         break;
+      default:
+         break;
+      }
+      n = n->next;
+   }
+   return true; // TODO: change this later
+}
+
 // remove NOPs
 static bool remove_nops(ir_node_t** n) {
    bool success = false;
@@ -219,6 +270,19 @@ static bool add_zero(ir_node_t** n) {
    return success;
 }
 
+// (load R0, 42; load R0, 39; ... R0) -> (load R0, 39)
+static bool remove_unreferenced(ir_node_t** n) {
+   if (optim_level < 3) return false; // XXX: experimental
+   bool success = false;
+   for (ir_node_t* cur = *n; cur; cur = cur->next) {
+      if (cur->type == IR_READ && !reg_is_referenced(cur->next, cur->move.dest)) {
+         cur->type = IR_NOP;
+         success = true;
+      }
+   }
+   return success;
+}
+
 ir_node_t* optim_ir_nodes(ir_node_t* n) {
    if (optim_level < 1) return n;
    while (remove_nops(&n)
@@ -227,6 +291,7 @@ ir_node_t* optim_ir_nodes(ir_node_t* n) {
       || fold(&n)
       || reorder_params(&n)
       || add_zero(&n)
+      || remove_unreferenced(&n)
    );
    return n;
 }

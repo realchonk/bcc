@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <tgmath.h>
 #include <string.h>
 #include "target.h"
@@ -114,6 +115,8 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
    }
 }
 static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
+   //puts(expr_type_str[e->type]);
+   assert(e->vtype != NULL);
    const struct value_type* vt = e->vtype;
    const enum ir_value_size irs = vt2irs(vt);
    ir_node_t* n;

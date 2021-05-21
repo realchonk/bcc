@@ -460,9 +460,12 @@ static struct expression* expr_comma(void) {
    comma->type = EXPR_COMMA;
    comma->begin = expr->begin;
    comma->comma = NULL;
+   get_value_type(scope, expr);
    buf_push(comma->comma, expr);
    do {
-      buf_push(comma->comma, expr_assign());
+      struct expression* e = expr_assign();
+      get_value_type(scope, e);
+      buf_push(comma->comma, e);
    } while (lexer_match(TK_COMMA));
    return comma;
 }

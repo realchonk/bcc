@@ -60,8 +60,6 @@ enum ir_node_type {
    IR_ARRAYLEN,      // .lookup     | get length of variable-length array
    IR_GLOOKUP,       // .lstr       | get address of global variable
    IR_FCALL,         // .ifcall     | function call w/ return-type void
-   IR_BAND,          // .binary     | boolean and
-   IR_BOR,           // .binary     | boolean or
 
    NUM_IR_NODES,
 };
