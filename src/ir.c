@@ -217,7 +217,7 @@ void print_ir_value(FILE* file, const struct ir_value* v) {
    case IRT_UINT:
       fprintf(file, "%ju", v->uVal);
       break;
-   default: panic("print_ir_valu(): invalid IR value type '%d'", v->type);
+   default: panic("invalid IR value type '%d'", v->type);
    }
 }
 void free_ir_node(ir_node_t* n) {

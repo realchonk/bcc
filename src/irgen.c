@@ -39,14 +39,14 @@ enum ir_value_size vt2irs(const struct value_type* vt) {
       case INT_SHORT:   return IRS_SHORT;
       case INT_INT:     return IRS_INT;
       case INT_LONG:    return IRS_LONG;
-      default:          panic("vt2irs(): invalid integer value '%d'", vt->integer.size);
+      default:          panic("invalid integer value '%d'", vt->integer.size);
       }
 #if !DISABLE_FP
-   case VAL_FLOAT:      panic("vt2irs(): floating-point values are currently not supported by the IR backend.");
+   case VAL_FLOAT:      panic("floating-point values are currently not supported by the IR backend.");
 #endif
    case VAL_POINTER:    return IRS_PTR;
    case VAL_ENUM:       return IRS_INT;
-   default:             panic("vt2irs(): invalid value type '%d'", vt->type);
+   default:             panic("invalid value type '%d'", vt->type);
    }
 }
 
@@ -111,7 +111,7 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
       return n;
    }
 
-   default: panic("ir_lvalue(): unsupported expression '%s'", expr_type_str[e->type]);
+   default: panic("unsupported expression '%s'", expr_type_str[e->type]);
    }
 }
 static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
@@ -209,7 +209,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       case TK_AMP:   tmp->type = IR_IAND; break;
       case TK_PIPE:  tmp->type = IR_IOR; break;
       case TK_XOR:   tmp->type = IR_IXOR; break;
-      default:       panic("ir_expr(): unsupported binary operator '%s'", token_type_str[e->binary.op.type]);
+      default:       panic("unsupported binary operator '%s'", token_type_str[e->binary.op.type]);
       }
       ir_append(n, tmp);
 
@@ -237,7 +237,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       case TK_MINUS: tmp->type = IR_INEG; break;
       case TK_NOT:   tmp->type = IR_BNOT; break;
       case TK_WAVE:  tmp->type = IR_INOT; break;
-      default:       panic("ir_expr(): unsupported unary operator '%s'", token_type_str[e->unary.op.type]);
+      default:       panic("unsupported unary operator '%s'", token_type_str[e->unary.op.type]);
       }
       ir_append(n, tmp);
       break;
@@ -508,7 +508,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    }
    
    default:
-      panic("ir_expr(): unsupported expression '%s'", expr_type_str[e->type]);
+      panic("unsupported expression '%s'", expr_type_str[e->type]);
    }
    return n;
 }
@@ -750,7 +750,7 @@ ir_node_t* irgen_stmt(const struct statement* s) {
       n->str = begin_loop;
       return n;
 
-   default: panic("irgen_stmt(): unsupported statement '%s'", stmt_type_str[s->type]);
+   default: panic("unsupported statement '%s'", stmt_type_str[s->type]);
    }
 }
 

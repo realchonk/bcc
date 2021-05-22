@@ -5,7 +5,7 @@
 
 static struct statement* make_nop(struct statement* old) {
    struct statement* s = malloc(sizeof(struct statement));
-   if (!s) panic("make_nop(): failed to allocate statement");
+   if (!s) panic("failed to allocate statement");
    s->type = STMT_NOP;
    s->begin = old->begin;
    s->end = old->end;

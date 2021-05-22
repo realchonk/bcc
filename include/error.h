@@ -21,10 +21,12 @@
 #define PRINTF_FMT_WARN(fmt_idx, va_idx)
 #endif
 
-noreturn void panic(const char*, ...) PRINTF_FMT_WARN(1, 2);
+noreturn void panic_impl(const char*, const char*, ...) PRINTF_FMT_WARN(2, 3);
 noreturn void lex_error(const char*, ...) PRINTF_FMT_WARN(1, 2);
 noreturn void parse_error(const struct source_pos*, const char*, ...) PRINTF_FMT_WARN(2, 3);
 void parse_warn(const struct source_pos*, const char*, ...) PRINTF_FMT_WARN(2, 3);
+
+#define panic(...) panic_impl(__func__, __VA_ARGS__)
 
 #endif /* FILE_ERROR_H */
 

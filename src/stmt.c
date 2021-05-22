@@ -90,7 +90,7 @@ void print_stmt(FILE* file, const struct statement* s) {
       print_value_type(file, s->var_decl.type);
       for (size_t i = 0; i < s->var_decl.num; ++i) {
          const struct variable* var = &s->parent->vars[i + s->var_decl.idx];
-         if (!var) panic("print_stmt(): var == NULL");
+         if (!var) panic("var == NULL");
          if (i != 0) fputc(',', file);
          if (var->type->type == VAL_POINTER && var->type->pointer.is_array) {
             print_value_type(file, var->type->pointer.type);
@@ -382,5 +382,5 @@ bool stmt_is_pure(const struct statement* s) {
    case NUM_STMTS:
       break;
    }
-   panic("stmt_is_pure(): unreachable reached");
+   panic("unreachable reached");
 }

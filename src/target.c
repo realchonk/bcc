@@ -48,7 +48,7 @@ uintmax_t target_get_umax(enum ir_value_size sz) {
    case IRS_SHORT:   return target_info.max_ushort;
    case IRS_INT:     return target_info.max_uint;
    case IRS_LONG:    return target_info.max_ulong;
-   default:          panic("target_get_umax(): unreachable reached");
+   default:          panic("unreachable reached");
    }
 }
 

@@ -12,9 +12,9 @@ static const char* regs32[] = { "eax", "ecx", "edx" };
 #define reg_dx "edx"
 #define reg_dxi 2
 
-#define reg8(i) ((i) < arraylen(regs8) ? regs8[i] : (panic("emit_ir(): register out of range"), NULL))
-#define reg16(i) ((i) < arraylen(regs16) ? regs16[i] : (panic("emit_ir(): register out of range"), NULL))
-#define reg32(i) ((i) < arraylen(regs32) ? regs32[i] : (panic("emit_ir(): register out of range"), NULL))
+#define reg8(i) ((i) < arraylen(regs8) ? regs8[i] : (panic("register out of range"), NULL))
+#define reg16(i) ((i) < arraylen(regs16) ? regs16[i] : (panic("register out of range"), NULL))
+#define reg32(i) ((i) < arraylen(regs32) ? regs32[i] : (panic("register out of range"), NULL))
 #define mreg(i) reg32(i)
 
 #define reg_op(dest, src, size) \
@@ -24,6 +24,6 @@ static const char* regs32[] = { "eax", "ecx", "edx" };
    case IRS_SHORT:   dest = reg16(src); break; \
    case IRS_PTR: \
    case IRS_INT:     dest = reg32(src); break; \
-   default:          panic("emit_ir(): unsupported operand size '%s'", ir_size_str[size]); \
+   default:          panic("unsupported operand size '%s'", ir_size_str[size]); \
    }
 

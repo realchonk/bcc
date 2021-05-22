@@ -200,7 +200,7 @@ static struct expression* expr_prim(void) {
          break;
       }
       default:
-         panic("expr_prim(): invalid token '%s'", token_type_str[tk.type]);
+         panic("invalid token '%s'", token_type_str[tk.type]);
       }
       expr = tmp;
    }
@@ -711,5 +711,5 @@ bool expr_is_pure(const struct expression* e) {
    case NUM_EXPRS:
       break;
    }
-   panic("expr_is_pure(): unreachable reached");
+   panic("unreachable reached");
 }

@@ -537,7 +537,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    }
 
-   default: panic("emit_ir(): unsupported ir_node type '%s'", ir_node_type_str[n->type]);
+   default: panic("unsupported ir_node type '%s'", ir_node_type_str[n->type]);
    }
 }
 

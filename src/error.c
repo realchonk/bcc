@@ -6,11 +6,11 @@
 #include "error.h"
 #include "bcc.h"
 
-noreturn void panic(const char* fmt, ...) {
+noreturn void panic_impl(const char* func, const char* fmt, ...) {
    va_list ap;
    va_start(ap, fmt);
 
-   fputs("bcc: ", stderr);
+   fprintf(stderr, "bcc: %s(): ", func);
    vfprintf(stderr, fmt, ap);
    if (errno) fprintf(stderr, ": %s\n", strerror(errno));
    else fputc('\n', stderr);

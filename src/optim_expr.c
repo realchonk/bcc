@@ -32,7 +32,7 @@ struct expression* optim_expr(struct expression* e) {
          break;
 #endif
       default:
-         panic("optim_expr(): invaid value type '%d'", result.type->type);
+         panic("invaid value type '%d'", result.type->type);
       }
       free_value_type(result.type);
    }

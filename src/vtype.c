@@ -41,7 +41,7 @@ static bool ptreq(const struct value_type* a, const struct value_type* b) {
 #endif
    case VAL_POINTER: return ptreq(a->pointer.type, b->pointer.type);
    case VAL_STRUCT:  return a->vstruct->name == b->vstruct->name;
-   default:          panic("ptreq(): invalid value type '%u'", a->type);
+   default:          panic("invalid value type '%u'", a->type);
    }
 }
 bool value_type_equal(const struct value_type* a, const struct value_type* b) {
@@ -94,7 +94,7 @@ void print_value_type(FILE* file, const struct value_type* val) {
          fputc('}', file);
       }
       break;
-   default: panic("print_value_type(): invalid value type '%d'", val->type);
+   default: panic("invalid value type '%d'", val->type);
    }
    if (val->is_const) fputs(" const", file);
 }
@@ -135,7 +135,7 @@ void free_value_type(struct value_type* val) {
 
 static struct value_type* new_vt(void) {
    struct value_type* vt = malloc(sizeof(struct value_type));
-   if (!vt) panic("new_vt(): failed to allocate value type");
+   if (!vt) panic("failed to allocate value type");
    else return vt;
 }
 
@@ -174,7 +174,7 @@ struct value_type* parse_value_type(struct scope* scope) {
          vt->integer.is_unsigned = true;
          has_signedness = true;
          break;
-      default:          panic("parse_value_type(): invalid token type '%s'", token_type_str[tk.type]);
+      default:          panic("invalid token type '%s'", token_type_str[tk.type]);
       }
       if (!has_begon) {
          has_begon = true;
@@ -187,7 +187,7 @@ struct value_type* parse_value_type(struct scope* scope) {
       if (has_begon) lexer_next();
       else vt->begin = lexer_next().begin;
       vt->venum = malloc(sizeof(struct enumeration));
-      if (!vt->venum) panic("parse_value_type(): failed to allocate enum");
+      if (!vt->venum) panic("failed to allocate enum");
       if (lexer_matches(TK_NAME)) {
          const struct token tk = lexer_next();
          vt->venum->name = tk.str;
@@ -220,7 +220,7 @@ struct value_type* parse_value_type(struct scope* scope) {
       vt->type = tk_struct.type == KW_UNION ? VAL_UNION : VAL_STRUCT;
       if (!has_begon) vt->begin = tk_struct.begin;
       vt->vstruct = malloc(sizeof(struct structure));
-      if (!vt->vstruct) panic("parse_value_type(): failed to allocate struct");
+      if (!vt->vstruct) panic("failed to allocate struct");
       if (lexer_matches(TK_NAME)) {
          const struct token tk = lexer_next();
          vt->vstruct->name = tk.str;
@@ -360,7 +360,7 @@ struct value_type* common_value_type(const struct value_type* a, const struct va
          break;
 #endif
       case VAL_POINTER: parse_error(&a->end, "performing binary operation on pointers");
-      default:          panic("common_value_type(): unsupported value type '%d'", a->type);
+      default:          panic("unsupported value type '%d'", a->type);
       }
    } else {
 #if !DISABLE_FP
@@ -544,9 +544,9 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
             else if (vr->type == VAL_FLOAT)
                parse_error(&e->binary.op.begin, "addition of pointer and floating-point number");
 #endif
-            panic("get_value_type(): addition of pointer and '%s'", value_type_str[vr->type]);
+            panic("addition of pointer and '%s'", value_type_str[vr->type]);
          default:
-            panic("get_value_type(): unsupported value type '%s'", value_type_str[vl->type]);
+            panic("unsupported value type '%s'", value_type_str[vl->type]);
          }
       case TK_MINUS:
          switch (vl->type) {
@@ -572,9 +572,9 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
                   parse_error(&e->binary.op.begin, "incompatible pointer types");
                return make_int(target_info.ptrdiff_type, false);
             }
-            else panic("get_value_type(): unsupported value type '%s'", value_type_str[vr->type]);
+            else panic("unsupported value type '%s'", value_type_str[vr->type]);
          default:
-            panic("get_value_type(): unsupported value type '%s'", value_type_str[vl->type]);
+            panic("unsupported value type '%s'", value_type_str[vl->type]);
          }
       case TK_STAR:
       case TK_SLASH:
@@ -595,9 +595,9 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
          else return common_value_type(vl, vr, true);
 
       default:
-         panic("get_value_type(): binary operator '%s' not implemented", token_type_str[e->binary.op.type]);
+         panic("binary operator '%s' not implemented", token_type_str[e->binary.op.type]);
       }
-      panic("get_value_type(): reached unreachable");
+      panic("reached unreachable");
    }
       return common_value_type(get_value_type(scope, e->binary.left), get_value_type(scope, e->binary.right), true); // TODO
    case EXPR_TERNARY:
@@ -653,7 +653,7 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
       if (m) return copy_value_type(m->type);
       else parse_error(&e->begin, "'struct %s' has no member '%s'", st->name, e->member.name);
    }
-   default: panic("get_value_type(): unsupported expression '%s'", expr_type_str[e->type]);
+   default: panic("unsupported expression '%s'", expr_type_str[e->type]);
    }
 }
 const struct value_type* get_value_type(struct scope* scope, struct expression* e) {
@@ -697,7 +697,7 @@ struct value_type* copy_value_type(const struct value_type* vt) {
    case VAL_VOID:
    case VAL_AUTO:
       break;
-   default: panic("copy_value_type(): unsupported value type '%d'", vt->type);
+   default: panic("unsupported value type '%d'", vt->type);
    }
    return copy;
 }
@@ -718,7 +718,7 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
          return true;
       case VAL_POINTER:
          return !implicit;
-      default: panic("is_castable(): invalid value type '%u'", type->type);
+      default: panic("invalid value type '%u'", type->type);
       }
 #if !DISABLE_FP
    case VAL_FLOAT:
@@ -732,7 +732,7 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
          return !implicit;
       case VAL_POINTER:
          return false;
-      default: panic("is_castable(): invalid value type '%u'", type->type);
+      default: panic("invalid value type '%u'", type->type);
       }
 #endif
    case VAL_POINTER:
@@ -747,7 +747,7 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
          if (!ptreq(old->pointer.type, type->pointer.type) && implicit)
             parse_warn(&old->begin, "implicit pointer conversion");
          return true;
-      default: panic("is_castable(): invalid value type '%u'", type->type);
+      default: panic("invalid value type '%u'", type->type);
       }
    case VAL_ENUM:
       switch (type->type) {
@@ -759,9 +759,9 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
          return true;
       case VAL_POINTER:
          return !implicit;
-      default: panic("is_castable(): invalid value type '%u'", type->type);
+      default: panic("invalid value type '%u'", type->type);
       }
-   default: panic("is_castable(): invalid value type '%u'", type->type);
+   default: panic("invalid value type '%u'", type->type);
    }
 }
 struct value_type* make_array_vt(struct value_type* vt) {
@@ -787,7 +787,7 @@ size_t sizeof_value(const struct value_type* vt, bool decay) {
       case FP_DOUBLE:
          return target_info.size_double;
       default:
-         panic("sizeof_value(): invalid floating-point size '%s'", fp_size_str[vt->fp.size]);
+         panic("invalid floating-point size '%s'", fp_size_str[vt->fp.size]);
       }
 #endif
    case VAL_INT:
@@ -803,7 +803,7 @@ size_t sizeof_value(const struct value_type* vt, bool decay) {
       case INT_LONG:
          return target_info.size_long;
       default:
-         panic("sizeof_value(): invalid integer size '%s'", integer_size_str[vt->integer.size]);
+         panic("invalid integer size '%s'", integer_size_str[vt->integer.size]);
       }
    case VAL_ENUM:
       return target_info.size_int;
@@ -837,12 +837,12 @@ size_t sizeof_value(const struct value_type* vt, bool decay) {
       return sz;
    }
    default:
-      panic("sizeof_value(): invalid value type '%s'", value_type_str[vt->type]);
+      panic("invalid value type '%s'", value_type_str[vt->type]);
    }
 }
 struct enumeration* copy_enum(const struct enumeration* e) {
    struct enumeration* ne = malloc(sizeof(struct enumeration));
-   if (!ne) panic("copy_enum(): failed to allocate enum");
+   if (!ne) panic("failed to allocate enum");
    ne->name = e->name;
    ne->entries = NULL;
    if ((ne->is_definition = e->is_definition)) {
@@ -853,7 +853,7 @@ struct enumeration* copy_enum(const struct enumeration* e) {
 }
 struct structure* copy_struct(const struct structure* s) {
    struct structure* ns = malloc(sizeof(struct structure));
-   if (!ns) panic("copy_struct(): failed to allocate struct");
+   if (!ns) panic("failed to allocate struct");
    ns->name = s->name;
    ns->entries = NULL;
    if ((ns->is_definition = s->is_definition)) {

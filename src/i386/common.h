@@ -21,7 +21,7 @@ static const char* nasm_size(enum ir_value_size s) {
    case IRS_LONG:    return "qword";
 #endif
    case IRS_INT:     return "dword";
-   default:          panic("nasm_size(): unsupported operand size '%s'", ir_size_str[s]);
+   default:          panic("unsupported operand size '%s'", ir_size_str[s]);
    }
 }
 static size_t x86_sizeof_value(const struct value_type* vt) {
@@ -141,7 +141,7 @@ static void emit_end(void) {
                emitraw("dq ");
                break;
             default:
-               panic("emit_begin(): unreachable reached");
+               panic("unreachable reached");
             }
             break;
 #if !DISABLE_FP
@@ -154,7 +154,7 @@ static void emit_end(void) {
                emitraw("dq ");
                break;
             default:
-               panic("emit_begin(): unreachable reached");
+               panic("unreachable reached");
             }
             break;
 #endif
@@ -171,7 +171,7 @@ static void emit_end(void) {
             }
             break;
          default:
-            panic("emit_begin(): invalid variable type '%s'", value_type_str[type->type]);
+            panic("invalid variable type '%s'", value_type_str[type->type]);
          }
          if (var->init) {
             if (type->type != VAL_INT)
@@ -214,7 +214,7 @@ static const char* irv2str(const struct ir_value* v, const enum ir_value_size s)
       char buffer[uslen(v->uVal) + 1];
       snprintf(buffer, sizeof(buffer), "%ju", v->uVal);
       return strint(buffer);
-   } else panic("irv2str(): invalid IR value type '%u'", v->type);
+   } else panic("invalid IR value type '%u'", v->type);
 }
 static void emit_clear(const char* reg) {
    if (optim_level < 1) emit("mov %s, 0", reg);

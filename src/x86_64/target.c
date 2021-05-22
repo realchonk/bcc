@@ -48,7 +48,7 @@ const struct target_info target_info = {
 
 int assemble(const char* source, const char* output) {
    const pid_t pid = fork();
-   if (pid < 0) panic("assemble(): failed to fork");
+   if (pid < 0) panic("failed to fork");
    if (pid == 0) {
       execlp("nasm", "nasm", "-f", "elf64", "-o", output, source, NULL);
       perror("bcc: failed to invoke nasm");
@@ -57,7 +57,7 @@ int assemble(const char* source, const char* output) {
       int wstatus;
       waitpid(pid, &wstatus, 0);
       if (WIFEXITED(wstatus)) return WEXITSTATUS(wstatus);
-      panic("assemble(): failed to wait for nasm");
+      panic("failed to wait for nasm");
    }
 }
 
