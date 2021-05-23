@@ -1,7 +1,6 @@
 Planned features:
 
 Long term:
-- implement function pointers
 - implement a C pre-processor
 - improve test-suite
 - switch/case
@@ -11,4 +10,6 @@ Long term:
 - port to other architectures (like RISC-V, ARM)
 
 Short term:
+- indirect function call support for x86
 - fix stack-alignment for x86
+- parsing of function-pointer types

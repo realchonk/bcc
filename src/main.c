@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
    const char* output_file = NULL;
    int level = 'c';
    enable_warnings = true;
-   optim_level = 0;
+   optim_level = 1;
    const char** target_opts = NULL;
    int option;
    while ((option = getopt(argc, argv, ":m:VO:wciSAo:")) != -1) {

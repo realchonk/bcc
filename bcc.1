@@ -1,4 +1,4 @@
-.TH bcc 1 "2021-05-11"
+.TH bcc 1 "2021-05-23"
 
 .SH NAME
 bcc - brainlet C compiler
@@ -146,6 +146,12 @@ operator. Instead it evaluates to the length in elements of the array.
 - the
 .B auto
 keyword behaves as in C++11.
+.RE
+- function pointer types are now consistent (eg.
+.B int(int, int)*
+instead of
+.B int(*)(int, int)
+).
 
 
 .SH OPTIMIZATIONS
@@ -160,6 +166,8 @@ Supported optimization techniques:
 - fusion of memory instructions for x86 (-O2)
 .RE
 - dead-code elimination (-O1)
+.RE
+- constant evaluation of function call targets (-O1)
 
 .SH TARGETS
 Currently supported target architectures:

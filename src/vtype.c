@@ -268,15 +268,40 @@ struct value_type* parse_value_type(struct scope* scope) {
       } else vt->vstruct->name = NULL;
       vt->vstruct->entries = NULL;
       vt->vstruct->is_definition = lexer_match(TK_CLPAREN);
-      if (vt->vstruct->is_definition && !lexer_match(TK_CRPAREN)) {
+      if (vt->vstruct->is_definition) {
+         if (!lexer_match(TK_CRPAREN))
          do {
             struct value_type* tt = parse_value_type(scope);
-            do {
-               struct struct_entry e;
-               e.type = copy_value_type(tt);
-               e.name = lexer_expect(TK_NAME).str;
-               buf_push(vt->vstruct->entries, e);
-            } while (lexer_match(TK_COMMA));
+            if (!tt) parse_error(&vt->begin, "failed to parse");
+            if ((tt->type == VAL_STRUCT || tt->type == VAL_UNION) && tt->vstruct->name && tt->vstruct->is_definition) {
+               if (tt->type == VAL_STRUCT) unit_add_struct(tt);
+               else if (tt->type == VAL_UNION) unit_add_union(tt);
+            }
+            if (lexer_matches(TK_NAME)) {
+               do {
+                  const struct token name_tk = lexer_expect(TK_NAME);
+                  struct struct_entry e;
+                  e.name = name_tk.str;
+                  if (struct_get_member(vt->vstruct, e.name))
+                     parse_error(&name_tk.begin, "multiple declaration of variable '%s' in %s",
+                        e.name, value_type_str[vt->type]);
+                  e.type = copy_value_type(tt);
+                  buf_push(vt->vstruct->entries, e);
+               } while (lexer_match(TK_COMMA));
+            } else {
+               if (tt->type == VAL_STRUCT || tt->type == VAL_UNION) {
+                  for (size_t i = 0; i < buf_len(tt->vstruct->entries); ++i) {
+                     const struct struct_entry* e = &tt->vstruct->entries[i];
+                     if (struct_get_member(vt->vstruct, e->name))
+                        parse_error(&e->type->begin, "multiple declarations of variable '%s' in inner %s",
+                           e->name, value_type_str[e->type->type]);
+                     struct struct_entry copy;
+                     copy.name = e->name;
+                     copy.type = copy_value_type(e->type);
+                     buf_push(vt->vstruct->entries, copy);
+                  }
+               }
+            }
             lexer_expect(TK_SEMICOLON);
             free_value_type(tt);
          } while (!lexer_match(TK_CRPAREN));

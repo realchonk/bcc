@@ -6,7 +6,7 @@
 
 struct cunit cunit = { NULL};
 
-static void add_enum(const struct value_type* type) {
+void unit_add_enum(const struct value_type* type) {
    if (type->venum->name && type->venum->is_definition) {
       if (unit_get_enum(type->venum->name))
          parse_error(&type->begin, "'enum %s' already defined", type->venum->name);
@@ -24,14 +24,14 @@ static void add_enum(const struct value_type* type) {
    }
 
 }
-static void add_struct(const struct value_type* type) {
+void unit_add_struct(const struct value_type* type) {
    if (type->vstruct->name && type->vstruct->is_definition) {
       if (unit_get_struct(type->vstruct->name))
          parse_error(&type->begin, "'struct %s' already defined", type->vstruct->name);
       buf_push(cunit.structs, copy_struct(type->vstruct));
    }
 }
-static void add_union(const struct value_type* type) {
+void unit_add_union(const struct value_type* type) {
    if (type->vstruct->name && type->vstruct->is_definition) {
       if (unit_get_struct(type->vstruct->name))
          parse_error(&type->begin, "'union %s' already defined", type->vstruct->name);
@@ -50,13 +50,13 @@ void parse_unit(void) {
             parse_error(&alias.end, "failed to parse type");
          switch (alias.type->type) {
          case VAL_ENUM:
-            add_enum(alias.type);
+            unit_add_enum(alias.type);
             break;
          case VAL_STRUCT:
-            add_struct(alias.type);
+            unit_add_struct(alias.type);
             break;
          case VAL_UNION:
-            add_union(alias.type);
+            unit_add_union(alias.type);
             break;
          default:
             break;
@@ -96,13 +96,13 @@ void parse_unit(void) {
          parse_error(&begin, "failed to parse type");
 
       if (type->type == VAL_ENUM) {
-         add_enum(type);
+         unit_add_enum(type);
          if (lexer_match(TK_SEMICOLON)) continue;
       } else if (type->type == VAL_STRUCT) {
-         add_struct(type);
+         unit_add_struct(type);
          if (lexer_match(TK_SEMICOLON)) continue;
       } else if (type->type == VAL_UNION) {
-         add_union(type);
+         unit_add_union(type);
          if (lexer_match(TK_SEMICOLON)) continue;
       }
 

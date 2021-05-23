@@ -47,5 +47,8 @@ size_t unit_get_func_idx(istr_t);
 size_t unit_get_typedef_idx(istr_t);
 size_t unit_get_const_idx(istr_t);
 bool unit_find(istr_t, struct symbol*);
+void unit_add_enum(const struct value_type*);
+void unit_add_union(const struct value_type*);
+void unit_add_struct(const struct value_type*);
 
 #endif /* FILE_UNIT_H */

@@ -567,3 +567,46 @@
       "}",
    .ret_val = 5,
 },
+{
+   .name = "inner struct",
+   .compiles = true,
+   .source =
+      "struct A {"
+      "  int a;"
+      "  struct B {"
+      "     int b;"
+      "  };"
+      "};"
+      "int main(void) {"
+      "  struct B b;"
+      "  b.b = 42;"
+      "  return b.b;"
+      "}",
+   .ret_val = 42,
+},
+{
+   .name = "nested unnamed struct",
+   .compiles = true,
+   .source =
+      "struct A {"
+      "  struct {"
+      "     int a;"
+      "  };"
+      "};"
+      "int main(void) {"
+      "  struct A a;"
+      "  a.a = 42;"
+      "  return a.a;"
+      "}",
+   .ret_val = 42,
+},
+{
+   .name = "redefinition of variable in struct",
+   .compiles = false,
+   .source =
+      "struct A {"
+      "  int a;"
+      "  int a;"
+      "};"
+      "int main(void) {}",
+},

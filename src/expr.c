@@ -175,6 +175,7 @@ static struct expression* expr_prim(void) {
          if (bt->type != VAL_STRUCT && bt->type != VAL_UNION)
             parse_error(&tmp->begin, "member expressions only apply to structs");
          struct structure* st = real_struct(bt->vstruct, bt->type == VAL_UNION);
+         if (!st) parse_error(&tmp->begin, "%s '%s' not defined", value_type_str[bt->type], bt->vstruct->name);
          if (!struct_get_member(st, name.str))
             parse_error(&name.begin, "'struct %s' has no member '%s'", st->name, name.str);
          break;
