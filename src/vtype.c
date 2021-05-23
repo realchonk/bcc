@@ -30,7 +30,20 @@ const char* value_type_str[NUM_VALS] = {
    "enum",
    "struct",
    "union",
+   "function",
 };
+
+bool is_func_vt(const struct value_type* vt) {
+   if (vt->type == VAL_FUNC) return true;
+   else if (vt->type == VAL_POINTER)
+      return vt->pointer.type->type == VAL_FUNC;
+   else return false;
+}
+const struct value_type* actual_func_vt(const struct value_type* vt) {
+   if (vt->type == VAL_FUNC) return vt;
+   else if (vt->type == VAL_POINTER) return vt->pointer.type;
+   else panic("invalid value_type");
+}
 
 static bool ptreq(const struct value_type* a, const struct value_type* b) {
    if (a->type != b->type) return false;
@@ -41,6 +54,17 @@ static bool ptreq(const struct value_type* a, const struct value_type* b) {
 #endif
    case VAL_POINTER: return ptreq(a->pointer.type, b->pointer.type);
    case VAL_STRUCT:  return a->vstruct->name == b->vstruct->name;
+   case VAL_FUNC:
+   {
+      if  ((a->func.variadic != b->func.variadic) || !ptreq(a->func.ret_val, b->func.ret_val)) return false;
+      const size_t npa = buf_len(a->func.params), npb = buf_len(b->func.params);
+      if (npa != npb) return false;
+      for (size_t i = 0; i < npa; ++i) {
+         if (!ptreq(a->func.params[i], b->func.params[i]))
+            return false;
+      }
+      return true;
+   }   
    default:          panic("invalid value type '%u'", a->type);
    }
 }
@@ -93,6 +117,22 @@ void print_value_type(FILE* file, const struct value_type* val) {
          }
          fputc('}', file);
       }
+      break;
+   case VAL_FUNC:
+      print_value_type(file, val->func.ret_val);
+      fputc('(', file);
+      if (val->func.params) {
+         print_value_type(file, val->func.params[0]);
+         for (size_t i = 1; i < buf_len(val->func.params); ++i) {
+            fputs(", ", file);
+            print_value_type(file, val->func.params[i]);
+         }
+         if (val->func.variadic)
+            fputs(", ", file);
+      }
+      if (val->func.variadic)
+         fputs("...", file);
+      fputc(')', file);
       break;
    default: panic("invalid value type '%d'", val->type);
    }
@@ -452,8 +492,10 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
       if (!var) var = func_find_param(scope->func, e->str);
       if (!var) var = unit_get_var(e->str);
       if (find_constant(e->str, NULL)) return make_int(INT_INT, false);
-      if (!var) parse_error(&e->begin, "undeclared variable '%s'", e->str);
-      return copy_value_type(var->type);
+      if (var) return copy_value_type(var->type);
+      struct function* f = unit_get_func(e->str);
+      if (f) return func2vt(f);
+      else parse_error(&e->begin, "undeclared name '%s'", e->str);
    }
    case EXPR_ADDROF:
    {
@@ -620,28 +662,23 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
    }
    case EXPR_FCALL:
    {
-      if (e->fcall.name == scope->func->name)
-         return copy_value_type(scope->func->type);
-      if (is_builtin_func(e->fcall.name))
-         parse_warn(&e->begin, "'%s' is a compiler-specific builtin-function.", e->fcall.name);
-      struct function* callee = unit_get_func(e->fcall.name);
-      if (!callee) {
-         parse_warn(&e->begin, "function '%s' is not declared.", e->fcall.name);
-         return make_int(INT_INT, false);
-      }
-      const size_t num_callee_params = buf_len(callee->params);
+      const struct value_type* func = get_value_type(scope, e->fcall.func);
+      if (!is_func_vt(func))
+         parse_error(&e->begin, "expected function, got '%s'", value_type_str[func->type]);
+      else func = actual_func_vt(func);
+      const size_t num_callee_params = buf_len(func->func.params);
       const size_t num_params = buf_len(e->fcall.params);
       if (num_callee_params != num_params) {
-         if (callee->variadic && num_params < num_callee_params)
-            parse_warn(&e->begin, "not enough parameters for %s()", callee->name);
-         else if (!callee->variadic) parse_warn(&e->begin, "invalid number of parameters");
+         if (func->func.variadic && num_params < num_callee_params)
+            parse_warn(&e->begin, "not enough parameters");
+         else if (!func->func.variadic) parse_warn(&e->begin, "invalid number of parameters");
       }
       for (size_t i = 0; i < my_min(num_params, num_callee_params); ++i) {
          const struct value_type* vp = get_value_type(scope, e->fcall.params[i]);
-         if (!is_castable(vp, callee->params[i].type, true))
+         if (!is_castable(vp, func->func.params[i], true))
             parse_error(&e->begin, "invalid type of parameter %zu", i);
       }
-      return copy_value_type(callee->type);
+      return copy_value_type(func->func.ret_val);
    }
    case EXPR_MEMBER:
    {
@@ -693,6 +730,14 @@ struct value_type* copy_value_type(const struct value_type* vt) {
    case VAL_STRUCT:
    case VAL_UNION:
       copy->vstruct = copy_struct(vt->vstruct);
+      break;
+   case VAL_FUNC:
+      copy->func.name = vt->func.name;
+      copy->func.ret_val = copy_value_type(vt->func.ret_val);
+      copy->func.params = NULL;
+      for (size_t i = 0; i < buf_len(vt->func.params); ++i)
+         buf_push(copy->func.params, copy_value_type(vt->func.params[i]));
+      copy->func.variadic = vt->func.variadic;
       break;
    case VAL_VOID:
    case VAL_AUTO:
@@ -747,6 +792,8 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
          if (!ptreq(old->pointer.type, type->pointer.type) && implicit)
             parse_warn(&old->begin, "implicit pointer conversion");
          return true;
+      case VAL_FUNC:
+         return ptreq(old->pointer.type, type);
       default: panic("invalid value type '%u'", type->type);
       }
    case VAL_ENUM:
@@ -761,6 +808,12 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
          return !implicit;
       default: panic("invalid value type '%u'", type->type);
       }
+   case VAL_FUNC:
+      if (type->type == VAL_FUNC)
+         return ptreq(type, old);
+      else if (type->type == VAL_POINTER)
+         return !implicit || ptreq(old, type->pointer.type);
+      else return false;
    default: panic("invalid value type '%u'", type->type);
    }
 }
@@ -776,6 +829,7 @@ struct value_type* make_array_vt(struct value_type* vt) {
 size_t sizeof_value(const struct value_type* vt, bool decay) {
    switch (vt->type) {
    case VAL_POINTER:
+   case VAL_FUNC:
       if (vt->pointer.is_array && vt->pointer.array.has_const_size && !decay)
          return sizeof_value(vt->pointer.type, false) * vt->pointer.array.size;
       else return target_info.size_pointer;
@@ -837,7 +891,7 @@ size_t sizeof_value(const struct value_type* vt, bool decay) {
       return sz;
    }
    default:
-      panic("invalid value type '%s'", value_type_str[vt->type]);
+      panic("invalid value type %d", vt->type);
    }
 }
 struct enumeration* copy_enum(const struct enumeration* e) {
@@ -891,3 +945,13 @@ struct structure* real_struct(struct structure* st, bool is_union) {
    return st->is_definition ? st : (is_union ? unit_get_union(st->name) : unit_get_struct(st->name));
 }
 
+struct value_type* func2vt(const struct function* f) {
+   struct value_type* vt = new_vt();
+   vt->type = VAL_FUNC;
+   vt->func.name = f->name;
+   vt->func.ret_val = copy_value_type(f->type);
+   vt->func.params = NULL;
+   for (size_t i = 0; i < buf_len(f->params); ++i)
+      buf_push(vt->func.params, copy_value_type(f->params[i].type));
+   return vt;
+}

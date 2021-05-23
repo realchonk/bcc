@@ -522,6 +522,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    }
    case IR_GLOOKUP:
+   case IR_FLOOKUP:
       emit("lea %s, [%s]", mreg(n->lstr.reg), n->lstr.str);
       return n->next;
    case IR_BNOT:

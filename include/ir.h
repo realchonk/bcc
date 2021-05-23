@@ -60,6 +60,9 @@ enum ir_node_type {
    IR_ARRAYLEN,      // .lookup     | get length of variable-length array
    IR_GLOOKUP,       // .lstr       | get address of global variable
    IR_FCALL,         // .ifcall     | function call w/ return-type void
+   IR_IRCALL,        // .rcall      | indirect function call w/ integer return value
+   IR_RCALL,         // .rcall      | indirect function call w/o return value
+   IR_FLOOKUP,       // .lstr       | function lookup
 
    NUM_IR_NODES,
 };
@@ -161,6 +164,10 @@ typedef struct ir_node {
          ir_reg_t dest, src;
          uintmax_t len;
       } copy;
+      struct {
+         ir_reg_t addr, dest;
+         struct ir_node** params;
+      } rcall;
    };
 } ir_node_t;
 

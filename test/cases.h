@@ -556,3 +556,14 @@
       "}",
    .ret_val = 5,
 },*/
+{
+   .name = "indirect function call",
+   .compiles = true,
+   .source =
+      "int add(int a, int b) { return a + b; }"
+      "int main(void) {"
+      "  auto f = &add;"
+      "  return f(3, 2);"
+      "}",
+   .ret_val = 5,
+},

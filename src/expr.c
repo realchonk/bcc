@@ -77,20 +77,8 @@ static struct expression* expr_prim(void) {
       expr->ch = tk.ch;
       break;
    case TK_NAME:
-      if (lexer_match(TK_LPAREN)) {
-         expr->type = EXPR_FCALL;
-         expr->fcall.name = tk.str;
-         expr->fcall.params = NULL;
-         if (!lexer_matches(TK_RPAREN)) {
-            do {
-               buf_push(expr->fcall.params, optim_expr(expr_assign()));
-            } while (lexer_match(TK_COMMA));
-         }
-         lexer_expect(TK_RPAREN);
-      } else {
-         expr->type = EXPR_NAME;
-         expr->str = tk.str;
-      }
+      expr->type = EXPR_NAME;
+      expr->str = tk.str;
       break;
    case TK_LPAREN:
       expr->cast.type = parse_value_type(scope);
@@ -133,13 +121,27 @@ static struct expression* expr_prim(void) {
 
    while (lexer_matches(TK_PLPL) || lexer_matches(TK_MIMI)
          || lexer_matches(TK_LBRACK) || lexer_matches(TK_DOT)
-         || lexer_matches(TK_ARROW)) {
+         || lexer_matches(TK_ARROW)
+         || lexer_matches(TK_LPAREN)) {
       if (!expr_is_lvalue(expr))
          parse_error(&expr->begin, "expected lvalue");
       struct expression* tmp = new_expr();
       tk = lexer_next();
       tmp->begin = expr->begin;
       switch (tk.type) {
+      case TK_LPAREN:
+      {
+         tmp->type = EXPR_FCALL;
+         tmp->fcall.func = expr;
+         tmp->fcall.params = NULL;
+         if (!lexer_matches(TK_RPAREN)) {
+            do {
+               buf_push(tmp->fcall.params, optim_expr(expr_assign()));
+            } while (lexer_match(TK_COMMA));
+         }
+         tmp->end = lexer_expect(TK_RPAREN).end;
+         break;
+      }
       case TK_LBRACK:
       {
          struct expression* add = new_expr();
@@ -616,7 +618,8 @@ void print_expr(FILE* file, const struct expression* e) {
       print_expr(file, e->cast.expr);
       break;
    case EXPR_FCALL:
-      fprintf(file, "%s(", e->fcall.name);
+      print_expr(file, e->fcall.func);
+      fputc('(', file);
       if (e->fcall.params) {
          print_expr(file, e->fcall.params[0]);
          for (size_t i = 1; i < buf_len(e->fcall.params); ++i) {

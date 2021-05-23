@@ -112,17 +112,20 @@ void parse_unit(void) {
       if (!has_begin) begin = type->begin;
       
       if (lexer_matches(TK_LPAREN)) {
-         struct function* func = parse_func_part(type, name);
+         struct function* func = malloc(sizeof(struct function));
+         if (!func) panic("failed to allocate function");
+         func->name = name;
+         func->type = type;
          {
             struct function* f = unit_get_func(name);
-            if (f) {
-               if (f->scope)
-                  parse_error(&begin, "function '%s' already defined", name);
-            }
+            if (f && f->scope)
+               parse_error(&begin, "function '%s' already defined", name);
          }
+         
+         buf_push(cunit.funcs, func);
+         parse_func_part(func);
          func->begin = begin;
          func->attrs = attrs;
-         buf_push(cunit.funcs, func);
          if (func->scope) {
             if (func->attrs & ATTR_EXTERN)
                parse_warn(&begin, "function definition shall not be extern");

@@ -68,7 +68,7 @@ struct expression {
          struct expression* expr;
       } cast;
       struct {
-         const char* name;
+         struct expression* func;
          struct expression** params;
       } fcall;
       struct {

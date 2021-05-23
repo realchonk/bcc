@@ -17,7 +17,7 @@ struct function {
    unsigned attrs;
 };
 
-struct function* parse_func_part(struct value_type* type, istr_t name);
+void parse_func_part(struct function*);
 void print_func(FILE*, const struct function*);
 void free_func(struct function*);
 

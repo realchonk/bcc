@@ -5,6 +5,7 @@
 #include "token.h"
 
 struct value_type;
+struct function;
 
 enum attribute {
    ATTR_EXTERN    = 0x0001,
@@ -139,5 +140,8 @@ struct struct_entry* struct_get_member(struct structure*, istr_t);
 size_t addrof_member(struct structure*, size_t);
 struct structure* real_struct(struct structure*, bool is_union);
 size_t struct_get_member_idx(struct structure*, istr_t);
+struct value_type* func2vt(const struct function*);
+bool is_func_vt(const struct value_type*);
+const struct value_type* actual_func_vt(const struct value_type*);
 
 #endif /* FILE_VALUE_H */

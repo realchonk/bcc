@@ -283,6 +283,27 @@ static bool remove_unreferenced(ir_node_t** n) {
    return success;
 }
 
+// (flookup R0, add; read.ptr R0, R0; rcall R0) -> (fcall add)
+static bool direct_call(ir_node_t** n) {
+   bool success = false;
+   for (ir_node_t* cur = *n; cur; cur = cur->next) {
+      if (cur->type == IR_FLOOKUP
+         && ir_isv(cur->next, IR_RCALL, IR_IRCALL, NUM_IR_NODES)
+         && cur->lstr.reg == cur->next->rcall.addr) {
+         
+         const ir_node_t* rcall = cur->next;
+         const istr_t name = cur->lstr.str;
+         cur->type = rcall->type == IR_IRCALL ? IR_IFCALL : IR_FCALL;
+         cur->ifcall.name = name;
+         cur->ifcall.dest = rcall->rcall.dest;
+         cur->ifcall.params = rcall->rcall.params;
+         cur->next->type = IR_NOP;
+         success = true;
+      }
+   }
+   return success;
+}
+
 ir_node_t* optim_ir_nodes(ir_node_t* n) {
    if (optim_level < 1) return n;
    while (remove_nops(&n)
@@ -292,6 +313,7 @@ ir_node_t* optim_ir_nodes(ir_node_t* n) {
       || reorder_params(&n)
       || add_zero(&n)
       || remove_unreferenced(&n)
+      || direct_call(&n)
    );
    return n;
 }

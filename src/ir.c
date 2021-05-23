@@ -65,6 +65,9 @@ const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_ARRAYLEN]     = "arraylen",
    [IR_GLOOKUP]      = "glookup",
    [IR_FCALL]        = "fcall",
+   [IR_IRCALL]       = "ircall",
+   [IR_RCALL]        = "rcall",
+   [IR_FLOOKUP]      = "flookup",
 };
 const char* ir_value_type_str[NUM_IR_VALUES] = {
    [IRT_REG]         = "register",
@@ -187,6 +190,7 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
       fprintf(file, " R%u, '%s'", n->lstr.reg, n->lstr.str);
       break;
    case IR_GLOOKUP:
+   case IR_FLOOKUP:
       fprintf(file, " R%u, %s", n->lstr.reg, n->lstr.str);
       break;
    case IR_JMP:
@@ -206,6 +210,12 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
    case IR_COPY:
       fprintf(file, " R%u, R%u, %ju", n->copy.dest, n->copy.src, n->copy.len);
       break;
+   case IR_IRCALL:
+      fprintf(file, " R%u, R%u", n->rcall.dest, n->rcall.addr);
+      break;
+   case IR_RCALL:
+      fprintf(file, " R%u", n->rcall.addr);
+      break;
    }
    fputc('\n', file);
 }
@@ -221,7 +231,7 @@ void print_ir_value(FILE* file, const struct ir_value* v) {
    }
 }
 void free_ir_node(ir_node_t* n) {
-   if (n->type == IR_IFCALL) {
+   if (n->type == IR_IFCALL || n->type == IR_FCALL || n->type == IR_RCALL || n->type == IR_IRCALL) {
       for (size_t i = 0; i < buf_len(n->ifcall.params); ++i)
          free_ir_nodes(n->ifcall.params[i]);
       buf_free(n->ifcall.params);

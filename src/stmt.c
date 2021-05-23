@@ -331,6 +331,10 @@ struct statement* parse_stmt(struct scope* scope) {
     
             if (var.init) {
                const struct value_type* old = get_value_type(scope, var.init);
+               print_value_type(stderr, var.type);
+               fputs(" = ", stderr);
+               print_value_type(stderr, old);
+               fputc('\n', stderr);
                if (!is_castable(old, var.type, true))
                   parse_error(&var.init->begin, "incompatible init value type");
             } else if (vtype->is_const && (vtype->type != VAL_POINTER || !vtype->pointer.is_array))

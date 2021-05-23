@@ -46,6 +46,7 @@ enum ir_value_size vt2irs(const struct value_type* vt) {
 #endif
    case VAL_POINTER:    return IRS_PTR;
    case VAL_ENUM:       return IRS_INT;
+   case VAL_FUNC:       return IRS_PTR;
    default:             panic("invalid value type '%d'", vt->type);
    }
 }
@@ -62,21 +63,31 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
       if (idx == SIZE_MAX) {
          idx = func_find_param_idx(scope->func, e->str);
          if (idx == SIZE_MAX) {
-            struct variable* var = unit_get_var(e->str);
-            if (!var) {
-               intmax_t val;
-               if (find_constant(e->str, &val)) {
+            struct symbol sym;
+            if (unit_find(e->str, &sym)) {
+               switch (sym.type) {
+               case SYM_VAR:
+                  n->type = IR_GLOOKUP;
+                  n->lstr.str = e->str;
+                  n->lstr.reg = creg++;
+                  break;
+               case SYM_CONST:
                   n->type = IR_LOAD;
                   n->load.dest = creg++;
-                  n->load.value = val;
+                  n->load.value = cunit.constants[sym.idx].value;
                   n->load.size = IRS_INT;
                   *is_lv = false;
-                  return n;
-               } else parse_error(&e->begin, "undeclared variable '%s'", e->str);
-            }
-            n->type = IR_GLOOKUP;
-            n->lstr.str = e->str;
-            n->lstr.reg = creg++;
+                  break;
+               case SYM_FUNC:
+                  n->type = IR_FLOOKUP;
+                  n->lstr.str = e->str;
+                  n->lstr.reg = creg++;
+                  *is_lv = false;
+                  break;
+               default:
+                  parse_error(&e->begin, "unsupported symbol type %d", sym.type);
+               }
+            } else parse_error(&e->begin, "undeclared symbol '%s'", e->str);
          } else {
             n->type = IR_FPARAM;
             n->fparam.reg = creg++;
@@ -310,34 +321,34 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    }
    case EXPR_FCALL:
    {
-      struct function* func = unit_get_func(e->fcall.name);
-      if (!func) parse_error(&e->begin, "function '%s' not found", e->fcall.name);
-      const bool has_rv = func->type->type != VAL_VOID;
-      n = new_node(IR_IFCALL);
-      if (!has_rv) n ->type = IR_FCALL;
-      n->ifcall.name = func->name;
-      if (has_rv) n->ifcall.dest = creg;
-      n->ifcall.params = NULL;
-
+      vt = get_value_type(scope, e->fcall.func);
+      const struct value_type* func = actual_func_vt(vt);
+      n = ir_expr(scope, e->fcall.func);
+      --creg;
+      const bool has_rv = func->func.ret_val->type != VAL_VOID;
+      ir_node_t* rc = new_node(has_rv ? IR_IRCALL : IR_RCALL);
+      rc->rcall.addr = creg;
+      rc->rcall.dest = creg;
+      rc->rcall.params = NULL;
       for (size_t i = 0; i < buf_len(e->fcall.params); ++i) {
          struct expression* p = e->fcall.params[i];
          const struct value_type* vp = get_value_type(scope, p);
          ir_node_t* ir = ir_expr(scope, p);
-         enum ir_value_size irs = i < buf_len(func->params) ? vt2irs(func->params[i].type) : IRS_INT;
+         enum ir_value_size irs = i < buf_len(func->func.params) ? vt2irs(func->func.params[i]) : IRS_INT;
          if (vt2irs(vp) != irs) {
             tmp = new_node(IR_IICAST);
             tmp->iicast.dest = tmp->iicast.src = creg - 1;
             tmp->iicast.ds = irs;
             tmp->iicast.ss = vt2irs(vp);
-            tmp->iicast.sign_extend = irs == IRS_PTR ? false : !func->type->integer.is_unsigned;
+            tmp->iicast.sign_extend = irs == IRS_PTR ? false : !func->func.ret_val->integer.is_unsigned;
             ir_append(ir, tmp);
          }
-         buf_push(n->ifcall.params, optim_ir_nodes(ir));
+         buf_push(rc->rcall.params, optim_ir_nodes(ir));
          --creg;
-
       }
       ++creg;
-      break;
+      ir_append(n, rc);
+      return n;
    }
    case EXPR_STRING:
       n = new_node(IR_LSTR);
