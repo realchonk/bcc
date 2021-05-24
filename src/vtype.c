@@ -187,7 +187,20 @@ struct value_type* make_int(enum integer_size sz, bool is_unsigned) {
    return vt;
 }
 
-// const unsigned int* const
+static struct value_type* parse_ptr(struct value_type* vt) {
+   while (lexer_matches(TK_STAR)) {
+      const struct token tk2 = lexer_next();
+      struct value_type* ptr = new_vt();
+      ptr->type = VAL_POINTER;
+      ptr->pointer.type = vt;
+      ptr->pointer.is_array = false;
+      ptr->begin = tk2.begin;
+      ptr->end = tk2.end;
+      while (lexer_match(KW_CONST)) ptr->is_const = true;
+      vt = ptr;
+   }
+   return vt;
+}
 struct value_type* parse_value_type(struct scope* scope) {
    struct value_type* vt = new_vt();
    bool has_begon = false;
@@ -391,17 +404,28 @@ struct value_type* parse_value_type(struct scope* scope) {
       vt->is_const = true;
       vt->end = lexer_next().end;
    }
-   while (lexer_matches(TK_STAR)) {
-      const struct token tk2 = lexer_next();
-      struct value_type* ptr = new_vt();
-      ptr->type = VAL_POINTER;
-      ptr->pointer.type = vt;
-      ptr->pointer.is_array = false;
-      ptr->begin = tk2.begin;
-      ptr->end = tk2.end;
-      while (lexer_match(KW_CONST)) ptr->is_const = true;
-      vt = ptr;
+   vt = parse_ptr(vt);
+   if (lexer_match(TK_LPAREN)) {
+      struct value_type* func = new_vt();
+      func->type = VAL_FUNC;
+      func->begin = vt->begin;
+      func->is_const = false;
+      func->func.name = NULL;
+      func->func.ret_val = vt;
+      func->func.params = NULL;
+      func->func.variadic = false;
+      if (!lexer_matches(TK_RPAREN)) {
+         do {
+            if (lexer_match(TK_DDD)) {
+               func->func.variadic = true;
+               break;
+            } else buf_push(func->func.params, parse_value_type(scope));
+            lexer_match(TK_NAME);
+         } while (lexer_match(TK_COMMA));
+      }
+      func->end = lexer_expect(TK_RPAREN).end;
    }
+   vt = parse_ptr(vt);
    return vt;
 }
 

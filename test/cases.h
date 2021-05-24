@@ -545,17 +545,6 @@
       "int main(void) { return sizeof(struct A); }",
    .ret_val = 2,
 },
-/*{
-   .name = "function pointer",
-   .compiles = true,
-   .source =
-      "int add(int a, int b) { return a + b; }"
-      "int main(void) {"
-      "  int(int, int)* f= &add;"
-      "  return f(3, 2);"
-      "}",
-   .ret_val = 5,
-},*/
 {
    .name = "indirect function call",
    .compiles = true,
@@ -609,4 +598,13 @@
       "  int a;"
       "};"
       "int main(void) {}",
+},
+{
+   .name = "function pointer",
+   .compiles = true,
+   .source =
+      "int add(int a, int b) { return a + b; }"
+      "int main(void) {"
+      "  int(int, int)* f= &add;"
+      "}",
 },

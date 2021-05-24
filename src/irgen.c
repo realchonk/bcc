@@ -293,10 +293,10 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    }
    case EXPR_ADDROF:
    {
+      const struct value_type* ve = get_value_type(scope, e->expr); 
       bool is_lv;
       n = ir_lvalue(scope, e->expr, &is_lv);
-      if (!is_lv) parse_error(&e->begin, "expected lvalue");
-      const struct value_type* ve = get_value_type(scope, e->expr); 
+      if (!is_lv && ve->type != VAL_FUNC) parse_error(&e->begin, "expected lvalue");
       if (ve->type == VAL_POINTER && ve->pointer.is_array) {
          tmp = new_node(IR_READ);
          tmp->move.dest = tmp->move.src = creg - 1;
