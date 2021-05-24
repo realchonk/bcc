@@ -1,4 +1,4 @@
-.TH bcc 1 "2021-05-23"
+.TH bcc 1 "2021-05-24"
 
 .SH NAME
 bcc - brainlet C compiler
@@ -139,7 +139,7 @@ not
 .RE
 - added
 .B arraylen
-operator, similar to the
+operator, which is similar to the
 .B sizeof
 operator. Instead it evaluates to the length in elements of the array.
 .RE
@@ -152,6 +152,12 @@ keyword behaves as in C++11.
 instead of
 .B int(*)(int, int)
 ).
+.RE
+- added
+.B typeof
+operator, which is similar to the
+.B sizeof
+operator. Instead it evaluates the type and returns a string(const char*).
 
 
 .SH OPTIMIZATIONS

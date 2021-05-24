@@ -335,7 +335,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          const struct value_type* vp = get_value_type(scope, p);
          ir_node_t* ir = ir_expr(scope, p);
          enum ir_value_size irs = i < buf_len(func->func.params) ? vt2irs(func->func.params[i]) : IRS_INT;
-         if (vt2irs(vp) != irs) {
+         if (vt2irs(vp) < irs) {
             tmp = new_node(IR_IICAST);
             tmp->iicast.dest = tmp->iicast.src = creg - 1;
             tmp->iicast.ds = irs;
@@ -483,6 +483,28 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          } else n->load.value = sizeof_value(nvt, false);
       } else n->load.value = sizeof_value(e->szof.type, false);
       n->load.size = IRS_INT;
+      break;
+   }
+   case EXPR_TYPEOF:
+   {
+      char* buffer = NULL;
+      size_t size = 0;
+      FILE* file = open_memstream(&buffer, &size);
+      if (!file) panic("failed to open_memstream() for typeof");
+
+      if (e->szof.has_expr) {
+         print_value_type(file, get_value_type(scope, e->szof.expr));
+      } else {
+         print_value_type(file, e->szof.type);
+      }
+      
+      fclose(file);
+
+      n = new_node(IR_LSTR);
+      n->lstr.reg = creg++;
+      n->lstr.str = strint(buffer);
+
+      free(buffer);
       break;
    }
    case EXPR_ARRAYLEN:

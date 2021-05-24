@@ -30,6 +30,7 @@ const char* expr_type_str[NUM_EXPRS] = {
    [EXPR_SIZEOF]     = "sizeof",
    [EXPR_ARRAYLEN]   = "arraylen",
    [EXPR_MEMBER]     = "member",
+   [EXPR_TYPEOF]     = "typeof",
 };
 
 struct expression* new_expr(void) {
@@ -99,7 +100,20 @@ static struct expression* expr_prim(void) {
       expr->type = EXPR_SIZEOF;
       if (lexer_match(TK_LPAREN)) {
          struct value_type* vt = parse_value_type(scope);
-         expr->szof.has_expr = vt == NULL;
+         expr->szof.has_expr = (vt == NULL);
+         if (!vt) expr->szof.expr = expr_unary();
+         else expr->szof.type = vt;
+         expr->end = lexer_expect(TK_RPAREN).end;
+      } else {
+         expr->szof.has_expr = true;
+         expr->szof.expr = expr_unary();
+      }
+      break;
+   case KW_TYPEOF:
+      expr->type = EXPR_TYPEOF;
+      if (lexer_match(TK_LPAREN)) {
+         struct value_type* vt = parse_value_type(scope);
+         expr->szof.has_expr = (vt == NULL);
          if (!vt) expr->szof.expr = expr_unary();
          else expr->szof.type = vt;
          expr->end = lexer_expect(TK_RPAREN).end;
@@ -525,6 +539,7 @@ void free_expr(struct expression* e) {
       buf_free(e->fcall.params);
       break;
    case EXPR_SIZEOF:
+   case EXPR_TYPEOF:
       if (e->szof.has_expr) free_expr(e->szof.expr);
       else free_value_type(e->szof.type);
    case EXPR_MEMBER:
@@ -641,6 +656,13 @@ void print_expr(FILE* file, const struct expression* e) {
       else print_value_type(file, e->szof.type);
       fputc(')', file);
       break;
+   case EXPR_TYPEOF:
+      fputs("typeof (", file);
+      if (e->szof.has_expr)
+         print_expr(file, e->szof.expr);
+      else print_value_type(file, e->szof.type);
+      fputc(')', file);
+      break;
    case EXPR_MEMBER:
       print_expr(file, e->member.base);
       fprintf(file, ".%s", e->member.name);
@@ -685,6 +707,7 @@ bool expr_is_pure(const struct expression* e) {
    case EXPR_SIZEOF:
    case EXPR_ARRAYLEN:
    case EXPR_MEMBER:
+   case EXPR_TYPEOF:
       return true;
 
    case EXPR_PAREN:

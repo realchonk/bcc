@@ -502,6 +502,8 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
    case EXPR_INT:
    case EXPR_UINT:
       type = new_vt();
+      type->begin = e->begin;
+      type->end = e->end;
       type->type = VAL_INT;
       type->is_const = false;
       type->integer.is_unsigned = e->type == EXPR_UINT;
@@ -510,6 +512,19 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
       } else {
          type->integer.size = e->iVal > target_info.max_int ? INT_LONG : INT_INT;
       }
+      return type;
+   case EXPR_TYPEOF:
+      type = new_vt();
+      type->begin = e->begin;
+      type->end = e->end;
+      type->type = VAL_POINTER;
+      type->is_const = true;
+      type->pointer.type = new_vt();
+      type->pointer.type->type = VAL_INT;
+      type->pointer.type->begin = e->begin;
+      type->pointer.type->end = e->end;
+      type->pointer.type->integer.size = INT_CHAR;
+      type->pointer.type->integer.is_unsigned = target_info.unsigned_char;
       return type;
    case EXPR_ARRAYLEN:
    case EXPR_SIZEOF:

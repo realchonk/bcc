@@ -28,6 +28,7 @@ enum expression_type {
    EXPR_SIZEOF,      // .szof       | sizeof operator
    EXPR_ARRAYLEN,    // .expr       | arraylen operator
    EXPR_MEMBER,      // .member     | st.member
+   EXPR_TYPEOF,      // .szof       | get type of ... as string
 
    NUM_EXPRS,
 };

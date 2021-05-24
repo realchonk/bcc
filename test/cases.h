@@ -608,3 +608,24 @@
       "  int(int, int)* f= &add;"
       "}",
 },
+{
+   .name = "typeof(int)",
+   .compiles = true,
+   .source =
+      "int printf(const char*, ...);"
+      "int main(void) {"
+      "  printf(\"typeof(int)=%s\", typeof(int));"
+      "}",
+   .output = "typeof(int)=int",
+},
+{
+   .name = "typeof(func-ptr)",
+   .compiles = true,
+   .source =
+      "int puts(const char*);"
+      "int add(int, int);"
+      "int main(void) {"
+      "  puts(typeof(&add));"
+      "}",
+   .output = "int(int, int)*",
+},
