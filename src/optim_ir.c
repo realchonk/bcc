@@ -304,6 +304,36 @@ static bool direct_call(ir_node_t** n) {
    return success;
 }
 
+// (imod R0, R0, 16) -> (iand R0, R0, 15)
+// (imod R0, R0, 1) -> (load R0, 0)
+// (imod R0, R0, 0) -> (warning)
+static bool mod_to_and(ir_node_t** n) {
+   bool success = false;
+   for (ir_node_t* cur = *n; cur; cur = cur->next) {
+      if ((cur->type == IR_IMOD || cur->type == IR_UMOD)
+         && cur->binary.b.type == IRT_UINT
+         && cur->binary.a.type == IRT_REG) {
+         const unsigned pc = popcnt(cur->binary.b.uVal);
+         if (pc == 1) {
+            const uintmax_t mask = cur->binary.b.uVal - 1;
+            if (mask) {
+               cur->type = IR_IAND;
+               cur->binary.b.uVal = mask;
+            } else {
+               const ir_reg_t dest = cur->binary.dest;
+               const enum ir_value_size sz = cur->binary.size;
+               cur->type = IR_LOAD;
+               cur->load.dest = dest;
+               cur->load.size = sz;
+               cur->load.value = 0;
+            }
+            success = true;
+         } else if (!pc) fprintf(stderr, "integer modulo by zero in IR code\n");
+      }
+   }
+   return success;
+}
+
 ir_node_t* optim_ir_nodes(ir_node_t* n) {
    if (optim_level < 1) return n;
    while (remove_nops(&n)
@@ -314,6 +344,7 @@ ir_node_t* optim_ir_nodes(ir_node_t* n) {
       || add_zero(&n)
       || remove_unreferenced(&n)
       || direct_call(&n)
+      || mod_to_and(&n)
    );
    return n;
 }
