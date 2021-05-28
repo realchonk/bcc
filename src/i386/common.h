@@ -10,6 +10,14 @@ static istr_t* defined = NULL;
 static struct stack_alloc_entry** stack_alloc;
 static struct stack_alloc_entry* stack_cur_alloc;
 
+struct machine_option {
+   const char* name;
+   bool value;
+};
+static struct machine_option mopts[] = {
+   { "stack-check", false },
+};
+
 static const char* nasm_size(enum ir_value_size s) {
    switch (s) {
    case IRS_BYTE:
@@ -191,7 +199,22 @@ static void emit_func(const struct function* func, const ir_node_t* n) {
 }
 // TODO: implement machine-specific options
 void emit_unit(const char** opts) {
-   (void)opts;
+   for (size_t i = 0; i < buf_len(opts); ++i) {
+      bool found = false;
+      for (size_t j = 0; j < arraylen(mopts); ++j) {
+         if (!strcmp(opts[i], mopts[j].name)) {
+            mopts[j].value = true;
+            found = true;
+            break;
+         }
+         else if (!memcmp(opts[i], "no-", 3) && !strcmp(opts[i] + 3, mopts[j].name)) {
+            mopts[j].value = false;
+            found = true;
+            break;
+         }
+      }
+      if (!found) printf("bcc: unknown option -m%s\n", opts[i]);
+   }
    emit_begin();
    for (size_t i = 0; i < buf_len(cunit.funcs); ++i) {
       const struct function* f = cunit.funcs[i];
@@ -240,4 +263,20 @@ static void free_stack(void) {
    if (const_sz) emit("add %s, %zu", reg_sp, const_sz);
 
    buf_free(e);
+}
+static bool has_mach_opt(const char* name) {
+   for (size_t i = 0; i < arraylen(mopts); ++i) {
+      if (!strcmp(name, mopts[i].name))
+         return mopts[i].value;
+   }
+   return false;
+}
+static void add_unresolved(istr_t name) {
+   for (size_t i = 0; i < buf_len(defined); ++i) {
+      if (defined[i] == name) return;
+   }
+   for (size_t i = 0; i < buf_len(unresolved); ++i) {
+      if (unresolved[i] == name) return;
+   }
+   buf_push(unresolved, name);
 }

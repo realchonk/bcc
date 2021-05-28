@@ -192,6 +192,13 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       if (!(n->func->attrs & ATTR_STATIC))
          emit("global %s", n->func->name);
       emit("%s:", n->func->name);
+      if (has_mach_opt("stack-check")) {
+         add_unresolved(strint("puts"));
+         add_unresolved(strint("abort"));
+         request_builtin("__check_sp");
+         emit("call __check_sp");
+         buf_push(defined, strint("__check_sp"));
+      }
       emit("push %s", reg_bp);
       emit("mov %s, %s", reg_bp, reg_sp);
       esp = REGSIZE * 2;
@@ -204,7 +211,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       }
 #endif
       const size_t sz = align_stack_size(sizeof_scope(n->func->scope));
-      emit("sub %s, %zu", reg_sp, sz);
+      if (sz) emit("sub %s, %zu", reg_sp, sz);
       assign_scope(n->func->scope, &addr);
       esp += sz;
       stack_cur_alloc = NULL;

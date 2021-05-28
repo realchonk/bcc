@@ -8,7 +8,10 @@ void parse_func_part(struct function* func) {
    func->ir_code = NULL;
    lexer_expect(TK_LPAREN);
 
-   if (!lexer_matches(TK_RPAREN)) {
+   if (lexer_matches(TK_RPAREN)) {
+      func->variadic = true;
+      func->params = NULL;
+   } else {
       do {
          if (lexer_match(TK_DDD)) {
             func->variadic = true;

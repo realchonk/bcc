@@ -43,6 +43,31 @@ struct builtin_func builtin_funcs[] = {
    gen_mod(16, u,  ax,  dx, word, div),
    gen_mod(32, u, eax, edx, dword, div),
    gen_mod(64, u, rax, rdx, qword, div),
+   {
+      .name = "__check_sp",
+      .code =
+         "check_sp:\n"
+         "mov ax, sp\n"
+         "and al, 15\n"
+         "test al, 3\n"
+         "jnz .major\n"
+         "test al, al\n"
+         "jne .minor\n"
+         "ret\n"
+         ".major:\n"
+         "lea rdi, [rel .major_err]\n"
+         "call [rel puts wrt ..got]\n"
+         "jmp [rel abort wrt ..got]\n"
+         ".minor:\n"
+         "lea rdi, [rel .minor_err]\n"
+         "call [rel puts wrt ..got]\n"
+         "jmp [rel abort wrt ..got]\n"
+         "section .rodata\n"
+         ".major_err: db \"Stack is not 4-byte aligned.\", 10, 0\n"
+         ".minor_err: db \"Stack is not 16-byte aligned.\", 10, 0\n"
+         "section .text\n"
+
+   },
 };
 
 const size_t num_builtin_funcs = arraylen(builtin_funcs);
