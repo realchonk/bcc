@@ -47,12 +47,10 @@ struct builtin_func builtin_funcs[] = {
       .name = "__check_sp",
       .code =
          "check_sp:\n"
-         "mov ax, sp\n"
-         "and al, 15\n"
-         "test al, 3\n"
+         "test spl, 3\n"
          "jnz .major\n"
-         "test al, al\n"
-         "jne .minor\n"
+         "test spl, 15\n"
+         "jnz .minor\n"
          "ret\n"
          ".major:\n"
          "lea rdi, [rel .major_err]\n"
