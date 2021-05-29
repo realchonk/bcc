@@ -59,8 +59,13 @@ int main(int argc, char* argv[]) {
       }
       case 'V':
          printf("bcc %s\nCopyleft Benjamin Stürz.\n"
-               "This software is distributed under the terms of the GPLv2\n"
-               "Compiled on %s for %s\n", BCC_VER, __DATE__, BCC_ARCH);
+               "This software is distributed under the terms of the GPLv2\n", BCC_VER);
+#if DISABLE_FP
+         puts("Has floating-point: no");
+#else
+         puts("Has floating-point: yes");
+#endif
+         printf("Compiled on %s for %s\n", __DATE__, BCC_ARCH);
          return 0;
       case 'm':
          buf_push(target_opts, optarg);

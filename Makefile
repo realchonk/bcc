@@ -56,6 +56,7 @@ todo:
 install:
 	install -Dm755 bcc $(PREFIX)/$(BINDIR)/bcc
 	install -Dm644 bcc.1 $(PREFIX)/$(MANDIR)/bcc.1
+	sed -i "s/VERSION/$(VER)/g" $(PREFIX)/$(MANDIR)/bcc.1
 
 check: test
 test:
