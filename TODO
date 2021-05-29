@@ -8,8 +8,8 @@ Long term:
 - more optimization techniques
 - improve warnings
 - port to other architectures (like RISC-V, ARM)
+- floating-point support
 
 Short term:
 - indirect function call support for x86
 - fix stack-alignment for x86
-- parsing of function-pointer types
