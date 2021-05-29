@@ -47,7 +47,7 @@ struct builtin_func builtin_funcs[] = {
       .name = "__check_sp",
       .code =
          "check_sp:\n"
-         "test spl, 3\n"
+         "test spl, 7\n"
          "jnz .major\n"
          "test spl, 15\n"
          "jnz .minor\n"
