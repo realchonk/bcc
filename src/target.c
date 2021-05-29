@@ -5,12 +5,27 @@
 
 #define ASM_INDENT ' '
 
+struct builtin_type {
+   istr_t name;
+   struct value_type* vt;
+};
+
+static struct builtin_type* btypes = NULL;
+
 static FILE* file = NULL;
 unsigned asm_indent = 0;
 
 void emit_init(FILE* f) {
    file = f;
    asm_indent = 0;
+   add_builtin_type("__builtin_int8_t", make_int(target_info.size_int8,    false));
+   add_builtin_type("__builtin_int16_t", make_int(target_info.size_int16,  false));
+   add_builtin_type("__builtin_int32_t", make_int(target_info.size_int32,  false));
+   add_builtin_type("__builtin_int64_t", make_int(target_info.size_int64,  false));
+   add_builtin_type("__builtin_uint8_t", make_int(target_info.size_int8,   true));
+   add_builtin_type("__builtin_uint16_t", make_int(target_info.size_int16, true));
+   add_builtin_type("__builtin_uint32_t", make_int(target_info.size_int32, true));
+   add_builtin_type("__builtin_uint64_t", make_int(target_info.size_int64, true));
 }
 
 void emit_free(void) {
@@ -87,4 +102,17 @@ void request_builtin(const char* name) {
       if (!strcmp(name, builtin_funcs[i].name))
          builtin_funcs[i].requested = true;
    }
+}
+const struct value_type* get_builtin_type(istr_t name) {
+   for (size_t i = 0; i < buf_len(btypes); ++i) {
+      if (name == btypes[i].name)
+         return btypes[i].vt;
+   }
+   return NULL;
+}
+void add_builtin_type(const char* name, struct value_type* vt) {
+   struct builtin_type t;
+   t.name = strint(name);
+   t.vt = vt;
+   buf_push(btypes, t);
 }

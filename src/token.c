@@ -132,5 +132,5 @@ void print_token_info(FILE* file, const struct token* tk) {
    fputs(" }", file);
 }
 void print_source_pos(FILE* file, const struct source_pos* p) {
-   fprintf(file, "%s:%zu:%zu", p->file, p->line + 1, p->column + 1);
+   fprintf(file, "%s:%zu:%zu", p->file ? p->file : "<source>", p->line + 1, p->column + 1);
 }

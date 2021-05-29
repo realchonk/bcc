@@ -209,8 +209,6 @@ struct value_type* parse_value_type(struct scope* scope) {
    vt->integer.is_unsigned = false;
    vt->is_const = false;
    
-
-
    while (lexer_matches(KW_CONST) || lexer_matches(KW_SIGNED) || lexer_matches(KW_UNSIGNED)) {
       const struct token tk = lexer_next();
       switch (tk.type) {
@@ -382,7 +380,12 @@ struct value_type* parse_value_type(struct scope* scope) {
       if (vt->type != NUM_VALS) return vt;
       else if (!has_begon && scope && var_is_declared(tk.str, scope)) return NULL;
       struct typerename* td = unit_get_typedef(tk.str);
-      if (!td) return NULL;
+      if (!td) {
+         const struct value_type* at = get_builtin_type(tk.str);
+         if (!at) return NULL;
+         lexer_skip();
+         return copy_value_type(at);
+      }
       lexer_skip();
       free_value_type(vt);
       vt = copy_value_type(td->type);

@@ -42,6 +42,11 @@ struct target_info {
 
    const enum integer_size ptrdiff_type;
    const bool has_c99_array; // variable-length array support?
+
+   enum integer_size size_int8;
+   enum integer_size size_int16;
+   enum integer_size size_int32;
+   enum integer_size size_int64;
 };
 
 struct builtin_func {
@@ -67,5 +72,7 @@ bool is_builtin_func(const char*);
 void reset_buitins(void);
 size_t irs2sz(enum ir_value_size);
 void request_builtin(const char* name);
+const struct value_type* get_builtin_type(istr_t name);
+void add_builtin_type(const char* name, struct value_type*);
 
 #endif /* FILE_TARGET_H */

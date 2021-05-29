@@ -47,7 +47,7 @@ void parse_unit(void) {
          alias.begin = lexer_next().begin;
          alias.type = parse_value_type(NULL);
          if (!alias.type)
-            parse_error(&alias.end, "failed to parse type");
+            parse_error(&alias.begin, "failed to parse type");
          switch (alias.type->type) {
          case VAL_ENUM:
             unit_add_enum(alias.type);

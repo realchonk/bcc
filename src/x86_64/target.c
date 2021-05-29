@@ -44,6 +44,11 @@ const struct target_info target_info = {
 
    .ptrdiff_type = INT_LONG,
    .has_c99_array = true,
+
+   .size_int8 = INT_BYTE,
+   .size_int16 = INT_SHORT,
+   .size_int32 = INT_INT,
+   .size_int64 = INT_LONG,
 };
 
 int assemble(const char* source, const char* output) {
