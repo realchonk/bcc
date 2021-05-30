@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include <ctype.h>
 #include "parser.h"
 #include "target.h"
 #include "lex.h"
@@ -28,12 +29,81 @@ static void remove_asm_file(void) {
    remove(remove_asm_filename);
 }
 
+static int get_mach_opt_vtype(const char* value) {
+   if (!value) return 0;
+   while (isdigit(*value)) ++value;
+   return *value ? 2 : 1;
+}
+static bool parse_mach_opt(char* arg) {
+   if (!strcmp(arg, "help")) {
+      puts("Machine Options for " BCC_ARCH);
+      const size_t max_len = 24;
+      for (size_t i = 0; i < num_mach_opts; ++i) {
+         const struct machine_option* opt = &mach_opts[i];
+         size_t n = (size_t)printf("-m%s", opt->name);
+         switch (opt->type) {
+         case 1:
+            n += (size_t)printf("=integer");
+            break;
+         case 2:
+            n += (size_t)printf("=integer");
+            break;
+         default:
+            break;
+         }
+         for (; n < max_len; ++n)
+            putchar(' ');
+         puts(opt->description);
+      }
+      return false;
+   }
+   char* value = strchr(arg, '=');
+   const size_t len_arg = value ? (size_t)(value - arg) : strlen(arg);
+   for (size_t i = 0; i < num_mach_opts; ++i) {
+      struct machine_option* opt = &mach_opts[i];
+      const size_t len_name = strlen(opt->name);
+      if (len_name == len_arg && !memcmp(arg, opt->name, len_arg)) {
+         const int type = get_mach_opt_vtype(value);
+         if (type != opt->type) {
+            if (value) *value = '\0';
+            fprintf(stderr, "bcc: invalid type for option '-m%s'\n", arg);
+            return false;
+         } else if (value) {
+            if (type == 1) opt->iVal = atoi(value);
+            else if (type == 2) opt->sVal = value;
+            else {
+               *value = '\0';
+               fprintf(stderr, "bcc: unexpected value for '-m%s'\n", arg);
+               return false;
+            }
+         } else if (!value) {
+            if (type == 0) opt->bVal = true;
+            else {
+               fprintf(stderr, "bcc: expected value for '-m%s'\n", arg);
+               return false;
+            }
+         }
+         return true;
+      } else if (len_arg == (len_name + 3) && !memcmp("no-", arg, 3) && !memcmp(opt->name, arg + 3, len_arg - 3)) {
+         if (value) {
+            *value = '\0';
+            fprintf(stderr, "bcc: unexpected '=' for '-m%s'\n", arg);
+            return false;
+         } else if (opt->type) break;
+         opt->bVal = 0;
+         return true;
+      }
+   }
+   if (value) *value = '\0';
+   fprintf(stderr, "bcc: invalid option '-m%s'\n", arg);
+   return false;
+}
+
 int main(int argc, char* argv[]) {
    const char* output_file = NULL;
    int level = 'c';
    enable_warnings = true;
    optim_level = 1;
-   const char** target_opts = NULL;
    int option;
    while ((option = getopt(argc, argv, ":m:VO:wciSAo:")) != -1) {
       switch (option) {
@@ -68,7 +138,7 @@ int main(int argc, char* argv[]) {
          printf("Compiled on %s for %s\n", __DATE__, BCC_ARCH);
          return 0;
       case 'm':
-         buf_push(target_opts, optarg);
+         if (!parse_mach_opt(optarg)) return false;
          break;
       case ':':
          fprintf(stderr, "bcc: missing argument for '-%c'\n", optopt);
@@ -125,7 +195,7 @@ int main(int argc, char* argv[]) {
    parse_unit();
    if (level == 'A') print_unit(output);
    else if (level == 'i') print_ir_unit(output);
-   else emit_unit(target_opts);
+   else emit_unit();
    free_unit();
    lexer_free();
    

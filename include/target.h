@@ -55,17 +55,30 @@ struct builtin_func {
    bool requested;
 };
 
+struct machine_option {
+   const char* name;
+   const char* description;
+   int type; // 0=bool, 1=int, 2=string
+   union {
+      bool bVal;
+      int iVal;
+      const char* sVal;
+   };
+};
+
 extern const struct target_info target_info;
 extern unsigned asm_indent;
 extern struct builtin_func builtin_funcs[];
 extern const size_t num_builtin_funcs;
+extern struct machine_option mach_opts[];
+extern const size_t num_mach_opts;
 struct function;
 
 void emit_init(FILE*);
 void emit_free(void);
 void emit(const char*, ...);
 void emitraw(const char*, ...);
-void emit_unit(const char**);
+void emit_unit(void);
 int assemble(const char* source, const char* output);
 uintmax_t target_get_umax(enum ir_value_size);
 bool is_builtin_func(const char*);

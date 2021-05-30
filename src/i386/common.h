@@ -9,14 +9,10 @@ static istr_t* unresolved = NULL;
 static istr_t* defined = NULL;
 static struct stack_alloc_entry** stack_alloc;
 static struct stack_alloc_entry* stack_cur_alloc;
-
-struct machine_option {
-   const char* name;
-   bool value;
+struct machine_option mach_opts[] = {
+   { "stack-check", "Perform stack aligment checking on every function entry", 0, .bVal = false },
 };
-static struct machine_option mopts[] = {
-   { "stack-check", false },
-};
+const size_t num_mach_opts = arraylen(mach_opts);
 
 static const char* nasm_size(enum ir_value_size s) {
    switch (s) {
@@ -197,24 +193,7 @@ static void emit_func(const struct function* func, const ir_node_t* n) {
    esp = 0;
    while ((n = emit_ir(n)) != NULL);
 }
-// TODO: implement machine-specific options
-void emit_unit(const char** opts) {
-   for (size_t i = 0; i < buf_len(opts); ++i) {
-      bool found = false;
-      for (size_t j = 0; j < arraylen(mopts); ++j) {
-         if (!strcmp(opts[i], mopts[j].name)) {
-            mopts[j].value = true;
-            found = true;
-            break;
-         }
-         else if (!memcmp(opts[i], "no-", 3) && !strcmp(opts[i] + 3, mopts[j].name)) {
-            mopts[j].value = false;
-            found = true;
-            break;
-         }
-      }
-      if (!found) printf("bcc: unknown option -m%s\n", opts[i]);
-   }
+void emit_unit(void) {
    emit_begin();
    for (size_t i = 0; i < buf_len(cunit.funcs); ++i) {
       const struct function* f = cunit.funcs[i];
@@ -265,9 +244,9 @@ static void free_stack(void) {
    buf_free(e);
 }
 static bool has_mach_opt(const char* name) {
-   for (size_t i = 0; i < arraylen(mopts); ++i) {
-      if (!strcmp(name, mopts[i].name))
-         return mopts[i].value;
+   for (size_t i = 0; i < arraylen(mach_opts); ++i) {
+      if (!strcmp(name, mach_opts[i].name))
+         return mach_opts[i].type != 0 || mach_opts[i].bVal;
    }
    return false;
 }

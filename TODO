@@ -13,3 +13,5 @@ Long term:
 Short term:
 - indirect function call support for x86
 - fix stack-alignment for x86
+- fix calling convention for struct/union
+- fix type for &&, ||

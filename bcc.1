@@ -1,4 +1,4 @@
-.TH bcc 1 "2021-05-29" "bcc-VERSION"
+.TH bcc 1 "2021-05-30" "bcc-VERSION"
 
 .SH NAME
 bcc - brainlet C compiler
@@ -101,13 +101,16 @@ The source file, for which to generate the output.
 .I level
 .RE
 .RS 5
-The optimization level to perform. (default: 0)
+The optimization level to perform. (default: 1)
 
 .RE
 .I mach_opt
 .RE
 .RS 5
-A target-specific option. (Currently none)
+A target-specific option.
+For a list of all target-specific options issue
+.I -mhelp\fR.
+
 
 .SH LANGUAGE
 .I WIP
