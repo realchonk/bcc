@@ -1,4 +1,4 @@
-VER="0.7"
+VER="0.8"
 
 ifeq ($(TARGET),)
 ARCH=$(shell ./util/getarch.sh)

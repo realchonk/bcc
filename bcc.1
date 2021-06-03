@@ -1,4 +1,4 @@
-.TH bcc 1 "2021-05-30" "bcc-VERSION"
+.TH bcc 1 "2021-06-03" "bcc-VERSION"
 
 .SH NAME
 bcc - brainlet C compiler
@@ -7,7 +7,7 @@ bcc - brainlet C compiler
 .SY bcc
 .OP -c\fR|\fB-i\fR|\fB-A\fR|\fB-S
 .OP -w
-.OP -O \fIlevel\fR
+.OP -O \fIolevel\fR
 .OP -o \fIoutput\fR
 .OP -m \fImach_opt\fR
 .I source
@@ -20,7 +20,8 @@ bcc - brainlet C compiler
 The
 .I bcc
 compiler is a small compiler for a C-like language.
-The language currently has a minimal type-system. (SEE \fILANGUAGE\fR)
+The language and the compiler are not fully complete
+and contain bugs.
 
 .SH OPTIONS
 .B -o \fIoutput\fR
@@ -63,12 +64,12 @@ Only emit the intermediate representation.
 Emit the assembly output.
 .RE
 .B -O
-.I level
+.I olevel
 .RE
 .RS 5
 Specify the
 .I optimization
-level. (possible values: 0, 1, 2)
+level. (possible values: 0, 1, 2, 3)
 .RE
 .B -w
 .RE
@@ -98,10 +99,14 @@ The output file, to which to write the resulting output.
 The source file, for which to generate the output.
 
 .RE
-.I level
+.I olevel
 .RE
 .RS 5
 The optimization level to perform. (default: 1)
+.RE
+.RS 5
+Optimization levels 2 and above are considered experimental.
+It is not recommended to use an optimization level of 3.
 
 .RE
 .I mach_opt
@@ -109,7 +114,7 @@ The optimization level to perform. (default: 1)
 .RS 5
 A target-specific option.
 For a list of all target-specific options issue
-.I -mhelp\fR.
+.B bcc -mhelp\fR.
 
 
 .SH LANGUAGE
