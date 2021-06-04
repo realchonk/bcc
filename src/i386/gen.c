@@ -92,41 +92,6 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       emit("%s %s", instr, reg);
       return n->next;
    }
-   case IR_IMUL:
-      instr = "imul";
-      goto ir_mul;
-   case IR_UMUL:
-      instr = "mul";
-   {
-   ir_mul:;
-      const char* a = irv2str(&n->binary.a, n->binary.size);
-      const char* b = irv2str(&n->binary.b, n->binary.size);
-      const char* eax;
-      const char* dest;
-      reg_op(eax, 0, n->binary.size);
-      reg_op(dest, n->binary.dest, n->binary.size);
-      if (n->binary.dest != reg_dxi) emit("push %s", reg_dx);
-      if (n->binary.a.type != IRT_REG || n->binary.dest != n->binary.a.reg) {
-         emit("mov %s, %s", dest, a);
-      }
-      if (n->binary.dest != 0) {
-         emit("push %s", reg_ax);
-         emit("mov %s, %s", eax, dest);
-      }
-
-      if (n->binary.b.type == IRT_UINT) {
-         emit("mov %s, %ju", reg_dx, n->binary.b.uVal);
-         b = reg_dx;
-      }
-      emit("%s %s", instr, b);
-
-      if (n->binary.dest != 0) {
-         emit("mov %s, %s", dest, eax);
-         emit("pop %s", reg_ax);
-      }
-      if (n->binary.dest != reg_dxi) emit("pop %s", reg_dx);
-      return n->next;
-   }
    case IR_IDIV:
       instr = "sdiv";
       goto ir_div;
@@ -138,6 +103,12 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       goto ir_div;
    case IR_UMOD:
       instr = "umod";
+      goto ir_div;
+   case IR_IMUL:
+      instr = "smul";
+      goto ir_div;
+   case IR_UMUL:
+      instr = "umul";
    {
    ir_div:;
       const char* a = irv2str(&n->binary.a, IRS_PTR);
@@ -528,8 +499,10 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
 #endif
       return n->next;
    }
-   case IR_GLOOKUP:
    case IR_FLOOKUP:
+      emit("mov %s, %s", mreg(n->lstr.reg), n->lstr.str);
+      return n->next;
+   case IR_GLOOKUP:
       emit("lea %s, [%s]", mreg(n->lstr.reg), n->lstr.str);
       return n->next;
    case IR_BNOT:
@@ -550,10 +523,8 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       const size_t np = buf_len(n->rcall.params);
       size_t i;
       uintreg_t padding;
-      if (!n->rcall.dest) {
-         emit("push %s", reg_dx);
-         esp += REGSIZE;
-      }
+      emit("push %s", reg_bx);
+      esp += REGSIZE;
       for (i = 0; i < n->rcall.dest; ++i) {
          emit("push %s", mreg(i));
          esp += REGSIZE;
@@ -583,31 +554,32 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
          }
          else emit("push %s", mreg(n->rcall.dest));
       }
-      for (; i > 0; --i) {
-         emit("pop %s", mreg(param_regs[i - 1]));
-      }
-      
-      ir_node_t* tmp = n->rcall.addr;
-      while ((tmp = emit_ir(tmp)) != NULL);
-      if (!n->rcall.dest) {
-         emit("mov %s, %s", reg_dx, reg_ax);
-      }
-      if (n->rcall.variadic) emit_clear(reg_ax);
-      if (n->rcall.dest != 0) emit("call %s", mreg(n->rcall.dest));
-      else emit("call %s", reg_dx);
-
-      size_t add_rsp = padding;
-      if (np > arraylen(param_regs)) add_rsp += (np - arraylen(param_regs)) * REGSIZE;
-      if (add_rsp) emit("add %s, %u", reg_sp, add_rsp);
-
 #else
       for (size_t i = np; i != 0; --i) {
          ir_node_t* tmp = n->rcall.params[i - 1];
          while ((tmp = emit_ir(tmp)) != NULL);
          emit("push %s", mreg(n->rcall.dest));
       }
-      emit("call %s", n->rcall.name);
-      emit("add %s, %u", reg_sp, padding + REGSIZE * np);
+#endif
+      
+      ir_node_t* tmp = n->rcall.addr;
+      while ((tmp = emit_ir(tmp)) != NULL);
+      
+#if BCC_x86_64
+      emit("mov %s, %s", reg_bx, mreg(n->rcall.dest));
+
+      for (; i > 0; --i) {
+         emit("pop %s", mreg(param_regs[i - 1]));
+      }
+      if (n->rcall.variadic) emit_clear(reg_ax);
+      emit("call %s", reg_bx);
+
+      size_t add_rsp = padding;
+      if (np > arraylen(param_regs)) add_rsp += (np - arraylen(param_regs)) * REGSIZE;
+      if (add_rsp) emit("add %s, %u", reg_sp, add_rsp);
+#else
+      emit("call %s", mreg(n->rcall.dest));
+      if (padding && np) emit("add %s, %u", reg_sp, padding + REGSIZE * np);
 #endif
       if (n->rcall.dest != 0 && n->type != IR_FCALL) {
          emit("mov %s, %s", mreg(n->rcall.dest), reg_ax);
@@ -616,10 +588,8 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
          emit("pop %s", mreg(i - 1));
          esp -= REGSIZE;
       }
-      if (!n->rcall.dest) {
-         emit("pop %s", reg_dx);
-         esp -= REGSIZE;
-      }
+      emit("pop %s", reg_bx);
+      esp -= REGSIZE;
       return n->next;
    }
 

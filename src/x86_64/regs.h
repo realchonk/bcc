@@ -11,6 +11,7 @@ static size_t param_regs[] = { 1, 2, 3, 4, 5, 6 };
 #define reg_sp "rsp"
 #define reg_bp "rbp"
 #define reg_ax "rax"
+#define reg_bx "rbx"
 #define reg_dx "rdx"
 #define reg_dxi 3
 

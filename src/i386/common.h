@@ -224,7 +224,9 @@ static void emit_clear(const char* reg) {
 }
 
 static size_t align_stack_size(size_t n) {
-   return n % REGSIZE ? ((n / REGSIZE + 1) * REGSIZE) + REGSIZE : n;
+   return n & 15 ? (n & ~15) + 16 : n;
+   //return n & (REGSIZE-1) ? (n & ~REGSIZE) + REGSIZE : n;
+   //return n % REGSIZE ? ((n / REGSIZE + 1) * REGSIZE) + REGSIZE : n;
 }
 
 static void free_stack(void) {

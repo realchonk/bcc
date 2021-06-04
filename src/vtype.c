@@ -1018,6 +1018,7 @@ struct value_type* func2vt(const struct function* f) {
    vt->func.name = f->name;
    vt->func.ret_val = copy_value_type(f->type);
    vt->func.params = NULL;
+   vt->func.variadic = f->variadic;
    for (size_t i = 0; i < buf_len(f->params); ++i)
       buf_push(vt->func.params, copy_value_type(f->params[i].type));
    return vt;

@@ -9,6 +9,7 @@ static const char* regs32[] = { "eax", "ecx", "edx" };
 #define reg_sp "esp"
 #define reg_bp "ebp"
 #define reg_ax "eax"
+#define reg_bx "ebx"
 #define reg_dx "edx"
 #define reg_dxi 2
 

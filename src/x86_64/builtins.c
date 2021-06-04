@@ -10,7 +10,7 @@
       "xor " #d ", " #d "\n" \
       #instr " " #sz "[rsp + 24]\n" \
       "pop rdx\n" \
-      "ret" \
+      "ret\n" \
 }
 #define gen_mod(bits, sign, a, d, sz, instr) \
 { \
@@ -22,27 +22,46 @@
       #instr " " #sz "[rsp + 24]\n" \
       "mov rax, rdx\n" \
       "pop rdx\n" \
-      "ret" \
+      "ret\n" \
+}
+#define gen_mul(bits, sign, a, d, sz, instr) \
+{ \
+   .name = "__mul" #sign "i" #bits, \
+   .code = \
+      "push rdx\n" \
+      "mov " #a ", " #sz " [rsp + 16]\n" \
+      #instr " " #sz "[rsp + 24]\n" \
+      "pop rdx\n" \
+      "ret\n" \
 }
 
 struct builtin_func builtin_funcs[] = {
-   gen_div(8,  s,  al,  dl, byte, idiv),
-   gen_div(16, s,  ax,  dx, word, idiv),
+   gen_div(8,  s,  al,  dl, byte,  idiv),
+   gen_div(16, s,  ax,  dx, word,  idiv),
    gen_div(32, s, eax, edx, dword, idiv),
    gen_div(64, s, rax, rdx, qword, idiv),
-   gen_div(8,  u,  al,  dl, byte, div),
-   gen_div(16, u,  ax,  dx, word, div),
-   gen_div(32, u, eax, edx, dword, div),
-   gen_div(64, u, rax, rdx, qword, div),
+   gen_div(8,  u,  al,  dl, byte,   div),
+   gen_div(16, u,  ax,  dx, word,   div),
+   gen_div(32, u, eax, edx, dword,  div),
+   gen_div(64, u, rax, rdx, qword,  div),
 
-   gen_mod(8,  s,  al,  dl, byte, idiv),
-   gen_mod(16, s,  ax,  dx, word, idiv),
+   gen_mod(8,  s,  al,  dl, byte,  idiv),
+   gen_mod(16, s,  ax,  dx, word,  idiv),
    gen_mod(32, s, eax, edx, dword, idiv),
    gen_mod(64, s, rax, rdx, qword, idiv),
-   gen_mod(8,  u,  al,  dl, byte, div),
-   gen_mod(16, u,  ax,  dx, word, div),
-   gen_mod(32, u, eax, edx, dword, div),
-   gen_mod(64, u, rax, rdx, qword, div),
+   gen_mod(8,  u,  al,  dl, byte,   div),
+   gen_mod(16, u,  ax,  dx, word,   div),
+   gen_mod(32, u, eax, edx, dword,  div),
+   gen_mod(64, u, rax, rdx, qword,  div),
+
+   gen_mul(8,  s,  al,  dl, byte,  imul),
+   gen_mul(16, s,  ax,  dx, word,  imul),
+   gen_mul(32, s, eax, edx, dword, imul),
+   gen_mul(64, s, rax, rdx, qword, imul),
+   gen_mul(8,  u,  al,  dl, byte,   mul),
+   gen_mul(16, u,  ax,  dx, word,   mul),
+   gen_mul(32, u, eax, edx, dword,  mul),
+   gen_mul(64, u, rax, rdx, qword,  mul),
    {
       .name = "__check_sp",
       .code =

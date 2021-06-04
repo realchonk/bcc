@@ -55,11 +55,11 @@ static void write_test(const char* s) {
    fclose(file);
 }
 static int compile_test(void) {
-   int ec = system(BCC TEST_OBJECT " " TEST_SOURCE " 2>/dev/null");
+   int ec = system(BCC TEST_OBJECT " " TEST_SOURCE " 2>>bcc.log");
    if (ec < 0 || ec == 127) panic("failed to invoke bcc");
    else if (ec != 0) return ec;
 
-   ec = system(LINKER " -o " TEST_BINARY " " TEST_OBJECT " 2>/dev/null");
+   ec = system(LINKER " -o " TEST_BINARY " " TEST_OBJECT " 2>>gcc.log");
    if (ec < 0 || ec == 127) panic("failed to invoke linker");
    else return ec;
 }
@@ -154,6 +154,8 @@ int main(int argc, char* argv[]) {
       fputs("usage: tester [test]\n", stderr);
       return 1;
    }
+   remove("bcc.log");
+   remove("gcc.log");
    if (argc == 2) {
       const char* name = argv[1];
       struct test_case* t = get_case(name);
