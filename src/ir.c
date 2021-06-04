@@ -211,10 +211,9 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
       fprintf(file, " R%u, R%u, %ju", n->copy.dest, n->copy.src, n->copy.len);
       break;
    case IR_IRCALL:
-      fprintf(file, " R%u, R%u", n->rcall.dest, n->rcall.addr);
+      fprintf(file, " R%u", n->rcall.dest);
       break;
    case IR_RCALL:
-      fprintf(file, " R%u", n->rcall.addr);
       break;
    }
    fputc('\n', file);

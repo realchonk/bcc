@@ -165,7 +165,8 @@ typedef struct ir_node {
          uintmax_t len;
       } copy;
       struct {
-         ir_reg_t addr, dest;
+         ir_reg_t dest;
+         struct ir_node* addr;
          struct ir_node** params;
       } rcall;
    };

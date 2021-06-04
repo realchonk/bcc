@@ -323,13 +323,12 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    {
       vt = get_value_type(scope, e->fcall.func);
       const struct value_type* func = actual_func_vt(vt);
-      n = ir_expr(scope, e->fcall.func);
-      --creg;
       const bool has_rv = func->func.ret_val->type != VAL_VOID;
-      ir_node_t* rc = new_node(has_rv ? IR_IRCALL : IR_RCALL);
-      rc->rcall.addr = creg;
-      rc->rcall.dest = creg;
-      rc->rcall.params = NULL;
+      n = new_node(has_rv ? IR_IRCALL : IR_RCALL);
+      n->rcall.addr = ir_expr(scope, e->fcall.func);
+      --creg;
+      n->rcall.dest = creg;
+      n->rcall.params = NULL;
       for (size_t i = 0; i < buf_len(e->fcall.params); ++i) {
          struct expression* p = e->fcall.params[i];
          const struct value_type* vp = get_value_type(scope, p);
@@ -343,11 +342,10 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
             tmp->iicast.sign_extend = irs == IRS_PTR ? false : !func->func.ret_val->integer.is_unsigned;
             ir_append(ir, tmp);
          }
-         buf_push(rc->rcall.params, optim_ir_nodes(ir));
+         buf_push(n->rcall.params, optim_ir_nodes(ir));
          --creg;
       }
       ++creg;
-      ir_append(n, rc);
       return n;
    }
    case EXPR_STRING:

@@ -1,5 +1,6 @@
 #include <tgmath.h>
 #include "target.h"
+#include "error.h"
 #include "optim.h"
 #include "bcc.h"
 
@@ -283,21 +284,28 @@ static bool remove_unreferenced(ir_node_t** n) {
    return success;
 }
 
+static enum ir_node_type rcall_to_fcall(enum ir_node_type t) {
+   switch (t) {
+   case IR_RCALL:    return IR_FCALL;
+   case IR_IRCALL:   return IR_IFCALL;
+   default:          panic("invalid IR node type %s", ir_node_type_str[t]);
+   }
+}
+
 // (flookup R0, add; read.ptr R0, R0; rcall R0) -> (fcall add)
 static bool direct_call(ir_node_t** n) {
    bool success = false;
    for (ir_node_t* cur = *n; cur; cur = cur->next) {
-      if (cur->type == IR_FLOOKUP
-         && ir_isv(cur->next, IR_RCALL, IR_IRCALL, NUM_IR_NODES)
-         && cur->lstr.reg == cur->next->rcall.addr) {
-         
-         const ir_node_t* rcall = cur->next;
-         const istr_t name = cur->lstr.str;
-         cur->type = rcall->type == IR_IRCALL ? IR_IFCALL : IR_FCALL;
+      if (ir_isv(cur, IR_RCALL, IR_IRCALL, NUM_IR_NODES)
+         && ir_is(cur->rcall.addr, IR_FLOOKUP) && !cur->rcall.addr->next) {
+         const ir_reg_t dest = cur->rcall.dest;
+         const istr_t name = cur->rcall.addr->lstr.str;
+         ir_node_t** params = cur->rcall.params;
+         free_ir_node(cur->rcall.addr);
+         cur->type = rcall_to_fcall(cur->type);
          cur->ifcall.name = name;
-         cur->ifcall.dest = rcall->rcall.dest;
-         cur->ifcall.params = rcall->rcall.params;
-         cur->next->type = IR_NOP;
+         cur->ifcall.dest = dest;
+         cur->ifcall.params = params;
          success = true;
       }
    }
