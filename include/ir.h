@@ -166,6 +166,7 @@ typedef struct ir_node {
       } copy;
       struct {
          ir_reg_t dest;
+         bool variadic;
          struct ir_node* addr;
          struct ir_node** params;
       } rcall;

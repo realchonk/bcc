@@ -544,6 +544,84 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
          emit("movzx %s, %s", reg, lower);
       return n->next;
    }
+   case IR_IRCALL:
+   case IR_RCALL:
+   {
+      const size_t np = buf_len(n->rcall.params);
+      size_t i;
+      uintreg_t padding;
+      if (!n->rcall.dest) {
+         emit("push %s", reg_dx);
+         esp += REGSIZE;
+      }
+      for (i = 0; i < n->rcall.dest; ++i) {
+         emit("push %s", mreg(i));
+         esp += REGSIZE;
+      }
+#if BCC_x86_64
+      if (np < arraylen(param_regs)) padding = 16 - (esp % 16);
+      else padding = 16 - (esp + (np - arraylen(param_regs) * REGSIZE) % 16);
+#else
+      padding = 16 - ((esp + np * REGSIZE) % 16);
+#endif
+      if (padding == 16) padding = 0;
+      if (padding) emit("sub %s, %u", reg_sp, padding);
+#if BCC_x86_64
+      if (np > arraylen(param_regs)) {
+         for (i = np; i != arraylen(param_regs); --i) {
+            ir_node_t* tmp = n->rcall.params[i - 1];
+            while ((tmp = emit_ir(tmp)) != NULL);
+            emit("push %s", mreg(n->rcall.dest));
+         }
+      }
+      for (i = 0; i < my_min(np, arraylen(param_regs)); ++i) {
+         ir_node_t* tmp = n->rcall.params[i];
+         while ((tmp = emit_ir(tmp)) != NULL);
+         if (i >= my_min(np, arraylen(param_regs))) {
+            emit("mov %s, %s", mreg(param_regs[i]), mreg(n->rcall.dest));
+            break;
+         }
+         else emit("push %s", mreg(n->rcall.dest));
+      }
+      for (; i > 0; --i) {
+         emit("pop %s", mreg(param_regs[i - 1]));
+      }
+      
+      ir_node_t* tmp = n->rcall.addr;
+      while ((tmp = emit_ir(tmp)) != NULL);
+      if (!n->rcall.dest) {
+         emit("mov %s, %s", reg_dx, reg_ax);
+      }
+      if (n->rcall.variadic) emit_clear(reg_ax);
+      if (n->rcall.dest != 0) emit("call %s", mreg(n->rcall.dest));
+      else emit("call %s", reg_dx);
+
+      size_t add_rsp = padding;
+      if (np > arraylen(param_regs)) add_rsp += (np - arraylen(param_regs)) * REGSIZE;
+      if (add_rsp) emit("add %s, %u", reg_sp, add_rsp);
+
+#else
+      for (size_t i = np; i != 0; --i) {
+         ir_node_t* tmp = n->rcall.params[i - 1];
+         while ((tmp = emit_ir(tmp)) != NULL);
+         emit("push %s", mreg(n->rcall.dest));
+      }
+      emit("call %s", n->rcall.name);
+      emit("add %s, %u", reg_sp, padding + REGSIZE * np);
+#endif
+      if (n->rcall.dest != 0 && n->type != IR_FCALL) {
+         emit("mov %s, %s", mreg(n->rcall.dest), reg_ax);
+      }
+      for (size_t i = n->rcall.dest; i != 0; --i) {
+         emit("pop %s", mreg(i - 1));
+         esp -= REGSIZE;
+      }
+      if (!n->rcall.dest) {
+         emit("pop %s", reg_dx);
+         esp -= REGSIZE;
+      }
+      return n->next;
+   }
 
    default: panic("unsupported ir_node type '%s'", ir_node_type_str[n->type]);
    }

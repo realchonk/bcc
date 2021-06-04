@@ -329,6 +329,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       --creg;
       n->rcall.dest = creg;
       n->rcall.params = NULL;
+      n->rcall.variadic = func->func.variadic;
       for (size_t i = 0; i < buf_len(e->fcall.params); ++i) {
          struct expression* p = e->fcall.params[i];
          const struct value_type* vp = get_value_type(scope, p);
