@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
 
    lexer_init(source, source_file);
    if (level == 'S' || level == 'c') emit_init(asm_file);
-   parse_unit();
+   parse_unit(level != 'A');
    if (level == 'A') print_unit(output);
    else if (level == 'i') print_ir_unit(output);
    else emit_unit();

@@ -143,5 +143,6 @@ size_t struct_get_member_idx(struct structure*, istr_t);
 struct value_type* func2vt(const struct function*);
 bool is_func_vt(const struct value_type*);
 const struct value_type* actual_func_vt(const struct value_type*);
+void eval_expr(struct expression*, struct value*);
 
 #endif /* FILE_VALUE_H */

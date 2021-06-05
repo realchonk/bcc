@@ -196,3 +196,7 @@ bool try_eval_expr(struct expression* e, struct value* val) {
 bool var_is_declared(istr_t name, struct scope* scope) {
    return (scope && scope_find_var(scope, name)) || unit_get_var(name) || unit_get_func(name);
 }
+void eval_expr(struct expression* e, struct value* v) {
+   if (!try_eval_expr(e, v))
+      parse_error(&e->begin, "expected constant-expression");
+}

@@ -31,7 +31,7 @@ struct cunit {
 
 extern struct cunit cunit;
 
-void parse_unit(void);
+void parse_unit(bool gen_ir);
 void print_unit(FILE*);
 void print_ir_unit(FILE*);
 struct function* unit_get_func(const char*);

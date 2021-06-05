@@ -16,11 +16,13 @@ enum statement_type {
    STMT_SCOPE,       // .scope      | compount statement
    STMT_BREAK,       //             | exit a loop
    STMT_CONTINUE,    //             | skip the current iteration in a loop
+   STMT_SWITCH,      // .sw         | switch/case
 
    NUM_STMTS,
 };
 extern const char* stmt_type_str[NUM_STMTS];
 struct function;
+struct switch_entry;
 
 struct statement {
    enum statement_type type;
@@ -44,6 +46,22 @@ struct statement {
          struct value_type* type;
          size_t idx, num;
       } var_decl;
+      struct {
+         struct expression* expr;
+         struct switch_entry* body;
+      } sw;
+   };
+};
+
+struct switch_entry {
+   struct source_pos begin, end;
+   int type; // 0=stmt, 1=case, 2=default
+   union {
+      struct statement* stmt;
+      struct {
+         struct expression* expr;
+         struct value value;
+      } cs;
    };
 };
 

@@ -90,6 +90,9 @@ const char* token_type_str[NUM_TOKENS] = {
    [KW_STRUCT]    = "struct",
    [KW_UNION]     = "union",
    [KW_TYPEOF]    = "typeof",
+   [KW_SWITCH]    = "switch",
+   [KW_CASE]      = "case",
+   [KW_DEFAULT]   = "default",
 };
 
 void token_init(void) {

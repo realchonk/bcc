@@ -17,6 +17,7 @@ const char* stmt_type_str[NUM_STMTS] = {
    [STMT_SCOPE]   = "scope/compound",
    [STMT_BREAK]   = "break",
    [STMT_CONTINUE]= "continue",
+   [STMT_SWITCH]  = "switch",
 };
 
 void free_stmt(struct statement* s) {
@@ -44,6 +45,19 @@ void free_stmt(struct statement* s) {
       break;
    case STMT_VARDECL:
       free_value_type(s->var_decl.type);
+      break;
+   case STMT_SWITCH:
+      free_expr(s->sw.expr);
+      for (size_t i = 0; i < buf_len(s->sw.body); ++i) {
+         struct switch_entry* e = &s->sw.body[i];
+         switch (s->sw.body[i].type) {
+         case 0:  free_stmt(e->stmt); break;
+         case 1:  free_expr(e->cs.expr); free_value_type(e->cs.value.type); break;
+         case 2:  break;
+         default: panic("invalid switch_entry %d", s->sw.body[i].type);
+         }
+      }
+      buf_free(s->sw.body);
       break;
    default: break;
    }
@@ -121,6 +135,29 @@ void print_stmt(FILE* file, const struct statement* s) {
    case STMT_CONTINUE:
       fputs("continue;", file);
       break;
+   case STMT_SWITCH:
+      fputs("switch (", file);
+      print_expr(file, s->sw.expr);
+      fputs(") {\n", file);
+      for (size_t i = 0; i < buf_len(s->sw.body); ++i) {
+         const struct switch_entry* e = &s->sw.body[i];
+         switch (e->type) {
+         case 0:
+            print_stmt(file, e->stmt);
+            break;
+         case 1:
+            fputs("case ", file);
+            print_expr(file, e->cs.expr);
+            fputs(":\n", file);
+            break;
+         case 2:
+            fputs("default:\n", file);
+            break;
+         }
+      }
+      fputc('}', file);
+      break;
+      
    case NUM_STMTS: break;
    }
    fputc('\n', file);
@@ -242,6 +279,40 @@ struct statement* parse_stmt(struct scope* scope) {
       outer->end = stmt->end;
 
       stmt = outer;
+      break;
+   }
+   case KW_SWITCH:
+   {
+      lexer_skip();
+      lexer_expect(TK_LPAREN);
+      stmt->type = STMT_SWITCH;
+      stmt->sw.expr = parse_expr(scope);
+      stmt->sw.body = NULL;
+      lexer_expect(TK_RPAREN);
+      lexer_expect(TK_CLPAREN);
+      while (!lexer_matches(TK_CRPAREN)) {
+         struct switch_entry e;
+         if (lexer_matches(KW_CASE)) {
+            e.type = 1;
+            e.begin = lexer_next().begin;
+            e.cs.expr = parse_expr(scope);
+            if (get_value_type(scope, e.cs.expr)->type != VAL_INT)
+               parse_error(&e.cs.expr->begin, "expected integral expression");
+            eval_expr(e.cs.expr, &e.cs.value);
+            e.end = lexer_expect(TK_COLON).end;
+         } else if (lexer_matches(KW_DEFAULT)) {
+            e.type = 2;
+            e.begin = lexer_next().begin;
+            e.end = lexer_expect(TK_COLON).end;
+         } else {
+            e.type = 0;
+            e.stmt = parse_stmt(scope);
+            e.begin = e.stmt->begin;
+            e.end = e.stmt->end;
+         }
+         buf_push(stmt->sw.body, e);
+      }
+      stmt->end = lexer_next().end;
       break;
    }
    default: {
@@ -371,6 +442,7 @@ bool stmt_is_pure(const struct statement* s) {
 
    case STMT_WHILE:
    case STMT_DO_WHILE:
+   case STMT_SWITCH:
       // TODO: implement check if this is a infinite-loop
       return false;
 

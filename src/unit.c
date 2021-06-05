@@ -39,7 +39,7 @@ void unit_add_union(const struct value_type* type) {
    }
 }
 
-void parse_unit(void) {
+void parse_unit(bool gen_ir) {
    buf_free(cunit.funcs);
    while (!lexer_match(TK_EOF)) {
       if (lexer_matches(KW_TYPEDEF)) {
@@ -129,7 +129,7 @@ void parse_unit(void) {
          if (func->scope) {
             if (func->attrs & ATTR_EXTERN)
                parse_warn(&begin, "function definition shall not be extern");
-            func->ir_code = optim_ir_nodes(irgen_func(func));
+            if (gen_ir) func->ir_code = optim_ir_nodes(irgen_func(func));
          }
       } else {
          bool first = true;
