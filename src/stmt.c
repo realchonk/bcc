@@ -51,9 +51,9 @@ void free_stmt(struct statement* s) {
       for (size_t i = 0; i < buf_len(s->sw.body); ++i) {
          struct switch_entry* e = &s->sw.body[i];
          switch (s->sw.body[i].type) {
-         case 0:  free_stmt(e->stmt); break;
-         case 1:  free_expr(e->cs.expr); free_value_type(e->cs.value.type); break;
-         case 2:  break;
+         case SWITCH_STMT:    free_stmt(e->stmt); break;
+         case SWITCH_CASE:    free_expr(e->cs.expr); free_value_type(e->cs.value.type); break;
+         case SWITCH_DEFAULT: break;
          default: panic("invalid switch_entry %d", s->sw.body[i].type);
          }
       }
@@ -142,15 +142,15 @@ void print_stmt(FILE* file, const struct statement* s) {
       for (size_t i = 0; i < buf_len(s->sw.body); ++i) {
          const struct switch_entry* e = &s->sw.body[i];
          switch (e->type) {
-         case 0:
+         case SWITCH_STMT:
             print_stmt(file, e->stmt);
             break;
-         case 1:
+         case SWITCH_CASE:
             fputs("case ", file);
             print_expr(file, e->cs.expr);
             fputs(":\n", file);
             break;
-         case 2:
+         case SWITCH_DEFAULT:
             fputs("default:\n", file);
             break;
          }
@@ -163,7 +163,7 @@ void print_stmt(FILE* file, const struct statement* s) {
    fputc('\n', file);
 }
 
-static struct statement* new_stmt(void) {
+struct statement* new_stmt(void) {
    struct statement* stmt = malloc(sizeof(struct statement));
    if (!stmt) panic("failed to allocate statement");
    else return stmt;
@@ -290,10 +290,12 @@ struct statement* parse_stmt(struct scope* scope) {
       stmt->sw.body = NULL;
       lexer_expect(TK_RPAREN);
       lexer_expect(TK_CLPAREN);
+      if (get_value_type(scope, stmt->sw.expr)->type != VAL_INT)
+         parse_error(&stmt->sw.expr->begin, "expected integer expression");
       while (!lexer_matches(TK_CRPAREN)) {
          struct switch_entry e;
          if (lexer_matches(KW_CASE)) {
-            e.type = 1;
+            e.type = SWITCH_CASE;
             e.begin = lexer_next().begin;
             e.cs.expr = parse_expr(scope);
             if (get_value_type(scope, e.cs.expr)->type != VAL_INT)
@@ -301,11 +303,11 @@ struct statement* parse_stmt(struct scope* scope) {
             eval_expr(e.cs.expr, &e.cs.value);
             e.end = lexer_expect(TK_COLON).end;
          } else if (lexer_matches(KW_DEFAULT)) {
-            e.type = 2;
+            e.type = SWITCH_DEFAULT;
             e.begin = lexer_next().begin;
             e.end = lexer_expect(TK_COLON).end;
          } else {
-            e.type = 0;
+            e.type = SWITCH_STMT;
             e.stmt = parse_stmt(scope);
             e.begin = e.stmt->begin;
             e.end = e.stmt->end;

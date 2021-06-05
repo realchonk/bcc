@@ -205,7 +205,8 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       }
       fallthrough;
    case IR_RET:
-      if (n->next && n->next->type != IR_END_SCOPE && n->next->next && n->next->next->type == IR_EPILOGUE)
+      // TODO: fixme
+      //if (n->next && n->next->type != IR_END_SCOPE && n->next->next && n->next->next->type == IR_EPILOGUE)
          emit("jmp .ret");
       return n->next;
    case IR_IICAST:

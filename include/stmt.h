@@ -53,9 +53,14 @@ struct statement {
    };
 };
 
+enum switch_entry_type {
+   SWITCH_STMT,
+   SWITCH_CASE,
+   SWITCH_DEFAULT,
+};
 struct switch_entry {
    struct source_pos begin, end;
-   int type; // 0=stmt, 1=case, 2=default
+   enum switch_entry_type type; // 0=stmt, 1=case, 2=default
    union {
       struct statement* stmt;
       struct {
@@ -69,9 +74,8 @@ struct statement* parse_stmt(struct scope*);
 
 void print_stmt(FILE*, const struct statement*);
 void print_stmt_tree(FILE*, const struct statement*);
-
 void free_stmt(struct statement*);
-
+struct statement* new_stmt(void);
 bool stmt_is_pure(const struct statement*);
 
 #endif /* FILE_STMT_H */

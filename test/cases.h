@@ -640,3 +640,18 @@
       "int main(void) { return sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint64_t); }",
    .ret_val = 15,
 },
+{
+   .name = "simple switch/case",
+   .compiles = true,
+   .source =
+      "int main(void) {"
+      "  int a = 99;"
+      "  switch (a) {"
+      "  case 99:"
+      "     return 98;"
+      "  default:"
+      "     return 42;"
+      "  }"
+      "}",
+   .ret_val = 98,
+},

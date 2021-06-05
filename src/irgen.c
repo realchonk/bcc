@@ -781,9 +781,71 @@ ir_node_t* irgen_stmt(const struct statement* s) {
       n = new_node(IR_JMP);
       n->str = begin_loop;
       return n;
+   case STMT_SWITCH:
+   {
+      const istr_t old_end = end_loop;
+      const enum ir_value_size sz = vt2irs(s->sw.expr->vtype);
+      n = ir_expr(s->parent, s->sw.expr);
+      const size_t lbl = clbl;
+      size_t nlbl = 0;
+      bool has_default = false;
+      for (size_t i = 0; i < buf_len(s->sw.body); ++i) {
+         const struct switch_entry* e = &s->sw.body[i];
+         if (e->type == SWITCH_CASE) {
+            tmp = new_node(IR_ISTEQ);
+            tmp->binary.size = sz;
+            tmp->binary.dest = creg;
+            tmp->binary.a.type = IRT_REG;
+            tmp->binary.a.reg = creg - 1;
+            tmp->binary.b.type = IRT_UINT;
+            tmp->binary.b.uVal = e->cs.value.uVal;
+            ir_append(n, tmp);
+            tmp = new_node(IR_JMPIF);
+            tmp->cjmp.label = make_label(clbl++);
+            tmp->cjmp.reg = creg;
+            tmp->cjmp.size = sz;
+            ir_append(n, tmp);
+            ++nlbl;
+         } else if (e->type == SWITCH_DEFAULT)
+            has_default = true;
+      }
+      const size_t def_lbl = has_default ? clbl++ : 0;
+      const size_t end_lbl = clbl++;
+      tmp = new_node(IR_JMP);
+      tmp->str = make_label(has_default ? def_lbl : end_lbl);
+      ir_append(n, tmp);
+      end_loop = make_label(end_lbl);
+
+      nlbl = 0;
+      for (size_t i = 0; i < buf_len(s->sw.body); ++i) {
+         const struct switch_entry* e = &s->sw.body[i];
+         switch (e->type) {
+         case SWITCH_STMT:
+            ir_append(n, irgen_stmt(e->stmt));
+            break;
+         case SWITCH_CASE:
+            tmp = new_node(IR_LABEL);
+            tmp->str = make_label(lbl + nlbl);
+            ir_append(n, tmp);
+            ++nlbl;
+            break;
+         case SWITCH_DEFAULT:
+            tmp = new_node(IR_LABEL);
+            tmp->str = make_label(def_lbl);
+            ir_append(n, tmp);
+            break;
+         }
+      }
+      tmp = new_node(IR_LABEL);
+      tmp->str = make_label(end_lbl);
+      ir_append(n, tmp);
+      end_loop = old_end;
+      return n;
+   }
 
    default: panic("unsupported statement '%s'", stmt_type_str[s->type]);
    }
+   panic("reached unreachable");
 }
 
 ir_node_t* irgen_func(const struct function* f) {
