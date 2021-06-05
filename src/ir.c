@@ -235,7 +235,7 @@ void free_ir_node(ir_node_t* n) {
          free_ir_nodes(n->ifcall.params[i]);
       buf_free(n->ifcall.params);
    } else if (n->type == IR_IRCALL || n->type == IR_RCALL) {
-      for (size_t i = 0; i < buf_len(n->ifcall.params); ++i)
+      for (size_t i = 0; i < buf_len(n->rcall.params); ++i)
          free_ir_nodes(n->rcall.params[i]);
       free_ir_nodes(n->rcall.addr);
    }
