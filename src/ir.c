@@ -230,10 +230,14 @@ void print_ir_value(FILE* file, const struct ir_value* v) {
    }
 }
 void free_ir_node(ir_node_t* n) {
-   if (n->type == IR_IFCALL || n->type == IR_FCALL || n->type == IR_RCALL || n->type == IR_IRCALL) {
+   if (n->type == IR_IFCALL || n->type == IR_FCALL) {
       for (size_t i = 0; i < buf_len(n->ifcall.params); ++i)
          free_ir_nodes(n->ifcall.params[i]);
       buf_free(n->ifcall.params);
+   } else if (n->type == IR_IRCALL || n->type == IR_RCALL) {
+      for (size_t i = 0; i < buf_len(n->ifcall.params); ++i)
+         free_ir_nodes(n->rcall.params[i]);
+      free_ir_nodes(n->rcall.addr);
    }
    free(n);
 }
