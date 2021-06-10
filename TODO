@@ -10,10 +10,9 @@ Long term:
 - floating-point support
 
 Short term:
-- indirect function call support for x86
 - fix stack-alignment for x86
 - fix calling convention for struct/union
 - fix type for &&, ||
 - fix nasm warning for indirect function calls on x86_64
 - improve test logs
-- more text cases for switch/case
+- more test cases for switch/case
