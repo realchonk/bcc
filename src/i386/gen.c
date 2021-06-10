@@ -393,45 +393,52 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    }
    case IR_ISTEQ:
-      instr = "sete";
-      goto setcc;
    case IR_ISTNE:
-      instr = "setne";
-      goto setcc;
    case IR_ISTGR:
-      instr = "setg";
-      goto setcc;
    case IR_ISTGE:
-      instr = "setge";
-      goto setcc;
    case IR_ISTLT:
-      instr = "setl";
-      goto setcc;
    case IR_ISTLE:
-      instr = "setle";
-      goto setcc;
    case IR_USTGR:
-      instr = "seta";
-      goto setcc;
    case IR_USTGE:
-      instr = "setae";
-      goto setcc;
    case IR_USTLT:
-      instr = "setb";
-      goto setcc;
    case IR_USTLE:
-      instr = "setbe";
    {
-   setcc:;
+      struct entry {
+         const char* set;
+         const char* jmp;
+         enum ir_node_type negation;
+      };
+      const struct entry es[] = {
+         [IR_ISTEQ] = { "sete",  "je",  IR_ISTNE },
+         [IR_ISTNE] = { "setne", "jne", IR_ISTEQ },
+         [IR_ISTGR] = { "setg",  "jg",  IR_ISTLE },
+         [IR_ISTGE] = { "setge", "jge", IR_ISTLT },
+         [IR_ISTLT] = { "setl",  "jl",  IR_ISTGE },
+         [IR_ISTLE] = { "setle", "jle", IR_ISTGR },
+         [IR_USTGR] = { "seta",  "ja",  IR_USTLE },
+         [IR_USTGE] = { "setae", "jae", IR_USTLT },
+         [IR_USTLT] = { "setb",  "jb",  IR_USTGE },
+         [IR_USTLE] = { "setbe", "jbe", IR_USTGR },
+      };
       const char* dest;
       const char* a = irv2str(&n->binary.a, n->binary.size);
       const char* b = irv2str(&n->binary.b, n->binary.size);
       reg_op(dest, n->binary.dest, n->binary.size);
 
       emit("cmp %s, %s", a, b);
-      emit("%s %s", instr, reg8(n->binary.dest));
-      if (n->binary.size > IRS_CHAR) emit("movzx %s, %s", dest, reg8(n->binary.dest));
-      return n->next;
+      if (optim_level >= 1 && n->next && (n->next->type == IR_JMPIF || n->next->type == IR_JMPIFN)) {
+         const char* instr;
+         if (n->next->type == IR_JMPIF)
+            instr = es[n->type].jmp;
+         else instr = es[es[n->type].negation].jmp;
+         emit("%s %s", instr, n->next->str);
+         return n->next->next;
+      } else {
+         emit("%s %s", es[n->type].set, reg8(n->binary.dest));
+         if (n->binary.size > IRS_CHAR)
+            emit("movzx %s, %s", dest, reg8(n->binary.dest));
+         return n->next;
+      }
    }
    case IR_LABEL:
       emit("%s:", n->str);
