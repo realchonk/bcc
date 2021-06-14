@@ -12,7 +12,6 @@ Long term:
 Short term:
 - fix stack-alignment for x86
 - fix calling convention for struct/union
-- fix type for &&, ||
 - fix nasm warning for indirect function calls on x86_64
 - improve test logs
 - more test cases for switch/case
