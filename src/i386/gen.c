@@ -426,7 +426,8 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       reg_op(dest, n->binary.dest, n->binary.size);
 
       emit("cmp %s, %s", a, b);
-      if (optim_level >= 1 && n->next && (n->next->type == IR_JMPIF || n->next->type == IR_JMPIFN)) {
+      if (optim_level >= 1 && n->next && (n->next->type == IR_JMPIF || n->next->type == IR_JMPIFN)
+            && n->binary.dest == n->next->cjmp.reg) {
          const char* instr;
          if (n->next->type == IR_JMPIF)
             instr = es[n->type].jmp;

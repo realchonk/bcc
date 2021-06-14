@@ -329,7 +329,7 @@
    .compiles = true,
    .source =
       "int main(void) {"
-      "  int a = 3, b = 1;"
+      "  int a = 3, b = 2;"
       "  return a && b;"
       "}",
    .ret_val = 1,
@@ -342,7 +342,7 @@
       "  int a = 3, b = 1;"
       "  return a || b;"
       "}",
-   .ret_val = 3,
+   .ret_val = 1,
 },
 {
    .name = "boolean not",

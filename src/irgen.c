@@ -152,23 +152,68 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       const bool is_unsigned = vt->type == VAL_POINTER || (vt->type == VAL_INT && vt->integer.is_unsigned);
       struct value_type* vl = e->binary.left->vtype;
       struct value_type* vr = e->binary.right->vtype;
-      n = ir_expr(scope, e->binary.left);
-      if (e->binary.op.type == TK_PIPI || e->binary.op.type == TK_AMPAMP) {
+      if (e->binary.op.type == TK_AMPAMP) {
          const istr_t lbl = make_label(clbl++);
          n = ir_expr(scope, e->binary.left);
-         tmp = new_node(e->binary.op.type == TK_PIPI ? IR_JMPIF : IR_JMPIFN);
+         tmp = new_node(IR_JMPIFN);
          tmp->cjmp.label = lbl;
-         tmp->cjmp.reg = --creg;
+         tmp->cjmp.reg = creg - 1;
          tmp->cjmp.size = vt2irs(vl);
          ir_append(n, tmp);
-
+         --creg;
          ir_append(n, ir_expr(scope, e->binary.right));
+         tmp = new_node(IR_JMPIFN);
+         tmp->cjmp.label = lbl;
+         tmp->cjmp.reg = creg - 1;
+         tmp->cjmp.size = vt2irs(vr);
+         ir_append(n, tmp);
+
+         tmp = new_node(IR_LOAD);
+         tmp->load.dest = creg - 1;
+         tmp->load.value = 1;
+         tmp->load.size = irs;
+         ir_append(n, tmp);
+
          tmp = new_node(IR_LABEL);
          tmp->str = lbl;
          ir_append(n, tmp);
-         break;
+         return n;
+      } else if (e->binary.op.type == TK_PIPI) {
+         const istr_t lbl_end = make_label(clbl++);
+         const istr_t lbl_1   = make_label(clbl++);
+         n = ir_expr(scope, e->binary.left);
+         tmp = new_node(IR_JMPIF);
+         tmp->cjmp.label = lbl_1;
+         tmp->cjmp.reg = creg - 1;
+         tmp->cjmp.size = vt2irs(vl);
+         ir_append(n, tmp);
+         --creg;
+
+         ir_append(n, ir_expr(scope, e->binary.right));
+         tmp = new_node(IR_JMPIFN);
+         tmp->cjmp.label = lbl_end;
+         tmp->cjmp.reg = creg - 1;
+         tmp->cjmp.size = vt2irs(vl);
+         ir_append(n, tmp);
+
+         tmp = new_node(IR_LABEL);
+         tmp->str = lbl_1;
+         ir_append(n, tmp);
+
+         tmp = new_node(IR_LOAD);
+         tmp->load.dest = creg - 1;
+         tmp->load.value = 1;
+         tmp->load.size = irs;
+         ir_append(n, tmp);
+
+         tmp = new_node(IR_LABEL);
+         tmp->str = lbl_end;
+         ir_append(n, tmp);
+
+         return n;
       }
       
+      n = ir_expr(scope, e->binary.left);
       if (irs != vt2irs(vl)) {
          tmp = new_node(IR_IICAST);
          tmp->iicast.dest = tmp->iicast.src = creg - 1;
