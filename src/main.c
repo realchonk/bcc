@@ -105,8 +105,11 @@ int main(int argc, char* argv[]) {
    enable_warnings = true;
    optim_level = 1;
    int option;
-   while ((option = getopt(argc, argv, ":m:VO:wciSAo:")) != -1) {
+   while ((option = getopt(argc, argv, ":hm:VO:wciSAo:")) != -1) {
       switch (option) {
+      case 'h':
+         puts("bcc: for help use 'man 1 bcc'");
+         return 0;
       case 'o': output_file = optarg; break;
       case 'c':
       case 'i':
