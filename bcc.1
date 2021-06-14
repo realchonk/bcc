@@ -1,4 +1,4 @@
-.TH bcc 1 "2021-06-03" "bcc-VERSION"
+.TH bcc 1 "2021-06-14" "bcc-VERSION"
 
 .SH NAME
 bcc - brainlet C compiler
@@ -14,6 +14,9 @@ bcc - brainlet C compiler
 .YS
 .SY bcc
 .OP -V
+.YS
+.SY bcc
+.OP -h
 .YS
 
 .SH DESCRIPTION
@@ -85,6 +88,11 @@ Print the version information.
 .RE
 .RS 5
 Specify a target-dependend option.
+.RE
+.B -h
+.RE
+.RS 5
+Print a simple help message.
 
 .SH OPERANDS
 .I output
@@ -105,8 +113,16 @@ The source file, for which to generate the output.
 The optimization level to perform. (default: 1)
 .RE
 .RS 5
-Optimization levels 2 and above are considered experimental.
-It is not recommended to use an optimization level of 3.
+Optimization levels 2 and below are considered "stable" and should not break the program.
+.RE
+.RS 5
+Optimization level 3 is considered experimental and may be unsafe,
+therefore it is not recommended to use it.
+.RE
+.RS 5
+An
+.I olevel
+of more than 3 has the same effect as level 3.
 
 .RE
 .I mach_opt
@@ -173,7 +189,7 @@ Supported optimization techniques:
 .RE
 - constant folding (-O1)
 .RE
-- micro-optimizations (-O1)
+- target-specific micro-optimizations (-O1)
 .RE
 - multiply to shift (-O1)
 .RE
@@ -182,6 +198,8 @@ Supported optimization techniques:
 - dead-code elimination (-O1)
 .RE
 - constant evaluation of function call targets (-O1)
+.RE
+- experimental and/or unsafe optimizations (-O3)
 
 .SH TARGETS
 Currently supported target architectures:
