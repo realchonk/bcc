@@ -48,8 +48,8 @@ static size_t sizeof_scope(const struct scope* scope) {
 }
 static void assign_scope(struct scope* scope, size_t* addr) {
    for (size_t i = 0; i < buf_len(scope->vars); ++i) {
-      scope->vars[i].addr = *addr;
       *addr += x86_sizeof_value(scope->vars[i].type);
+      scope->vars[i].addr = *addr;
    }
    for (size_t i = 0; i < buf_len(scope->children); ++i) {
       assign_scope(scope->children[i], addr);

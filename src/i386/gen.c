@@ -183,6 +183,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
 #endif
       const size_t sz = align_stack_size(sizeof_scope(n->func->scope));
       if (sz) emit("sub %s, %zu", reg_sp, sz);
+      addr -= REGSIZE;
       assign_scope(n->func->scope, &addr);
       esp += sz;
       stack_cur_alloc = NULL;
