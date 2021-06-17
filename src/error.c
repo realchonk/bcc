@@ -10,9 +10,11 @@ noreturn void panic_impl(const char* func, const char* fmt, ...) {
    va_list ap;
    va_start(ap, fmt);
 
+   const int errno_saved = errno;
+
    fprintf(stderr, "bcc: %s(): ", func);
    vfprintf(stderr, fmt, ap);
-   if (errno) fprintf(stderr, ": %s\n", strerror(errno));
+   if (errno) fprintf(stderr, ": %s\n", strerror(errno_saved));
    else fputc('\n', stderr);
 
    va_end(ap);
