@@ -562,6 +562,19 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
       if (var) return copy_value_type(var->type);
       struct function* f = unit_get_func(e->str);
       if (f) return func2vt(f);
+      struct builtin_func* bf = get_builtin_func(e->str);
+      if (bf) {
+         struct value_type* vt = new_vt();
+         vt->type = VAL_FUNC;
+         vt->func.name = NULL;
+         vt->func.ret_val = new_vt();
+         vt->func.ret_val->type = VAL_INT;
+         vt->func.ret_val->integer.size = INT_INT;
+         vt->func.ret_val->integer.is_unsigned = false;
+         vt->func.params = NULL;
+         vt->func.variadic = true;
+         return vt;
+      }
       else parse_error(&e->begin, "undeclared name '%s'", e->str);
    }
    case EXPR_ADDROF:

@@ -87,5 +87,6 @@ size_t irs2sz(enum ir_value_size);
 void request_builtin(const char* name);
 const struct value_type* get_builtin_type(istr_t name);
 void add_builtin_type(const char* name, struct value_type*);
+struct builtin_func* get_builtin_func(const char* name);
 
 #endif /* FILE_TARGET_H */

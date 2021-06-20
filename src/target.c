@@ -116,3 +116,10 @@ void add_builtin_type(const char* name, struct value_type* vt) {
    t.vt = vt;
    buf_push(btypes, t);
 }
+struct builtin_func* get_builtin_func(const char* name) {
+   for (size_t i = 0; i < num_builtin_funcs; ++i) {
+      if (!strcmp(name, builtin_funcs[i].name))
+         return &builtin_funcs[i];
+   }
+   return NULL;
+}

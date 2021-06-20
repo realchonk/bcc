@@ -38,6 +38,6 @@ static bool is_defined(istr_t s) {
       const struct function* f = cunit.funcs[i];
       if (s == f->name && f->scope) return true;
    }
-   return false;
+   return get_builtin_func(s) != NULL;
 }
 #endif

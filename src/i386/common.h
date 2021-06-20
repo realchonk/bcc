@@ -259,6 +259,11 @@ static void add_unresolved(istr_t name) {
    for (size_t i = 0; i < buf_len(unresolved); ++i) {
       if (unresolved[i] == name) return;
    }
+   struct builtin_func* f = get_builtin_func(name);
+   if (f) {
+      f->requested = true;
+      return;
+   }
    buf_push(unresolved, name);
 }
 

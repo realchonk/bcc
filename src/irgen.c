@@ -63,6 +63,7 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
       if (idx == SIZE_MAX) {
          idx = func_find_param_idx(scope->func, e->str);
          if (idx == SIZE_MAX) {
+            struct builtin_func* bf;
             struct symbol sym;
             if (unit_find(e->str, &sym)) {
                switch (sym.type) {
@@ -87,6 +88,12 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
                default:
                   parse_error(&e->begin, "unsupported symbol type %d", sym.type);
                }
+            } else if ((bf = get_builtin_func(e->str)) != NULL) {
+               n->type = IR_FLOOKUP;
+               n->lstr.str = e->str;
+               n->lstr.reg = creg++;
+               *is_lv = false;
+               bf->requested = true;
             } else parse_error(&e->begin, "undeclared symbol '%s'", e->str);
          } else {
             n->type = IR_FPARAM;

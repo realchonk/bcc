@@ -60,7 +60,6 @@ struct builtin_func builtin_funcs[] = {
    {
       .name = "__check_sp",
       .code =
-         "check_sp:\n"
          "test sp, 7\n"
          "jnz .major\n"
          "test sp, 8\n"
@@ -84,6 +83,12 @@ struct builtin_func builtin_funcs[] = {
          ".major_err: db \"Stack is not 4-byte aligned.\", 10, 0\n"
          ".minor_err: db \"Stack is not 16-byte aligned.\", 10, 0\n"
          "section .text\n"
+   },
+   {
+      .name = "__builtin_return_address",
+      .code =
+         "mov eax, dword [ebp + 4]\n"
+         "ret\n"
    },
 };
 
