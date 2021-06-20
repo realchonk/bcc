@@ -199,7 +199,7 @@ void emit_unit(void) {
       const struct function* f = cunit.funcs[i];
       if (f->ir_code)
          emit_func(f, f->ir_code);
-      else emit("extern %s", f->name);
+      //else emit("extern %s", f->name);
    }
    emit_end();
 }

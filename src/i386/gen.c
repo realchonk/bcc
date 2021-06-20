@@ -300,7 +300,10 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       }
       if (variadic) emit_clear(reg_ax);
       if (is_defined(n->ifcall.name)) emit("call %s", n->ifcall.name);
-      else emit("call [rel %s wrt ..got]", n->ifcall.name);
+      else {
+         add_unresolved(n->ifcall.name);
+         emit("call [rel %s wrt ..got]", n->ifcall.name);
+      }
       size_t add_rsp = padding;
       if (np > arraylen(param_regs)) add_rsp += (np - arraylen(param_regs)) * REGSIZE;
       if (add_rsp) emit("add %s, %u", reg_sp, add_rsp);
