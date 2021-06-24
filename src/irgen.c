@@ -7,7 +7,7 @@
 #include "ir.h"
 
 static ir_node_t* new_node(enum ir_node_type t) {
-   ir_node_t* n = malloc(sizeof(ir_node_t));
+   ir_node_t* n = calloc(1, sizeof(ir_node_t));
    if (!n) panic("failed to allocate ir_node");
    n->type = t;
    n->prev = n->next = NULL;
@@ -313,6 +313,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          tmp = new_node(IR_READ);
          tmp->move.dest = tmp->move.src = creg - 1;
          tmp->move.size = irs;
+         tmp->move.sign_extend = false;
          ir_append(n, tmp);
       }
       break;

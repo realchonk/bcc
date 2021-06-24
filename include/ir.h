@@ -33,6 +33,7 @@ enum ir_node_type {
    IR_LOOKUP,        // .lookup     | load address of variable
    IR_BEGIN_SCOPE,   // .scope      | beginning of a scope
    IR_END_SCOPE,     // .scope      | ending of a scope
+   // TODO: change to .read
    IR_READ,          // .move       | read data from memory
    IR_WRITE,         // .move       | write data to memory
    IR_PROLOGUE,      // .func       | beginning of a function
@@ -110,6 +111,7 @@ typedef struct ir_node {
       struct {
          ir_reg_t dest, src;
          enum ir_value_size size;
+         bool sign_extend; // only for READ, WRITE
       } move;
       struct {
          ir_reg_t dest;

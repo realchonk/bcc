@@ -65,7 +65,7 @@ test:
 check_arch:
 	@!([ -z "$(ARCH)" ] && echo "Unsupported target architecture '$(TARGET)'")
 
-check_deps:
-	@if [ -f "./src/$(ARCH)/check_deps.sh" ]; then ./src/$(ARCH)/check_deps.sh >/dev/null; fi
+check_deps: check_arch
+	@if [ -f "./src/$(ARCH)/check_deps.sh" ]; then TOP=$(PWD) ARCH=$(ARCH) ./src/$(ARCH)/check_deps.sh >/dev/null; fi
 
 .PHONY: all clean todo install test check check_arch check_deps

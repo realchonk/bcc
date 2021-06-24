@@ -1,5 +1,6 @@
 #!/bin/sh
 
-path=$(whereis nasm | awk '{print $2}')
-[ -z "$path" ] && echo "Missing dependency: nasm" >&2 && exit 1
+. "${TOP}/util/check_deps_lib.sh"
+
+check_dep nasm
 echo Success 

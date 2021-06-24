@@ -122,6 +122,10 @@ static bool remove_nops(ir_node_t** n) {
    return success;
 }
 
+static bool is_immed(const intmax_t v) {
+   return v >= target_info.min_immed && v <= target_info.max_immed;
+}
+
 // (load R1, 40; iadd R0, R0, R1) -> (iadd R0, R0, 40) 
 static bool direct_val(ir_node_t** n) {
    bool success = false;
@@ -132,7 +136,7 @@ static bool direct_val(ir_node_t** n) {
                IR_IMOD, IR_UMOD, IR_IAND, IR_IOR, IR_IXOR, IR_ILSL, IR_ILSR, IR_IASR,
                IR_ISTEQ, IR_ISTNE, IR_ISTGR, IR_ISTGE, IR_ISTLT, IR_ISTLE,
                IR_USTGR, IR_USTGE, IR_USTLT, IR_USTLE, NUM_IR_NODES)
-            ) {
+            && is_immed(cur->load.value) ) {
          if (cur->load.dest == cur->next->binary.b.reg) {
             cur->next->binary.b.type = IRT_UINT;
             cur->next->binary.b.uVal = cur->load.value;

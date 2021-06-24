@@ -655,3 +655,16 @@
       "}",
    .ret_val = 98,
 },
+{
+   .name = "declaration & definition of function",
+   .compiles = true,
+   .source =
+      "int add(int, int);"
+      "int main(void) {"
+      "  return add(3, 2);"
+      "}"
+      "int add(int a, int b) {"
+      "  return a + b;"
+      "}",
+   .ret_val = 5,
+},

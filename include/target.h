@@ -47,6 +47,9 @@ struct target_info {
    enum integer_size size_int16;
    enum integer_size size_int32;
    enum integer_size size_int64;
+
+   intmax_t max_immed;
+   intmax_t min_immed;
 };
 
 struct builtin_func {

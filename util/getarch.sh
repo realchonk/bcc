@@ -13,6 +13,9 @@ x86_64)
 i*86)
 	echo "i386"
 	;;
+riscv32|rv32i)
+   echo "riscv32"
+   ;;
 *)
 	exit 1
 	;;

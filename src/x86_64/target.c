@@ -49,6 +49,9 @@ const struct target_info target_info = {
    .size_int16 = INT_SHORT,
    .size_int32 = INT_INT,
    .size_int64 = INT_LONG,
+
+   .max_immed = INT64_MAX,
+   .min_immed = INT64_MIN,
 };
 
 int assemble(const char* source, const char* output) {
