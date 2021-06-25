@@ -103,6 +103,8 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
       } else {
          n->lookup.reg = creg++;
          n->lookup.var_idx = idx;
+         const struct value_type* vt = n->lookup.scope->vars[n->lookup.var_idx].type;
+         *is_lv = vt->type != VAL_POINTER || !vt->pointer.is_array || !vt->pointer.array.has_const_size;
       }
       return n;
    case EXPR_INDIRECT:
@@ -647,41 +649,46 @@ ir_node_t* irgen_stmt(const struct statement* s) {
       for (size_t i = 0; i < s->var_decl.num; ++i) {
          const struct variable* var = &s->parent->vars[s->var_decl.idx + i];
          ir_node_t* cur;
-         if (var->type->type == VAL_POINTER && var->type->pointer.is_array) {
-            cur = new_node(IR_ALLOCA);
-            cur->alloca.dest = creg;
-            cur->alloca.var = var;
-            if (var->type->pointer.array.has_const_size) {
-               cur->alloca.size.type = IRT_UINT;
-               cur->alloca.size.uVal = sizeof_value(var->type, false);
-            } else {
-               tmp = irgen_expr(s->parent, var->type->pointer.array.dsize);
+         const struct value_type* type = var->type;
+         if (type->type == VAL_POINTER && type->pointer.is_array) {
+            if (!type->pointer.array.has_const_size) {
+               cur = new_node(IR_ALLOCA);
+               cur->alloca.dest = creg;
+               cur->alloca.var = var;
+               tmp = irgen_expr(s->parent, type->pointer.array.dsize);
                ir_node_t* mul = new_node(IR_UMUL);
                mul->binary.size = IRS_PTR;
                mul->binary.dest = creg - 1;
                mul->binary.a.type = IRT_REG;
                mul->binary.a.reg = creg - 1;
                mul->binary.b.type = IRT_UINT;
-               mul->binary.b.uVal = sizeof_value(var->type->pointer.type, false);
+               mul->binary.b.uVal = sizeof_value(type->pointer.type, false);
                ir_append(tmp, mul);
 
                cur->alloca.size.type = IRT_REG;
                cur->alloca.size.reg = --creg;
                ir_append(tmp, cur);
                cur = tmp;
-            }
-            // creg is ptr to array
-            tmp = new_node(IR_LOOKUP);
-            tmp->lookup.reg = creg + 1;
-            tmp->lookup.scope = s->parent;
-            tmp->lookup.var_idx = s->var_decl.idx + i;
-            ir_append(cur, tmp);
+               // creg is ptr to array
+               tmp = new_node(IR_LOOKUP);
+               tmp->lookup.reg = creg + 1;
+               tmp->lookup.scope = s->parent;
+               tmp->lookup.var_idx = s->var_decl.idx + i;
+               ir_append(cur, tmp);
 
-            tmp = new_node(IR_WRITE);
-            tmp->move.dest = creg + 1;
-            tmp->move.src = creg;
-            tmp->move.size = IRS_PTR;
-            ir_append(cur, tmp);
+               tmp = new_node(IR_WRITE);
+               tmp->move.dest = creg + 1;
+               tmp->move.src = creg;
+               tmp->move.size = IRS_PTR;
+               ir_append(cur, tmp);
+            } else {
+               if (var->init) {
+                  cur = new_node(IR_LOOKUP);
+                  cur->lookup.reg = creg;
+                  cur->lookup.scope = s->parent;
+                  cur->lookup.var_idx = s->var_decl.idx + i;
+               } else cur = new_node(IR_NOP);
+            }
 
             if (var->init) {
                tmp = new_node(IR_LSTR);
@@ -692,7 +699,7 @@ ir_node_t* irgen_stmt(const struct statement* s) {
                tmp = new_node(IR_COPY);
                tmp->copy.dest = creg;
                tmp->copy.src = creg + 1;
-               tmp->copy.len = my_min(var->type->pointer.array.size, strlen(var->init->str) + 1);
+               tmp->copy.len = my_min(type->pointer.array.size, strlen(var->init->str) + 1);
                ir_append(cur, tmp);
             }
          }

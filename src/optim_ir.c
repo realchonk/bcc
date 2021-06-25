@@ -127,6 +127,7 @@ static bool is_immed(const intmax_t v) {
 }
 
 // (load R1, 40; iadd R0, R0, R1) -> (iadd R0, R0, 40) 
+// TODO: fix this
 static bool direct_val(ir_node_t** n) {
    bool success = false;
    
@@ -423,12 +424,12 @@ static bool fuse_load_iicast(ir_node_t** n) {
 ir_node_t* optim_ir_nodes(ir_node_t* n) {
    if (optim_level < 1) return n;
    while (remove_nops(&n)
-      || direct_val(&n)
+      //|| direct_val(&n)
       || unmuldiv(&n)
       || fold(&n)
       || reorder_params(&n)
       || add_zero(&n)
-      || remove_unreferenced(&n)
+      //|| remove_unreferenced(&n)
       || direct_call(&n)
       || mod_to_and(&n)
       || fuse_load_iicast(&n)

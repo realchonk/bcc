@@ -31,7 +31,7 @@ static const char* nasm_size(enum ir_value_size s) {
 static size_t x86_sizeof_value(const struct value_type* vt) {
    if (vt->type == VAL_POINTER && !vt->pointer.array.has_const_size)
       return REGSIZE * 2;
-   else return sizeof_value(vt, true);
+   else return sizeof_value(vt, false);
 }
 static size_t sizeof_scope(const struct scope* scope) {
    size_t num = 0;

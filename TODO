@@ -10,7 +10,7 @@ Long term:
 - floating-point support
 
 Short term:
-- fix constant-length arrays
+- make the compiler assemble if given assembly source code
 - fix stack-alignment for x86
 - fix calling convention for struct/union
 - fix nasm warning for indirect function calls on x86_64

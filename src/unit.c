@@ -92,6 +92,7 @@ void parse_unit(bool gen_ir) {
          parse_error(&begin, "variable cannot be static and extern at the same time");
 
       struct value_type* type = parse_value_type(NULL);
+      if (!has_begin) begin = lexer_peek().begin;
       if (!type)
          parse_error(&begin, "failed to parse type");
 
