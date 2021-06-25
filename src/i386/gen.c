@@ -390,9 +390,9 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       const struct strdb_ptr* ptr;
       strdb_add(n->lstr.str, &ptr);
 #if BCC_x86_64
-      emit("lea %s, [rel __strings + %u]", mreg(n->lstr.reg), ptr->idx);
+      emit("lea %s, [rel __strings + %zu]", mreg(n->lstr.reg), ptr->idx);
 #else
-      emit("lea %s, [__strings + %u]", mreg(n->lstr.reg), ptr->idx);
+      emit("lea %s, [__strings + %zu]", mreg(n->lstr.reg), ptr->idx);
 #endif
       return n->next;
    }

@@ -1,7 +1,9 @@
 #include <string.h>
 #include "emit_ir.h"
+#include "strdb.h"
 #include "error.h"
 #include "regs.h"
+#include "bcc.h"
 
 static size_t size_stack;
 
@@ -62,17 +64,29 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       emit("");
       return n->next;
    case IR_READ:
+   {
+      ir_node_t* next = n->next;
+      ir_reg_t dest = n->move.dest;
+      bool sign_extend = false;
+      if (optim_level >= 1
+         && ir_is(next, IR_IICAST)
+         && n->move.dest == next->iicast.src) {
+         dest = next->iicast.dest;
+         sign_extend = next->iicast.sign_extend;
+         next = next->next;
+      }
       switch (n->move.size) {
       case IRS_BYTE:
-      case IRS_CHAR:    instr = n->move.sign_extend ? "lb  " : "lbu "; break;
-      case IRS_SHORT:   instr = n->move.sign_extend ? "lh  " : "lhu "; break;
+      case IRS_CHAR:    instr = sign_extend ? "lb  " : "lbu "; break;
+      case IRS_SHORT:   instr = sign_extend ? "lh  " : "lhu "; break;
       case IRS_PTR:
       case IRS_INT:
       case IRS_LONG:    instr = "lw  ";  break;
       default:          panic("unsupported operand size '%s'", ir_size_str[n->move.size]);
       }
-      emit("%s %s, 0(%s)", instr, reg_op(n->move.dest), reg_op(n->move.src));
-      return n->next;
+      emit("%s %s, 0(%s)", instr, reg_op(dest), reg_op(n->move.src));
+      return next;
+   }
    case IR_WRITE:
       switch (n->move.size) {
       case IRS_BYTE:
@@ -92,14 +106,19 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       emit("%s:", n->func->name);
 
       // stack allocation
+      const size_t num_reg_params = my_min(8, buf_len(n->func->params));
       size_stack = sizeof_scope(n->func->scope);
-      size_stack += REGSIZE * 2;
+      size_stack += 2 * REGSIZE;
+      size_stack += num_reg_params * REGSIZE;
       if (size_stack & 15)
          size_stack = (size_stack & ~15) + 16;
       emit("addi sp, sp, -%zu", size_stack);
       size_t sp = size_stack;
       emit("sw   fp, %zu(sp)", sp -= REGSIZE);
       emit("sw   ra, %zu(sp)", sp -= REGSIZE);
+      for (size_t i = 0; i < num_reg_params; ++i) {
+         emit("sw   a%zu, %zu(sp)", i, sp -= REGSIZE);
+      }
       emit("addi fp, sp, %zu", size_stack);
 
       sp = 20;
@@ -151,8 +170,23 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    }
    case IR_ALLOCA:
       return n->next;
+   case IR_LSTR:
+   {
+      const struct strdb_ptr* ptr;
+      strdb_add(n->lstr.str, &ptr);
+      emit("la   %s, __strings + %zu", reg_op(n->lstr.reg), ptr->idx);
+      return n->next;
+   }
+   case IR_FPARAM:
+      if (n->fparam.idx < 8) {
+         emit("addi %s, sp, %zu", reg_op(n->fparam.reg), size_stack - (n->fparam.idx + 3) * REGSIZE);
+      } else {
+
+      }
+      return n->next;
    
-   //default:
+   default:
       panic("unsupported ir_node type '%s'", ir_node_type_str[n->type]);
    }
+   panic("unreachable reached, n->type='%s'", ir_node_type_str[n->type]);
 }

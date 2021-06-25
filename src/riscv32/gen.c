@@ -11,12 +11,12 @@ static void emit_begin(void) {
 static void emit_end(void) {
    if (strdb) {
       emitraw(".section .rodata\n__strings:\n.string \"");
-      for (size_t i = 0; i < buf_len(strdb); ++i) {
+      for (size_t i = 0; i < buf_len(strdb) - 1; ++i) {
          const char ch = strdb[i];
          if (isprint(ch)) {
             emitraw("%c", ch);
          } else {
-            emitraw("%03o", ch);
+            emitraw("\\%03o", ch);
          }
       }
       emit("\"");

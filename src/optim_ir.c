@@ -393,6 +393,33 @@ static bool mod_to_and(ir_node_t** n) {
    return success;
 }
 
+// (load.char R0, 42; iicast.int R0, char R0) -> (load.int R0, 42)
+static bool fuse_load_iicast(ir_node_t** n) {
+   bool success = false;
+   for (ir_node_t* cur = *n; cur; cur = cur->next) {
+      if (cur->type == IR_LOAD && ir_is(cur->next, IR_IICAST)
+         && cur->load.dest == cur->next->iicast.src) {
+         cur->load.dest = cur->next->iicast.dest;
+         const enum ir_value_size ds = cur->next->iicast.ds;
+         const enum ir_value_size ss = cur->next->iicast.ss;
+         uintmax_t value = cur->load.value;
+         if (cur->next->iicast.sign_extend && ds > ss) {
+            const uintmax_t dm = target_get_umax(ds);
+            const uintmax_t sm = target_get_umax(ss);
+            if (value & ((sm >> 1) + 1))
+               value |= dm & ~sm;
+         } else if (ds < ss) {
+            const uintmax_t dm = target_get_umax(ds);
+            value &= dm;
+         }
+         cur->load.value = value;
+         cur->next->type = IR_NOP;
+         success = true;
+      }
+   }
+   return success;
+}
+
 ir_node_t* optim_ir_nodes(ir_node_t* n) {
    if (optim_level < 1) return n;
    while (remove_nops(&n)
@@ -404,6 +431,7 @@ ir_node_t* optim_ir_nodes(ir_node_t* n) {
       || remove_unreferenced(&n)
       || direct_call(&n)
       || mod_to_and(&n)
+      || fuse_load_iicast(&n)
    );
    return n;
 }

@@ -111,7 +111,6 @@ typedef struct ir_node {
       struct {
          ir_reg_t dest, src;
          enum ir_value_size size;
-         bool sign_extend; // only for READ, WRITE
       } move;
       struct {
          ir_reg_t dest;
@@ -145,7 +144,6 @@ typedef struct ir_node {
       } ifcall;
       struct {
          ir_reg_t reg;
-         struct function* func;
          size_t idx;
       } fparam;
       struct {

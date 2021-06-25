@@ -98,7 +98,6 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
          } else {
             n->type = IR_FPARAM;
             n->fparam.reg = creg++;
-            n->fparam.func = scope->func;
             n->fparam.idx = idx;
          }
       } else {
@@ -313,7 +312,6 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          tmp = new_node(IR_READ);
          tmp->move.dest = tmp->move.src = creg - 1;
          tmp->move.size = irs;
-         tmp->move.sign_extend = false;
          ir_append(n, tmp);
       }
       break;
