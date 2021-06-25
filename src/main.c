@@ -23,6 +23,10 @@ static istr_t replace_ending(const char* s, const char* end) {
    new_str[len_s + len_end + 1] = '\0';
    return strint(new_str);
 }
+static bool ends_with(const char* str, const char* end) {
+   const char* ending = strrchr(str, '.');
+   return ending && !strcmp(ending + 1, end);
+}
 
 static const char* remove_asm_filename;
 static void remove_asm_file(void) {
@@ -105,7 +109,7 @@ int main(int argc, char* argv[]) {
    enable_warnings = true;
    optim_level = 1;
    int option;
-   while ((option = getopt(argc, argv, ":hm:VO:wciSAo:")) != -1) {
+   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:")) != -1) {
       switch (option) {
       case 'h':
          puts("bcc: for help use 'man 1 bcc'");
@@ -120,6 +124,14 @@ int main(int argc, char* argv[]) {
       case 'w':
          enable_warnings = false;
          break;
+      case 'd':
+         if (!strcmp(optarg, "umpversion")) {
+            puts(BCC_VER);
+            return 0;
+         } else if (!strcmp(optarg, "umpmachine")) {
+            puts(BCC_ARCH);
+            return 0;
+         } else goto print_usage;
       case 'O':
       {
          char* endp;
@@ -144,6 +156,7 @@ int main(int argc, char* argv[]) {
          if (!parse_mach_opt(optarg)) return false;
          break;
       case ':':
+         if (optopt == 'd') goto print_usage;
          fprintf(stderr, "bcc: missing argument for '-%c'\n", optopt);
          return 1;
       case '?':
@@ -158,6 +171,14 @@ int main(int argc, char* argv[]) {
       return 1;
    }
    const char* source_file = argv[optind];
+   if (ends_with(source_file, target_info.fend_asm)) {
+      if (level != 'c') {
+         fprintf(stderr, "bcc: invalid option -'%c' for assembly file\n", level);
+         return 1;
+      }
+
+      return assemble(source_file, replace_ending(source_file, target_info.fend_obj));
+   }
    FILE* source;
    if (!strcmp(source_file, "-")) source = stdin;
    else source = fopen(source_file, "r");
@@ -192,6 +213,7 @@ int main(int argc, char* argv[]) {
          panic("failed to open '%s'", output_file);
       asm_file = output;
    }
+
 
    lexer_init(source, source_file);
    if (level == 'S' || level == 'c') emit_init(asm_file);
