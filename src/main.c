@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <ctype.h>
+#include "help_options.h"
 #include "parser.h"
 #include "target.h"
 #include "lex.h"
@@ -103,7 +104,6 @@ static bool parse_mach_opt(char* arg) {
    return false;
 }
 
-extern const char* help_options;
 
 int main(int argc, char* argv[]) {
    const char* output_file = NULL;
