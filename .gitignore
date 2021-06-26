@@ -3,3 +3,4 @@ obj
 test/run_tests
 test/*.log
 test2*
+src/riscv32/as.c
