@@ -24,7 +24,7 @@ BINDIR ?= /bin
 MANDIR ?= /share/man/man1
 
 includes=$(wildcard include/*.h)
-sources=$(wildcard src/*.c) $(wildcard src/$(ARCH)/*.c)
+sources=src/help_options.c $(wildcard src/*.c) $(wildcard src/$(ARCH)/*.c)
 objects=$(patsubst src/%.c,obj/%.o,$(wildcard src/*.c)) \
 		  $(patsubst src/$(ARCH)/%.c,obj/$(ARCH)/%.o,$(wildcard src/$(ARCH)/*.c))
 target_includes=$(wildcard src/$(ARCH)/*.h)
@@ -33,6 +33,9 @@ all: bcc
 
 bcc: check_arch check_deps obj/$(ARCH) $(objects)
 	$(LD) -o $@ $(objects) $(LDFLAGS) $(LIBS)
+
+src/help_options.c: bcc.1
+	./util/read_doc.sh <bcc.1 >src/help_options.c
 
 obj:
 	mkdir -p obj
@@ -48,6 +51,7 @@ obj/%.o: src/%.c $(includes)
 
 clean:
 	rm -rf obj
+	rm -f src/help_options.c
 	make -C test clean
 
 todo:

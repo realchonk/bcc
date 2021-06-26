@@ -2,12 +2,20 @@
 
 print_asses() {
    for dir in $(echo "${PATH}" | tr ':' '\n'); do
-      ls "$dir" 2>/dev/null | grep "${ARCH}-.*-as" | awk "{print \"${dir}/\" \$0}"
+      ls "$dir" 2>/dev/null | grep "${ARCH}-.*-${PROG}" | awk "{print \"${dir}/\" \$0}"
    done
 }
 
-[ $# -ne 1 ] && echo "Usage: $(basename "$0") <arch>" && exit 1
-ARCH="$1"
+if [ $# -eq 1 ]; then
+   ARCH="$1"
+   PROG="as"
+elif [ $# -eq 2 ]; then
+   ARCH="$1"
+   PROG="$2"
+else
+   echo "Usage: $(basename "$0") <arch> [prog]" >&2
+   exit 1
+fi
 
 list="$(print_asses)"
 [ -z "${list}" ] && exit 1

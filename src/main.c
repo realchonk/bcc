@@ -103,6 +103,8 @@ static bool parse_mach_opt(char* arg) {
    return false;
 }
 
+extern const char* help_options;
+
 int main(int argc, char* argv[]) {
    const char* output_file = NULL;
    int level = 'c';
@@ -112,7 +114,7 @@ int main(int argc, char* argv[]) {
    while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:")) != -1) {
       switch (option) {
       case 'h':
-         puts("bcc: for help use 'man 1 bcc'");
+         printf("Usage: bcc [options] file...\nOptions:\n%s", help_options);
          return 0;
       case 'o': output_file = optarg; break;
       case 'c':
