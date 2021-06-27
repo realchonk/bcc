@@ -57,6 +57,7 @@ obj/%.o: src/%.c $(includes)
 clean:
 	rm -rf obj
 	rm -f include/help_options.h .program_prefix
+	rm -f src/riscv32/as.h
 	make -C test clean
 
 todo:

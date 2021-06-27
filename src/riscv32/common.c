@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "target.h"
 #include "error.h"
+#include "as.h"
 
 struct machine_option mach_opts[] = {
 };
