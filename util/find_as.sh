@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 print_asses() {
    for dir in $(echo "${PATH}" | tr ':' '\n'); do
