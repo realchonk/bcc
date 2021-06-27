@@ -37,7 +37,7 @@ all: bcc
 
 bcc: include/help_options.h check_arch check_deps obj/$(ARCH) $(objects)
 	$(LD) -o $@ $(objects) $(LDFLAGS) $(LIBS)
-	if [ -z "$(OLD_TARGET)" ]; then rm .program_prefix; else echo "$(OLD_TARGET)-" > .program_prefix; fi
+	@if [ -z "$(OLD_TARGET)" ]; then rm -f .program_prefix; else echo "$(OLD_TARGET)-" > .program_prefix; fi
 
 include/help_options.h: bcc.1
 	./util/read_doc.sh <$< >$@
