@@ -60,6 +60,7 @@ todo:
 install:
 	install -Dm755 bcc $(PREFIX)/$(BINDIR)/bcc
 	install -Dm644 bcc.1 $(PREFIX)/$(MANDIR)/bcc.1
+	install -Dm644 util/bcc.bash $(PREFIX)/share/bash-completion/completions/bcc
 	sed -i "s/VERSION/$(VER)/g" $(PREFIX)/$(MANDIR)/bcc.1
 
 check: test
