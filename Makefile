@@ -1,5 +1,7 @@
 VER="0.8"
 
+OLD_TARGET := $(TARGET)
+
 ifeq ($(TARGET),)
 ARCH=$(shell ./util/getarch.sh)
 TARGET=$(ARCH)
@@ -23,6 +25,8 @@ PREFIX ?= /usr/local
 BINDIR ?= /bin
 MANDIR ?= /share/man/man1
 
+PROGRAM_PREFIX ?= $(shell cat .program_prefix 2>/dev/null)
+
 includes=$(wildcard include/*.h)
 sources=$(wildcard src/*.c) $(wildcard src/$(ARCH)/*.c)
 objects=$(patsubst src/%.c,obj/%.o,$(wildcard src/*.c)) \
@@ -33,6 +37,7 @@ all: bcc
 
 bcc: include/help_options.h check_arch check_deps obj/$(ARCH) $(objects)
 	$(LD) -o $@ $(objects) $(LDFLAGS) $(LIBS)
+	if [ -z "$(OLD_TARGET)" ]; then rm .program_prefix; else echo "$(OLD_TARGET)-" > .program_prefix; fi
 
 include/help_options.h: bcc.1
 	./util/read_doc.sh <$< >$@
@@ -51,17 +56,17 @@ obj/%.o: src/%.c $(includes)
 
 clean:
 	rm -rf obj
-	rm -f include/help_options.h
+	rm -f include/help_options.h .program_prefix
 	make -C test clean
 
 todo:
 	@grep -n TODO $(sources) $(includes) || true
 
 install:
-	install -Dm755 bcc $(PREFIX)/$(BINDIR)/bcc
-	install -Dm644 bcc.1 $(PREFIX)/$(MANDIR)/bcc.1
-	install -Dm644 util/bcc.bash $(PREFIX)/share/bash-completion/completions/bcc
-	sed -i "s/VERSION/$(VER)/g" $(PREFIX)/$(MANDIR)/bcc.1
+	install -Dm755 bcc $(PREFIX)/$(BINDIR)/$(PROGRAM_PREFIX)bcc
+	install -Dm644 bcc.1 $(PREFIX)/$(MANDIR)/$(PROGRAM_PREFIX)bcc.1
+	install -Dm644 util/bcc.bash $(PREFIX)/share/bash-completion/completions/$(PROGRAM_PREFIX)bcc
+	sed -i "s/VERSION/$(VER)/g" $(PREFIX)/$(MANDIR)/$(PROGRAM_PREFIX)bcc.1
 
 check: test
 test:

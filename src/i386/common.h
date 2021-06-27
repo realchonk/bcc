@@ -267,3 +267,10 @@ static void add_unresolved(istr_t name) {
    buf_push(unresolved, name);
 }
 
+static bool is_defined(istr_t s) {
+   for (size_t i = 0; i < buf_len(cunit.funcs); ++i) {
+      const struct function* f = cunit.funcs[i];
+      if (s == f->name && f->scope) return true;
+   }
+   return get_builtin_func(s) != NULL;
+}

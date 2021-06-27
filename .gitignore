@@ -5,3 +5,4 @@ test/*.log
 test2*
 src/riscv32/as.c
 include/help_options.h
+.program_prefix
