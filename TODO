@@ -15,3 +15,4 @@ Short term:
 - fix nasm warning for indirect function calls on x86_64
 - improve test logs
 - more test cases for switch/case
+- remove bash dependency from scripts
