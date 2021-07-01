@@ -29,11 +29,15 @@ objects=$(patsubst src/%.c,obj/%.o,$(wildcard src/*.c)) \
 		  $(patsubst src/$(ARCH)/%.c,obj/$(ARCH)/%.o,$(wildcard src/$(ARCH)/*.c))
 target_includes=$(wildcard src/$(ARCH)/*.h)
 
-all: bcc
+all: bcc bcc-cpp
 
 bcc: include/help_options.h check_arch check_deps obj/$(ARCH) $(objects)
 	$(CC) -o $@ $(objects) $(CFLAGS) $(LIBS)
 	@if [ -z "$(OLD_TARGET)" ]; then rm -f .program_prefix; else echo "$(OLD_TARGET)-" > .program_prefix; fi
+
+bcc-cpp:
+	$(MAKE) -C cpp
+
 
 include/help_options.h: bcc.1
 	./util/read_doc.sh <$< >$@
@@ -55,12 +59,14 @@ clean:
 	rm -f include/help_options.h .program_prefix
 	rm -f src/riscv32/as.h
 	make -C test clean
+	make -C cpp clean
 
 todo:
 	@grep -n TODO $(sources) $(includes) || true
 
 install:
 	install -Dm755 bcc $(PREFIX)/$(BINDIR)/$(PROGRAM_PREFIX)bcc
+	install -Dm755 cpp/bcc-cpp $(PREFIX)/$(BINDIR)/bcc-cpp
 	install -Dm644 bcc.1 $(PREFIX)/$(MANDIR)/$(PROGRAM_PREFIX)bcc.1
 	install -Dm644 util/bcc.bash $(PREFIX)/share/bash-completion/completions/$(PROGRAM_PREFIX)bcc
 	sed -i "s/VERSION/$(VER)/g" $(PREFIX)/$(MANDIR)/$(PROGRAM_PREFIX)bcc.1

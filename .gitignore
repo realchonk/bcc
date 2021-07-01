@@ -1,5 +1,6 @@
 bcc
 obj
+cpp/obj
 test/run_tests
 test/*.log
 test2*
