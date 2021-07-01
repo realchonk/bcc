@@ -13,13 +13,11 @@ ifeq ($(DISABLE_FP),y)
 CFLAGS += -DDISABLE_FP=1
 endif
 
-CC=cc -c -g -std=c99 -Og
+CC=cc -g -std=c99 -Og
 CFLAGS += -Iinclude -Wall -Wextra -D_XOPEN_SOURCE=700 -Wno-missing-braces -Wno-array-bounds
 CFLAGS += -DBCC_ARCH=\"$(ARCH)\" -DBCC_$(ARCH)=1 -DBCC_VER=\"$(VER)\"
 
-LD=cc
-LDFLAGS=
-LIBS=-lm
+LIBS += -lm
 
 PREFIX ?= /usr/local
 BINDIR ?= /bin
@@ -36,7 +34,7 @@ target_includes=$(wildcard src/$(ARCH)/*.h)
 all: bcc
 
 bcc: include/help_options.h check_arch check_deps obj/$(ARCH) $(objects)
-	$(LD) -o $@ $(objects) $(LDFLAGS) $(LIBS)
+	$(CC) -o $@ $(objects) $(CFLAGS) $(LIBS)
 	@if [ -z "$(OLD_TARGET)" ]; then rm -f .program_prefix; else echo "$(OLD_TARGET)-" > .program_prefix; fi
 
 include/help_options.h: bcc.1
@@ -49,10 +47,10 @@ obj/$(ARCH): obj
 	mkdir -p obj/$(ARCH)
 
 obj/$(ARCH)/%.o: src/$(ARCH)/%.c $(includes) $(target_includes)
-	$(CC) -o $@ $< $(CFLAGS)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
 obj/%.o: src/%.c $(includes)
-	$(CC) -o $@ $< $(CFLAGS)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
 clean:
 	rm -rf obj
