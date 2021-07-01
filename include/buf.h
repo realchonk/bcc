@@ -13,6 +13,9 @@
 #define my_max(a, b) ((a) > (b) ? (a) : (b))
 #endif
 
+#ifndef arraylen
+#define arraylen(a) (sizeof(a) / sizeof(*(a)))
+#endif
 
 struct BufHdr {
 	size_t cap, len;

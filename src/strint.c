@@ -1,7 +1,7 @@
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include "strint.h"
-#include "error.h"
 #include "buf.h"
 
 struct entry {
@@ -28,7 +28,7 @@ static istr_t do_strint(const char* str, size_t len) {
          return line[i].str;
    }
    char* new_str = malloc(len + 1);
-   if (!new_str) panic("failed to allocate string");
+   assert(new_str != NULL);
    memcpy(new_str, str, len);
    new_str[len] = '\0';
    struct entry e;

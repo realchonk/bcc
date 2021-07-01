@@ -3,8 +3,6 @@
 #include <stdnoreturn.h>
 #include "token.h"
 
-#define arraylen(a) (sizeof(a) / sizeof((a)[0]))
-
 #if defined(__GNUC__)
 #define fallthrough __attribute__((fallthrough))
 #else

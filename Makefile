@@ -14,7 +14,7 @@ CFLAGS += -DDISABLE_FP=1
 endif
 
 CFLAGS += -Wno-missing-braces -Wno-array-bounds
-CFLAGS += -DBCC_ARCH=\"$(ARCH)\" -DBCC_$(ARCH)=1 -DBCC_VER=\"$(VER)\"
+CFLAGS += -DBCC_ARCH=\"$(ARCH)\" -DBCC_$(ARCH)=1
 LIBS += -lm
 
 PREFIX ?= /usr/local
@@ -29,13 +29,13 @@ objects=$(patsubst src/%.c,obj/%.o,$(wildcard src/*.c)) \
 		  $(patsubst src/$(ARCH)/%.c,obj/$(ARCH)/%.o,$(wildcard src/$(ARCH)/*.c))
 target_includes=$(wildcard src/$(ARCH)/*.h)
 
-all: bcc bcc-cpp
+all: bcc bcpp
 
 bcc: include/help_options.h check_arch check_deps obj/$(ARCH) $(objects)
 	$(CC) -o $@ $(objects) $(CFLAGS) $(LIBS)
 	@if [ -z "$(OLD_TARGET)" ]; then rm -f .program_prefix; else echo "$(OLD_TARGET)-" > .program_prefix; fi
 
-bcc-cpp:
+bcpp:
 	$(MAKE) -C cpp
 
 
@@ -56,6 +56,7 @@ obj/%.o: src/%.c $(includes)
 
 clean:
 	rm -rf obj
+	rm -f bcc
 	rm -f include/help_options.h .program_prefix
 	rm -f src/riscv32/as.h
 	make -C test clean
@@ -66,7 +67,7 @@ todo:
 
 install:
 	install -Dm755 bcc $(PREFIX)/$(BINDIR)/$(PROGRAM_PREFIX)bcc
-	install -Dm755 cpp/bcc-cpp $(PREFIX)/$(BINDIR)/bcc-cpp
+	install -Dm755 cpp/bcpp $(PREFIX)/$(BINDIR)/bcpp
 	install -Dm644 bcc.1 $(PREFIX)/$(MANDIR)/$(PROGRAM_PREFIX)bcc.1
 	install -Dm644 util/bcc.bash $(PREFIX)/share/bash-completion/completions/$(PROGRAM_PREFIX)bcc
 	sed -i "s/VERSION/$(VER)/g" $(PREFIX)/$(MANDIR)/$(PROGRAM_PREFIX)bcc.1
