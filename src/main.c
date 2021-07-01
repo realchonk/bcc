@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
    enable_warnings = true;
    optim_level = 1;
    int option;
-   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:")) != -1) {
+   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:E")) != -1) {
       switch (option) {
       case 'h':
          printf("Usage: bcc [options] file...\nOptions:\n%s", help_options);
@@ -157,6 +157,9 @@ int main(int argc, char* argv[]) {
       case 'm':
          if (!parse_mach_opt(optarg)) return false;
          break;
+      case 'E':
+         fputs("bcc: pre-processor is currently not implemented!\n", stderr);
+         return 1;
       case ':':
          if (optopt == 'd') goto print_usage;
          fprintf(stderr, "bcc: missing argument for '-%c'\n", optopt);
