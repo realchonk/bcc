@@ -64,6 +64,7 @@ static bool parse_mach_opt(char* arg) {
    }
    char* value = strchr(arg, '=');
    const size_t len_arg = value ? (size_t)(value - arg) : strlen(arg);
+   if (value) ++value;
    for (size_t i = 0; i < num_mach_opts; ++i) {
       struct machine_option* opt = &mach_opts[i];
       const size_t len_name = strlen(opt->name);
@@ -170,6 +171,7 @@ int main(int argc, char* argv[]) {
       default: goto print_usage;
       }
    }
+   if (!emit_prepare()) return 1;
    if ((argc - optind) != 1) {
    print_usage:
       fputs("Usage: bcc [options] input\n", stderr);

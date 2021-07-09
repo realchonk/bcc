@@ -123,3 +123,11 @@ struct builtin_func* get_builtin_func(const char* name) {
    }
    return NULL;
 }
+const struct machine_option* get_mach_opt(const char* name) {
+   for (size_t i = 0; i < num_mach_opts; ++i) {
+      const struct machine_option* opt = &mach_opts[i];
+      if (!strcmp(name, opt->name))
+         return opt;
+   }
+   return NULL;
+}

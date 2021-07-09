@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include "riscv32/cpu.h"
 #include "target.h"
 #include "strdb.h"
 

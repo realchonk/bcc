@@ -7,6 +7,7 @@
 #include "as.h"
 
 struct machine_option mach_opts[] = {
+   { "cpu", "The target CPU", 2, .sVal = "rv32gc" },
 };
 
 const size_t num_mach_opts = arraylen(mach_opts);
