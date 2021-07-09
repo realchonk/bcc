@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include "cpp.h"
 
 int main(int argc, char* argv[]) {
    const char* output_name = "-";
@@ -36,7 +37,7 @@ int main(int argc, char* argv[]) {
       return 1;
    }
 
-   const char* source_name = argv[optind];
+   source_name = argv[optind];
    FILE* source = !strcmp(source_name, "-") ? stdin : fopen(source_name, "r");
    if (!source) {
       fprintf(stderr, "bcpp: failed to open '%s': %s\n", source_name, strerror(errno));
@@ -50,9 +51,10 @@ int main(int argc, char* argv[]) {
       return 1;
    }
 
-   // TODO: implement
+
+   const int status = run_cpp(source, output);
 
    fclose(source);
    fclose(output);
-   return 0;
+   return status;
 }

@@ -182,9 +182,7 @@ int main(int argc, char* argv[]) {
       if (level != 'c') {
          fprintf(stderr, "bcc: invalid option -'%c' for assembly file\n", level);
          return 1;
-      }
-
-      return assemble(source_file, replace_ending(source_file, target_info.fend_obj));
+      } else return assemble(source_file, replace_ending(source_file, target_info.fend_obj));
    }
    FILE* source;
    if (!strcmp(source_file, "-")) source = stdin;

@@ -11,7 +11,7 @@ bcpp: obj $(objects)
 obj:
 	mkdir -p obj
 
-obj/%.o: src/%.c
+obj/%.o: src/%.c include
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 clean:
