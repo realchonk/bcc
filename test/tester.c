@@ -98,7 +98,8 @@ static bool run_test(const struct test_case* test) {
          close(pipes[1]);
 
          char* buffer = malloc(len + 1);
-         if ((size_t)read(pipes[0], buffer, len) != len || memcmp(buffer, test->output, len)) {
+         char tmp;
+         if ((size_t)read(pipes[0], buffer, len) != len || memcmp(buffer, test->output, len) || read(pipes[0], &tmp, 1) == 1) {
             r = false;
             cause = "output did not match";
          }

@@ -627,7 +627,7 @@
       "int main(void) {"
       "  puts(typeof(&add));"
       "}",
-   .output = "int(int, int)*",
+   .output = "int(int, int)*\n",
 },
 {
    .name = "stdint",
@@ -667,4 +667,16 @@
       "  return a + b;"
       "}",
    .ret_val = 5,
+},
+{
+   .name = "remove \\\\n (pre-processor)",
+   .compiles = true,
+   .source =
+      "int printf(const char*, ...);"
+      "int main(void) {"
+      "  printf(\"Hello \\\n"
+      "World\\n\");"
+      "}",
+   .output = "Hello World\n",
+   .ret_val = 0,
 },
