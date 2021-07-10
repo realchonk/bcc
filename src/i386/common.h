@@ -63,7 +63,6 @@ static void emit_begin(void) {
    if (defined) buf_free(defined);
    emit("default rel");
    emit("section .text");
-   emit("extern memcpy");
    for (size_t i = 0; i < buf_len(cunit.vars); ++i) {
       const struct variable* v = &cunit.vars[i];
       if (!(v->attrs & ATTR_EXTERN))

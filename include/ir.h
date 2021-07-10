@@ -195,4 +195,9 @@ enum ir_value_size vt2irs(const struct value_type*);
 bool ir_is(ir_node_t*, enum ir_node_type);
 bool ir_isv(ir_node_t*, ...); // must be terminated with NUM_IR_NODES
 
+#define IRR_NONSENSE ((ir_reg_t)-1)
+ir_reg_t ir_get_target(const ir_node_t*);
+bool ir_is_source(const ir_node_t*, ir_reg_t);
+bool ir_is_binary(const enum ir_node_type);
+
 #endif /* FILE_IR_H */

@@ -6,100 +6,13 @@
 
 // utility functions
 
-#define IRR_NONSENSE ((ir_reg_t)-1)
-
-static ir_reg_t get_target(const ir_node_t* n) {
-   switch (n->type) {
-   case IR_MOVE:
-   case IR_READ:
-      return n->move.dest;
-   case IR_IADD:
-   case IR_ISUB:
-   case IR_IAND:
-   case IR_IOR:
-   case IR_IXOR:
-   case IR_ILSL:
-   case IR_ILSR:
-   case IR_IASR:
-   case IR_IMUL:
-   case IR_IDIV:
-   case IR_IMOD:
-   case IR_UMUL:
-   case IR_UDIV:
-   case IR_UMOD:
-   case IR_INEG:
-   case IR_INOT:
-   case IR_BNOT:
-   case IR_ISTEQ:
-   case IR_ISTNE:
-   case IR_ISTGR:
-   case IR_ISTGE:
-   case IR_ISTLT:
-   case IR_ISTLE:
-   case IR_USTGR:
-   case IR_USTGE:
-   case IR_USTLT:
-   case IR_USTLE:
-      return n->binary.dest;
-   case IR_IICAST:
-      return n->iicast.dest;
-   case IR_IFCALL:
-      return n->ifcall.dest;
-   case IR_IRCALL:
-      return n->rcall.dest;
-   case IR_LSTR:
-      return n->lstr.reg;
-   default:
-      return IRR_NONSENSE;
-   }
-}
 static bool reg_is_referenced(const ir_node_t* n, ir_reg_t reg) {
    while (n) {
-      switch (n->type) {
-      case IR_MOVE:
-      case IR_READ:
-         if (n->move.src == reg) return true;
-         else if (n->move.dest == reg) return false;
-         break;
-      case IR_LOAD:
-         if (n->load.dest == reg) return true;
-         break;
-      case IR_IADD:
-      case IR_ISUB:
-      case IR_IAND:
-      case IR_IOR:
-      case IR_IXOR:
-      case IR_ILSL:
-      case IR_ILSR:
-      case IR_IASR:
-      case IR_IMUL:
-      case IR_IDIV:
-      case IR_IMOD:
-      case IR_UMUL:
-      case IR_UDIV:
-      case IR_UMOD:
-      case IR_ISTEQ:
-      case IR_ISTNE:
-      case IR_ISTGR:
-      case IR_ISTGE:
-      case IR_ISTLT:
-      case IR_ISTLE:
-      case IR_USTGR:
-      case IR_USTGE:
-      case IR_USTLT:
-      case IR_USTLE:
-         if ((n->binary.a.type == IRT_REG && n->binary.a.reg == reg)
-            || (n->binary.b.type == IRT_REG && n->binary.b.reg == reg))
-            return true;
-         else if (n->binary.dest == reg)
-            return false;
-         break;
-      default:
-         break;
-      }
-      n = n->next;
+      if (ir_is_source(n, reg)) return true;
+      else if (ir_get_target(n) == reg) return false;
+      else n = n->next;
    }
-   return true; // TODO: change this later
+   return false;
 }
 
 // remove NOPs

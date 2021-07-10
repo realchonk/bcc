@@ -721,7 +721,6 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
       }
       panic("reached unreachable");
    }
-      return common_value_type(get_value_type(scope, e->binary.left), get_value_type(scope, e->binary.right), true); // TODO
    case EXPR_TERNARY:
       return common_value_type(get_value_type(scope, e->ternary.true_case), get_value_type(scope, e->ternary.false_case), true);
    case EXPR_PREFIX:

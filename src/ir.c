@@ -275,3 +275,88 @@ bool ir_isv(ir_node_t* n, ...) {
    return success;
 }
 
+ir_reg_t get_target(const ir_node_t* n) {
+   if (ir_is_binary(n->type))
+      return n->binary.dest;
+
+   switch (n->type) {
+   case IR_MOVE:
+   case IR_READ:
+      return n->move.dest;
+   case IR_LOAD:
+      return n->load.dest;
+   case IR_IICAST:
+      return n->iicast.dest;
+   case IR_IFCALL:
+      return n->ifcall.dest;
+   case IR_IRCALL:
+      return n->rcall.dest;
+   case IR_LSTR:
+   case IR_FLOOKUP:
+      return n->lstr.reg;
+   case IR_LOOKUP:
+   case IR_ARRAYLEN:
+      return n->lookup.reg;
+   case IR_FPARAM:
+      return n->fparam.reg;
+   default:
+      return IRR_NONSENSE;
+   }
+}
+bool ir_is_source(const ir_node_t* n, ir_reg_t r) {
+   if (ir_is_binary(n->type))
+      return (n->binary.a.type == IRT_REG && n->binary.a.reg == r)
+         ||  (n->binary.b.type == IRT_REG && n->binary.b.reg == r);
+   switch (n->type) {
+   case IR_READ:
+   case IR_MOVE:  return n->move.src == r;
+   case IR_WRITE: return n->move.dest == r;
+   case IR_INEG:
+   case IR_INOT:
+   case IR_BNOT:
+   case IR_IRET:
+      return n->unary.reg == r;
+   case IR_IICAST:
+      return n->iicast.src == r;
+   case IR_ALLOCA:
+      return n->alloca.size.type == IRT_REG && n->alloca.size.reg == r;
+   case IR_COPY:
+      return n->copy.src == r || n->copy.dest == r;
+   default:
+      return false;
+   }
+}
+bool ir_is_binary(const enum ir_node_type t) {
+   switch (t) {
+   case IR_IADD:
+   case IR_ISUB:
+   case IR_IAND:
+   case IR_IOR:
+   case IR_IXOR:
+   case IR_ILSL:
+   case IR_ILSR:
+   case IR_IASR:
+   case IR_IMUL:
+   case IR_IDIV:
+   case IR_IMOD:
+   case IR_UMUL:
+   case IR_UDIV:
+   case IR_UMOD:
+   case IR_INEG:
+   case IR_INOT:
+   case IR_BNOT:
+   case IR_ISTEQ:
+   case IR_ISTNE:
+   case IR_ISTGR:
+   case IR_ISTGE:
+   case IR_ISTLT:
+   case IR_ISTLE:
+   case IR_USTGR:
+   case IR_USTGE:
+   case IR_USTLT:
+   case IR_USTLE:
+      return true;
+   default:
+      return false;
+   }
+}

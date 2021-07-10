@@ -510,6 +510,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       emit("call memcpy");
       emit("add esp, %zu", 12 + align);
 #endif
+      add_unresolved(strint("memcpy"));
       return n->next;
    }
    case IR_FLOOKUP:
