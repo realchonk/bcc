@@ -627,7 +627,7 @@
       "int main(void) {"
       "  puts(typeof(&add));"
       "}",
-   .output = "int(int, int)*\n",
+   .output = "int(int, int)* const\n",
 },
 {
    .name = "stdint",
