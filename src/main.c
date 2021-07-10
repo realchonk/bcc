@@ -8,6 +8,7 @@
 #include "target.h"
 #include "lex.h"
 #include "bcc.h"
+#include "cpp.h"
 #include "ir.h"
 
 bool enable_warnings;
@@ -112,7 +113,7 @@ int main(int argc, char* argv[]) {
    enable_warnings = true;
    optim_level = 1;
    int option;
-   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:E")) != -1) {
+   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:")) != -1) {
       switch (option) {
       case 'h':
          printf("Usage: bcc [options] file...\nOptions:\n%s", help_options);
@@ -122,6 +123,7 @@ int main(int argc, char* argv[]) {
       case 'i':
       case 'S':
       case 'A':
+      case 'E':
          level = option;
          break;
       case 'w':
@@ -145,6 +147,9 @@ int main(int argc, char* argv[]) {
          }
          break;
       }
+      case 'e':
+         cpp_path = optarg;
+         break;
       case 'V':
          printf("bcc %s\nCopyleft Benjamin Stürz.\n"
                "This software is distributed under the terms of the GPLv2\n", BCC_VER);
@@ -158,9 +163,6 @@ int main(int argc, char* argv[]) {
       case 'm':
          if (!parse_mach_opt(optarg)) return false;
          break;
-      case 'E':
-         fputs("bcc: pre-processor is currently not implemented!\n", stderr);
-         return 1;
       case ':':
          if (optopt == 'd') goto print_usage;
          fprintf(stderr, "bcc: missing argument for '-%c'\n", optopt);
@@ -184,9 +186,7 @@ int main(int argc, char* argv[]) {
          return 1;
       } else return assemble(source_file, replace_ending(source_file, target_info.fend_obj));
    }
-   FILE* source;
-   if (!strcmp(source_file, "-")) source = stdin;
-   else source = fopen(source_file, "r");
+   FILE* source = run_cpp(source_file);
    if (!source) {
       fprintf(stderr, "bcc: failed to open '%s': %s\n", source_file, strerror(errno));
       return 1;
@@ -198,6 +198,7 @@ int main(int argc, char* argv[]) {
       case 'c':   output_file = replace_ending(source_file, target_info.fend_obj); break;
       case 'S':   output_file = replace_ending(source_file, target_info.fend_asm); break;
       case 'i':   output_file = replace_ending(source_file, "ir"); break;
+      case 'E':
       case 'A':   output_file = "-"; break;
       }
    }
@@ -218,7 +219,16 @@ int main(int argc, char* argv[]) {
          panic("failed to open '%s'", output_file);
       asm_file = output;
    }
-
+   
+   if (level == 'E') {
+      char ch;
+      while ((ch = fgetc(source)) != EOF) {
+         fputc(ch, output);
+      }
+      fclose(source);
+      fclose(output);
+      return 0;
+   }
 
    lexer_init(source, source_file);
    if (level == 'S' || level == 'c') emit_init(asm_file);

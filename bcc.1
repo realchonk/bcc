@@ -5,8 +5,9 @@ bcc - brainlet C compiler
 
 .SH SYNOPSIS
 .SY bcc
-.OP -c\fR|\fB-i\fR|\fB-A\fR|\fB-S
+.OP -c\fR|\fB-i\fR|\fB-A\fR|\fB-S\fR|\fB-E
 .OP -w
+.OP -e \fIpath\fR
 .OP -O \fIolevel\fR
 .OP -o \fIoutput\fR
 .OP -m \fImach_opt\fR
@@ -66,6 +67,11 @@ Only emit the intermediate representation.
 .RS 5
 Emit the assembly output.
 .RE
+.B -E
+.RE
+.RS 5
+Only pre-process the file.
+.RE
 .B -O
 .I olevel
 .RE
@@ -104,7 +110,11 @@ Print the target machine architectue.
 .RS 5
 Print the version.
 .RE
-
+.B -e \fIpath\fR
+.RE
+.RS 5
+Specify the path to the preprocessor.
+.RE
 
 .SH OPERANDS
 .I output

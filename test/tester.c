@@ -16,7 +16,7 @@
 #define COLOR_GREEN        "\033[32m"
 #define COLOR_RED          "\033[31m"
 
-#define BCC "../bcc -c -O2 -w -mstack-check -o "
+#define BCC "../bcc -e ../cpp/bcpp -c -O2 -w -mstack-check -o "
 #define LINKER "gcc"
 #define TEST_SOURCE "/tmp/test.c"
 #define TEST_OBJECT "/tmp/test.o"

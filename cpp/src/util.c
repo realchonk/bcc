@@ -35,6 +35,10 @@ char** read_lines(FILE* file) {
       buf_push(line, ch);
       ++col;
    }
+   if (line) {
+      buf_push(line, '\0');
+      buf_push(buf, line);
+   }
    return buf;
 }
 void free_lines(char** lines) {
