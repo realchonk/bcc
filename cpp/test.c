@@ -1,5 +1,7 @@
 int printf(const char*, ...);
 
+#define text "Hello World"
+
 /*
  * this is a comment 
  * */
@@ -7,5 +9,5 @@ int printf(const char*, ...);
 // this is a single-line comment
 
 int main(int argc, char** argv) {
-   printf("Hello World");
+   printf(text);
 }

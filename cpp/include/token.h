@@ -22,6 +22,6 @@ struct token {
 
 extern const char* token_type_str[];
 struct token* tokenize(const char* lines);
-bool is_cpp_line(const char* line);
+bool is_directive(const char* line);
 
 #endif /* FILE_CPP_TOKEN_H */

@@ -100,7 +100,7 @@ struct token* tokenize(const char* str) {
    } while (tk.type != TK_NEWLINE);
    return tokens;
 }
-bool is_cpp_line(const char* line) {
+bool is_directive(const char* line) {
    while (isspace(*line)) ++line;
    return *line == '#';
 }
