@@ -306,8 +306,36 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       }
       return n->next;
    }
+   case IR_IICAST:
+   {
+      const char* dest = reg_op(n->iicast.dest);
+      const char* src = reg_op(n->iicast.src);
+      if (n->iicast.ds == n->iicast.ss) {
+         if (n->iicast.dest != n->iicast.src)
+            emit("mv %s, %s", dest, src);
+      } else if (n->iicast.ds < n->iicast.ss) {
+         switch (n->iicast.ss) {
+         case IRS_BYTE:
+         case IRS_CHAR:
+            emit("andi %s, %s, 255", dest, src);
+            break;
+         case IRS_SHORT:
+            emit("slli %s, %s, 16", dest, src);
+            emit("srai %s, %s, 16", dest, dest);
+            break;
+         default:
+            panic("unreachable reached");
+         }
+      } else {
+         if (n->iicast.sign_extend) {
+            // TODO: implement sign extension
+         }
+         emit("mv %s, %s", dest, src);
+      }
+      return n->next;
+   }
 
-   
+
    //default:
       panic("unsupported ir_node type '%s'", ir_node_type_str[n->type]);
    }
