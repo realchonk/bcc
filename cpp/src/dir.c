@@ -4,10 +4,8 @@
 
 
 static struct directive dirs[] = {
-   {
-      .name = "define",
-      .handler = dir_define,
-   },
+   { .name = "define", .handler = dir_define, },
+   { .name = "undef", .handler = dir_undef, },
 };
 
 struct directive* get_dir(const char* name, size_t len) {

@@ -8,6 +8,8 @@ int printf(const char*, ...);
 
 // this is a single-line comment
 
+#undef text
+
 int main(int argc, char** argv) {
    printf(text);
 }

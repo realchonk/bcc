@@ -8,7 +8,7 @@
 #include "buf.h"
 #include "dir.h"
 
-static void do_cpp_stuff(size_t linenum, const char* line, struct token* tokens, FILE* out) {
+static bool do_cpp_stuff(size_t linenum, const char* line, struct token* tokens, FILE* out) {
    const size_t num_tks = buf_len(tokens);
    size_t tki = 0;
    if (tokens[tki].type == TK_WHITESPACE)
@@ -18,24 +18,24 @@ static void do_cpp_stuff(size_t linenum, const char* line, struct token* tokens,
    if (tki >= num_tks) {
       // TODO: proper error handling
       warn(linenum, "expected word, got newline");
-      return;
+      return false;
    }
 
    const struct token tk_dir = tokens[tki];
    if (tk_dir.type != TK_WORD) {
       warn(linenum, "expected word, got %s", token_type_str[tk_dir.type]);
-      return;
+      return false;
    }
    const struct directive* dir = get_dir(tk_dir.begin, tk_dir.end - tk_dir.begin);
    if (!dir) {
       warn(linenum, "invalid pre-processor directive");
-      return;
+      return false;
    }
    ++tki;
    if (tki < num_tks && tokens[tki].type == TK_WHITESPACE)
       ++tki;
 
-   dir->handler(linenum, line, tokens + tki, num_tks - tki, out);
+   return dir->handler(linenum, line, tokens + tki, num_tks - tki, out);
 }
 
 int run_cpp(FILE* in, FILE* out) {

@@ -62,7 +62,6 @@ bool dir_define(size_t linenum, const char* line, struct token* tokens, size_t n
       return false;
    } else if (tokens[0].type != TK_WORD) {
       warn(linenum, "expected word, got %s", token_type_str[tokens[0].type]);
-      puts(tokens[0].begin);
       return false;
    }
    struct macro m;
@@ -78,5 +77,16 @@ bool dir_define(size_t linenum, const char* line, struct token* tokens, size_t n
          m.text = tokens[tki].begin;
    }
    add_macro(&m);
+   return true;
+}
+bool dir_undef(size_t linenum, const char* line, struct token* tokens, size_t num_tks, FILE* out) {
+   if (num_tks < 1) {
+      warn(linenum, "expected word");
+      return false;
+   } else if (tokens[0].type != TK_WORD) {
+      warn(linenum, "expected word, got %s", token_type_str[tokens[0].type]);
+      return false;
+   }
+   remove_macro(strnint(tokens[0].begin, tokens[0].end - tokens[0].begin));
    return true;
 }
