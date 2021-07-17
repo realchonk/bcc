@@ -6,7 +6,7 @@
 #include "optim.h"
 #include "ir.h"
 
-static struct function* cur_func = NULL;
+static const struct function* cur_func = NULL;
 
 static ir_node_t* new_node(enum ir_node_type t) {
    ir_node_t* n = calloc(1, sizeof(ir_node_t));

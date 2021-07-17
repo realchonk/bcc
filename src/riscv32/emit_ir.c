@@ -510,7 +510,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    }
 
 
-   //default:
+   default:
       panic("unsupported ir_node type '%s'", ir_node_type_str[n->type]);
    }
    panic("unreachable reached, n->type='%s'", ir_node_type_str[n->type]);
