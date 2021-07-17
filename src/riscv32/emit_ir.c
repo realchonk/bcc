@@ -10,7 +10,6 @@ static uintreg_t size_stack;
 
 ir_node_t* emit_ir(const ir_node_t* n) {
    const char* instr;
-   bool swap = false;
    bool flag = false, flag2 = false;
    switch (n->type) {
    case IR_NOP:
@@ -22,6 +21,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    case IR_LOAD:
       emit("li   %s, %jd", reg_op(n->load.dest), (intmax_t)n->load.value);
       return n->next;
+   // flag2: swap operands
    case IR_IADD:
       instr = "add";
       goto ir_binary;
@@ -47,7 +47,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       instr = "sra";
       goto ir_binary;
    case IR_ISTGR:
-      swap = true;
+      flag2 = true;
       fallthrough;
    case IR_ISTLT:
       instr = "slt";
@@ -56,7 +56,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       struct ir_value av;
       struct ir_value bv;
          
-      if (swap) {
+      if (flag2) {
          av = n->binary.b;
          bv = n->binary.a;
       } else {
@@ -242,11 +242,13 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       emit("%s %s, %s", instr, dest, dest);
       return n->next;
    }
+   // flag: unsigned
+   // flag2: swap operands
    case IR_USTLE:
       flag = true;
       fallthrough;
    case IR_ISTLE:
-      swap = true;
+      flag2 = true;
       goto ir_istge;
    case IR_USTGE:
       flag = true;
@@ -255,7 +257,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    {
    ir_istge:;
       struct ir_value av, bv;
-      if (swap) {
+      if (flag2) {
          av = n->binary.b;
          bv = n->binary.a;
       } else {
@@ -278,14 +280,15 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       emit("xori %s, %s, 1", dest, dest);
       return n->next;
    }
+   // flag2: swap operands
    case IR_USTGR:
-      swap = true;
+      flag2 = true;
       fallthrough;
    case IR_USTLT:
    {
       const char* dest = reg_op(n->binary.dest);
       struct ir_value av, bv;
-      if (swap) {
+      if (flag2) {
          av = n->binary.b;
          bv = n->binary.a;
       } else {
