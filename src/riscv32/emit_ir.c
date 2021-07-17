@@ -9,6 +9,7 @@ static size_t size_stack;
 
 ir_node_t* emit_ir(const ir_node_t* n) {
    const char* instr;
+   bool swap = false;
    switch (n->type) {
    case IR_NOP:
       emit("nop");
@@ -42,18 +43,41 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       goto ir_binary;
    case IR_IASR:
       instr = "sra";
+      goto ir_binary;
+   case IR_ISTGR:
+      swap = true;
+      fallthrough;
+   case IR_ISTLT:
+      instr = "slt";
    {
    ir_binary:;
+      struct ir_value av;
+      struct ir_value bv;
+         
+      if (swap) {
+         av = n->binary.b;
+         bv = n->binary.a;
+      } else {
+         av = n->binary.a;
+         bv = n->binary.b;
+      }
+      const char* a;
+      if (av.type == IRT_REG) {
+         a = reg_op(av.reg);
+      } else {
+         a = reg_op(n->binary.dest);
+         emit("li %s, %jd", a, av.sVal);
+      }
       if (n->binary.b.type == IRT_REG) {
          emit("%s  %s, %s, %s", instr,
             reg_op(n->binary.dest),
-            reg_op(n->binary.a.reg),
-            reg_op(n->binary.b.reg));
+            a,
+            reg_op(bv.reg));
       } else {
-         emit("%si %s, %s, %d", instr,
+         emit("%si %s, %s, %jd", instr,
             reg_op(n->binary.dest),
-            reg_op(n->binary.a.reg),
-            (int)n->binary.b.uVal);
+            a,
+            bv.sVal);
       }
       return n->next;
    }
@@ -181,11 +205,45 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       if (n->fparam.idx < 8) {
          emit("addi %s, sp, %zu", reg_op(n->fparam.reg), size_stack - (n->fparam.idx + 3) * REGSIZE);
       } else {
-
+         // TODO: fix this
+         panic("fparam.idx >= 8");
       }
       return n->next;
+   case IR_INEG:
+      emit("sub %s, x0, %s", reg_op(n->unary.reg), reg_op(n->unary.reg));
+      return n->next;
+   case IR_INOT:
+      emit("not %s, %s", reg_op(n->unary.reg), reg_op(n->unary.reg));
+      return n->next;
+   case IR_BNOT:
+      emit("seqz %s, %s", reg_op(n->unary.reg), reg_op(n->unary.reg));
+      return n->next;
+   case IR_ISTEQ:
+      instr = "seqz";
+      goto ir_seqz;
+   case IR_ISTNE:
+      instr = "snez";
+   {
+   ir_seqz:;
+      const char* dest = reg_op(n->binary.dest);
+      const char* a;
+      if (n->binary.a.type == IRT_REG) {
+         a = reg_op(n->binary.a.reg);
+      } else {
+         a = reg_op(n->binary.dest);
+         emit("li %s, %jd", a, n->binary.b.sVal);
+      }
+      if (n->binary.b.type == IRT_REG) {
+         emit("sub %s, %s, %s", dest, a, reg_op(n->binary.b.type));
+      } else {
+         emit("sub %s, %s, %jd", dest, a, n->binary.b.sVal);
+      }
+      emit("%s %s, %s", instr, dest, dest);
+      return n->next;
+   }
+
    
-   default:
+   //default:
       panic("unsupported ir_node type '%s'", ir_node_type_str[n->type]);
    }
    panic("unreachable reached, n->type='%s'", ir_node_type_str[n->type]);

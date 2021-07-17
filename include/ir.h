@@ -94,6 +94,7 @@ struct ir_value {
    union {
       ir_reg_t reg;
       uintmax_t uVal;
+      intmax_t sVal;
    };
 };
 
