@@ -360,3 +360,13 @@ bool ir_is_binary(const enum ir_node_type t) {
       return false;
    }
 }
+bool ir_is_used(const ir_node_t* n, ir_reg_t r) {
+   while (n) {
+      if (ir_is_source(n, r))
+         return true;
+      else if (get_target(n) == r)
+         return false;
+      n = n->next;
+   }
+   return false;
+}

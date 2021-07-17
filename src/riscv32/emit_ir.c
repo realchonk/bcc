@@ -11,6 +11,7 @@ static uintreg_t size_stack;
 ir_node_t* emit_ir(const ir_node_t* n) {
    const char* instr;
    bool flag = false, flag2 = false;
+   intreg_t off;
    switch (n->type) {
    case IR_NOP:
       emit("nop");
@@ -91,6 +92,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    case IR_READ:
    {
+   ir_read:;
       ir_node_t* next = n->next;
       ir_reg_t dest = n->move.dest;
       bool sign_extend = false;
@@ -110,10 +112,15 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       case IRS_LONG:    instr = "lw  ";  break;
       default:          panic("unsupported operand size '%s'", ir_size_str[n->move.size]);
       }
-      emit("%s %s, 0(%s)", instr, reg_op(dest), reg_op(n->move.src));
+      if (flag) {
+         emit("%s %s, %d(fp)", instr, reg_op(dest), off);
+      } else {
+         emit("%s %s, 0(%s)", instr, reg_op(dest), reg_op(n->move.src));
+      }
       return next;
    }
    case IR_WRITE:
+   ir_write:;
       switch (n->move.size) {
       case IRS_BYTE:
       case IRS_CHAR:    instr = "sb  "; break;
@@ -123,7 +130,11 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       case IRS_LONG:    instr = "sw  "; break;
       default:          panic("unsupported operand size '%s'", ir_size_str[n->move.size]);
       }
-      emit("%s %s, 0(%s)", instr, reg_op(n->move.src), reg_op(n->move.dest));
+      if (flag) {
+         emit("%s %s, %d(fp)", instr, reg_op(n->move.src), off);
+      } else {
+         emit("%s %s, 0(%s)", instr, reg_op(n->move.src), reg_op(n->move.dest));
+      }
       return n->next;
    case IR_PROLOGUE:
    {
@@ -189,8 +200,26 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    case IR_LOOKUP:
    {
-      size_t addr = n->lookup.scope->vars[n->lookup.var_idx].addr;
-      emit("addi %s, fp, -%zu", reg_op(n->lookup.reg), addr);
+      const char* dest = reg_op(n->lookup.reg);
+      const size_t addr = n->lookup.scope->vars[n->lookup.var_idx].addr;
+      const ir_reg_t reg = n->lookup.reg;
+      if (optim_level >= 2
+         && n->next
+         && ((n->next->type == IR_READ && n->next->move.src == reg)
+         || (n->next->type == IR_WRITE && n->next->move.dest == reg))) {
+         flag = true;
+         off = -(intreg_t)addr;
+         n = n->next;
+         if (n->move.dest == reg || !ir_is_used(n->next, reg)) {
+            if (n->type == IR_READ) goto ir_read;
+            else goto ir_write;
+         }
+      }
+      emit("addi %s, fp, -%zu", dest, addr);
+      if (flag) {
+         if (n->type == IR_READ) goto ir_read;
+         else goto ir_write;
+      }
       return n->next;
    }
    case IR_ALLOCA:
@@ -204,7 +233,26 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    }
    case IR_FPARAM:
       if (n->fparam.idx < 8) {
-         emit("addi %s, fp, -%zu", reg_op(n->fparam.reg), 12 + n->fparam.idx * REGSIZE);
+         const char* dest = reg_op(n->fparam.reg);
+         const size_t addr = 12 + n->fparam.idx * REGSIZE;
+         const ir_reg_t reg = n->lookup.reg;
+         if (optim_level >= 2
+            && n->next
+            && ((n->next->type == IR_READ && n->next->move.src == reg)
+            || (n->next->type == IR_WRITE && n->next->move.dest == reg))) {
+            flag = true;
+            off = -(intreg_t)addr;
+            n = n->next;
+            if (n->move.dest == reg || !ir_is_used(n->next, reg)) {
+               if (n->type == IR_READ) goto ir_read;
+               else goto ir_write;
+            }
+         }
+         emit("addi %s, fp, -%zu", dest, addr);
+         if (flag) {
+            if (n->type == IR_READ) goto ir_read;
+            else goto ir_write;
+         }
       } else {
          // TODO: fix this
          panic("fparam.idx >= 8");

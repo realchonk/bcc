@@ -200,5 +200,6 @@ bool ir_isv(ir_node_t*, ...); // must be terminated with NUM_IR_NODES
 ir_reg_t ir_get_target(const ir_node_t*);
 bool ir_is_source(const ir_node_t*, ir_reg_t);
 bool ir_is_binary(const enum ir_node_type);
+bool ir_is_used(const ir_node_t*, ir_reg_t);
 
 #endif /* FILE_IR_H */
