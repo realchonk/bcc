@@ -10,6 +10,7 @@ static size_t size_stack;
 ir_node_t* emit_ir(const ir_node_t* n) {
    const char* instr;
    bool swap = false;
+   bool flag = false;
    switch (n->type) {
    case IR_NOP:
       emit("nop");
@@ -68,7 +69,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          a = reg_op(n->binary.dest);
          emit("li %s, %jd", a, av.sVal);
       }
-      if (n->binary.b.type == IRT_REG) {
+      if (bv.type == IRT_REG) {
          emit("%s  %s, %s, %s", instr,
             reg_op(n->binary.dest),
             a,
@@ -234,11 +235,75 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          emit("li %s, %jd", a, n->binary.b.sVal);
       }
       if (n->binary.b.type == IRT_REG) {
-         emit("sub %s, %s, %s", dest, a, reg_op(n->binary.b.type));
+         emit("sub %s, %s, %s", dest, a, reg_op(n->binary.b.reg));
       } else {
          emit("sub %s, %s, %jd", dest, a, n->binary.b.sVal);
       }
       emit("%s %s, %s", instr, dest, dest);
+      return n->next;
+   }
+   case IR_USTLE:
+      flag = true;
+      fallthrough;
+   case IR_ISTLE:
+      swap = true;
+      goto ir_istge;
+   case IR_USTGE:
+      flag = true;
+      fallthrough;
+   case IR_ISTGE:
+   {
+   ir_istge:;
+      struct ir_value av, bv;
+      if (swap) {
+         av = n->binary.b;
+         bv = n->binary.a;
+      } else {
+         av = n->binary.a;
+         bv = n->binary.b;
+      }
+      const char* dest = reg_op(n->binary.dest);
+      const char* a;
+      if (av.type == IRT_REG) {
+         a = reg_op(av.reg);
+      } else {
+         a = dest;
+         emit("li %s, %jd", a, av.sVal);
+      }
+      if (bv.type == IRT_REG) {
+         emit("%s %s, %s, %s", flag ? "sltu" : "slt", dest, a, reg_op(bv.reg));
+      } else {
+         emit("%s %s, %s, %jd", flag ? "sltiu" : "slti", dest, a, bv.sVal);
+      }
+      emit("xori %s, %s, 1", dest, dest);
+      return n->next;
+   }
+   case IR_USTGR:
+      swap = true;
+      fallthrough;
+   case IR_USTLT:
+   {
+      const char* dest = reg_op(n->binary.dest);
+      struct ir_value av, bv;
+      if (swap) {
+         av = n->binary.b;
+         bv = n->binary.a;
+      } else {
+         av = n->binary.a;
+         bv = n->binary.b;
+      }
+      const char* a;
+      if (av.type == IRT_REG) {
+         a = reg_op(av.reg);
+      } else {
+         a = dest;
+         emit("li %s, %jd", a, av.sVal);
+      }
+      if (bv.type == IRT_REG) {
+         emit("sltu %s, %s, %s", dest, a, reg_op(bv.reg));
+      } else {
+         emit("sltiu %s, %s, %jd", dest, a, bv.sVal);
+      }
       return n->next;
    }
 
