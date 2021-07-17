@@ -52,7 +52,7 @@ static bool parse_mach_opt(char* arg) {
             n += (size_t)printf("=integer");
             break;
          case 2:
-            n += (size_t)printf("=integer");
+            n += (size_t)printf("=string");
             break;
          default:
             break;
