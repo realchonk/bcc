@@ -16,10 +16,10 @@ int run_cpp(FILE* in, FILE* out) {
       for (size_t j = 0; j < buf_len(tokens); ++j) {
          const struct token tk = tokens[j];
          for (const char* str = tk.begin; str != tk.end; ++str)
-            putchar(*str);
+            fputc(*str, out);
       }
       buf_free(tokens);
-      putchar('\n');
+      fputc('\n', out);
    }
 
 
