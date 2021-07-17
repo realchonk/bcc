@@ -466,23 +466,27 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       instr = "remu";
    {
    ir_mul:;
+      struct ir_value av, bv;
+      const char* dest = reg_op(n->binary.dest);
+      av = n->binary.a;
+      bv = n->binary.b;
+
       if (!riscv32_cpu.has_mult) {
          panic("soft-multiplication is currently not implemented");
+         char f[] = "__mulxi32";
+         memcpy(f + 2, instr, 3);
+         f[5] = strlen(instr) == 3 ? 's' : 'u';
+         request_builtin(f);
+         return n->next;
       }
       
-      struct ir_value av, bv;
       if (n->binary.b.type == IRT_UINT && n->binary.a.type == IRT_REG) {
          av = n->binary.b;
          bv = n->binary.a;
-      } else {
-         av = n->binary.a;
-         bv = n->binary.b;
       }
-      const char* dest;
       const char* a;
       const char* b;
 
-      dest = reg_op(n->binary.dest);
 
       if (av.type == IRT_REG) {
          a = reg_op(av.reg);
