@@ -3,16 +3,23 @@
 #include <stdio.h>
 
 enum token_type {
-   TOKEN_NAME = 256,
-};
-struct token {
-   int type;
-   union {
-      const char* str;
-      int ch;
-   };
+   TK_WORD,
+   TK_STRING,
+   TK_NUMBER,
+   TK_WHITESPACE,
+   TK_NEWLINE,
+   TK_PUNCT,
+   TK_EOF,
+   TK_UNKNOWN,
 };
 
-void print_token(FILE*, const struct token*);
+struct token {
+   enum token_type type;
+   const char* begin;
+   const char* end;
+};
+
+extern const char* token_type_str[];
+struct token* tokenize(const char* lines);
 
 #endif /* FILE_CPP_TOKEN_H */
