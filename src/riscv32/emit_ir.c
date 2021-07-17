@@ -1,4 +1,5 @@
 #include <string.h>
+#include "riscv32/cpu.h"
 #include "emit_ir.h"
 #include "strdb.h"
 #include "error.h"
@@ -180,7 +181,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    case IR_JMPIFN:
       instr = "beq ";
    ir_branch:;
-      emit("%s %s, x0, %s", instr, n->cjmp.reg, n->cjmp.label);
+      emit("%s %s, x0, %s", instr, reg_op(n->cjmp.reg), n->cjmp.label);
       return n->next;
    case IR_FLOOKUP:
    case IR_GLOOKUP:
@@ -203,7 +204,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    }
    case IR_FPARAM:
       if (n->fparam.idx < 8) {
-         emit("addi %s, sp, %zu", reg_op(n->fparam.reg), size_stack - (n->fparam.idx + 3) * REGSIZE);
+         emit("addi %s, fp, -%zu", reg_op(n->fparam.reg), 12 + n->fparam.idx * REGSIZE);
       } else {
          // TODO: fix this
          panic("fparam.idx >= 8");
@@ -394,6 +395,66 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       emit("addi sp, sp, %zu", n_stack);
       if (flag2 && dest != 0)
          emit("mv %s, a0", reg_op(dest));
+      return n->next;
+   }
+
+   case IR_IMUL:
+   case IR_UMUL:
+      instr = "mul";
+      goto ir_mul;
+   case IR_IDIV:
+      instr = "div";
+      goto ir_mul;
+   case IR_UDIV:
+      instr = "divu";
+      goto ir_mul;
+   case IR_IMOD:
+      instr = "rem";
+      goto ir_mul;
+   case IR_UMOD:
+      instr = "remu";
+   {
+   ir_mul:;
+      if (!riscv32_cpu.has_mult) {
+         panic("soft-multiplication is currently not implemented");
+      }
+      
+      struct ir_value av, bv;
+      if (n->binary.b.type == IRT_UINT && n->binary.a.type == IRT_REG) {
+         av = n->binary.b;
+         bv = n->binary.a;
+      } else {
+         av = n->binary.a;
+         bv = n->binary.b;
+      }
+      const char* dest;
+      const char* a;
+      const char* b;
+
+      dest = reg_op(n->binary.dest);
+
+      if (av.type == IRT_REG) {
+         a = reg_op(av.reg);
+      } else {
+         a = dest;
+         emit("li %s, %jd", a, av.sVal);
+      }
+
+      if (bv.type == IRT_REG) {
+         b = reg_op(bv.reg);
+      } else {
+         b = "s1";
+         emit("sw s1, -4(sp)");
+         emit("li %s, %jd", b, bv.sVal);
+      }
+
+      emit("%s %s, %s, %s", instr, dest, a, b);
+
+
+      if (bv.type == IRT_UINT) {
+         emit("lw s1, -4(sp)");
+      }
+
       return n->next;
    }
 

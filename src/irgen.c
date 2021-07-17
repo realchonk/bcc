@@ -6,11 +6,14 @@
 #include "optim.h"
 #include "ir.h"
 
+static struct function* cur_func = NULL;
+
 static ir_node_t* new_node(enum ir_node_type t) {
    ir_node_t* n = calloc(1, sizeof(ir_node_t));
    if (!n) panic("failed to allocate ir_node");
    n->type = t;
    n->prev = n->next = NULL;
+   n->func = cur_func;
    return n;
 }
 
@@ -907,9 +910,9 @@ ir_node_t* irgen_stmt(const struct statement* s) {
 }
 
 ir_node_t* irgen_func(const struct function* f) {
+   cur_func = f;
    ir_node_t* tmp;
    ir_node_t* n = new_node(IR_PROLOGUE);
-   n->func = f;
 
    tmp = new_node(IR_BEGIN_SCOPE);
    tmp->scope = f->scope;
@@ -924,7 +927,6 @@ ir_node_t* irgen_func(const struct function* f) {
    ir_append(n, tmp);
 
    tmp = new_node(IR_EPILOGUE);
-   tmp->func = f;
    return ir_append(n, tmp);
 }
 

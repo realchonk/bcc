@@ -16,3 +16,4 @@ Short term:
 - improve test logs
 - more test cases for switch/case
 - remove bash dependency from scripts
+- riscv32: optimize {addi a0, fp, -20; lw a0, 0(fp)} -> {lw a0, -20(fp)}

@@ -105,8 +105,8 @@ typedef struct ir_node {
    enum ir_node_type type;
    struct ir_node* prev;
    struct ir_node* next;
+   const struct function* func;
    union {
-      const struct function* func;
       struct scope* scope;
       istr_t str;
       struct {
