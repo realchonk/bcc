@@ -4,7 +4,12 @@ cpp/obj
 cpp/bcpp
 test/run_tests
 test/*.log
-test2*
+test2/test.o
+test2/test.s
+test2/test.ir
+test2/test.asm
+test2/test.o
+test2/test
 src/riscv32/as.h
 include/help_options.h
 .program_prefix
