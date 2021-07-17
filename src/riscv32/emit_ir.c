@@ -5,12 +5,12 @@
 #include "regs.h"
 #include "bcc.h"
 
-static size_t size_stack;
+static uintreg_t size_stack;
 
 ir_node_t* emit_ir(const ir_node_t* n) {
    const char* instr;
    bool swap = false;
-   bool flag = false;
+   bool flag = false, flag2 = false;
    switch (n->type) {
    case IR_NOP:
       emit("nop");
@@ -135,10 +135,9 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       size_stack = sizeof_scope(n->func->scope);
       size_stack += 2 * REGSIZE;
       size_stack += num_reg_params * REGSIZE;
-      if (size_stack & 15)
-         size_stack = (size_stack & ~15) + 16;
+      size_stack = align_stack_size(size_stack);
       emit("addi sp, sp, -%zu", size_stack);
-      size_t sp = size_stack;
+      uintreg_t sp = size_stack;
       emit("sw   fp, %zu(sp)", sp -= REGSIZE);
       emit("sw   ra, %zu(sp)", sp -= REGSIZE);
       for (size_t i = 0; i < num_reg_params; ++i) {
@@ -154,7 +153,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    case IR_EPILOGUE:
       if (!strcmp(n->func->name, "main"))
          emit("mv   a0, x0");
-      emit(".ret:");
+      emit("%s.ret:", n->func->name);
       emit("lw   fp, %zu(sp)", size_stack - 1*REGSIZE);
       emit("lw   ra, %zu(sp)", size_stack - 2*REGSIZE);
       emit("addi sp, sp, %zu",     size_stack);
@@ -167,7 +166,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       }
       fallthrough;
    case IR_RET:
-      emit("j   .ret");
+      emit("j   %s.ret", n->func->name);
       return n->next;
    case IR_LABEL:
       emit("%s:", n->str);
@@ -332,6 +331,69 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          }
          emit("mv %s, %s", dest, src);
       }
+      return n->next;
+   }
+   // flag: relative
+   // flag2: has return value
+
+   case IR_RCALL:
+      flag = true;
+      goto ir_call;
+   case IR_IRCALL:
+      flag = flag2 = true;
+      goto ir_call;
+   case IR_IFCALL:
+      flag2 = true;
+      goto ir_call;
+   case IR_FCALL:
+   {
+   ir_call:;
+      ir_reg_t dest = flag ? n->rcall.dest : n->ifcall.dest;
+      const size_t np = buf_len(flag ? n->rcall.params : n->ifcall.params);
+      struct ir_node** params = flag ? n->rcall.params : n->ifcall.params;
+      uintreg_t n_stack = ((flag2 ? dest : 0) + np) * REGSIZE;
+      const uintreg_t saved_sp = n_stack;
+      uintreg_t sp = saved_sp;
+      n_stack = align_stack_size(n_stack);
+      
+      emit("addi sp, sp, -%zu", n_stack);
+
+      if (flag2) {
+         for (size_t i = 0; i < dest; ++i) {
+            emit("sw %s, %zu(sp)", reg_op(i), sp -= REGSIZE);
+         }
+      }
+
+      for (size_t i = 0; i < my_min(8, np); ++i) {
+         ir_node_t* tmp = params[i];
+         while ((tmp = emit_ir(tmp)) != NULL);
+         emit("sw a0, %zu(sp)", sp -= REGSIZE);
+      }
+
+      for (size_t i = np - 1; i >= 8; --i) {
+         ir_node_t* tmp = params[i];
+         while ((tmp = emit_ir(tmp)) != NULL);
+         emit("sw a0, %zu", sp -= REGSIZE);
+      }
+
+      if (flag) {
+         ir_node_t* tmp = n->rcall.addr;
+         while ((tmp = emit_ir(tmp)) != NULL);
+         emit("mv t0, a0");
+      }
+
+      sp = saved_sp;
+      for (size_t i = 0; i < my_min(8, np); ++i) {
+         emit("lw a%zu, %zu(sp)", i, sp -= REGSIZE);
+      }
+      if (flag) {
+         emit("jalr t0");
+      } else {
+         emit("call %s", n->ifcall.name);
+      }
+      emit("addi sp, sp, %zu", n_stack);
+      if (flag2 && dest != 0)
+         emit("mv %s, a0", reg_op(dest));
       return n->next;
    }
 

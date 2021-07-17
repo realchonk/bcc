@@ -1,4 +1,5 @@
 #include "target.h"
+#include "regs.h"
 
 static size_t sizeof_scope(const struct scope* scope) {
    size_t num = 0;
@@ -13,7 +14,7 @@ static size_t sizeof_scope(const struct scope* scope) {
    return num + max_child;
 }
 
-static void assign_scope(struct scope* scope, size_t* sp) {
+static void assign_scope(struct scope* scope, uintreg_t* sp) {
    for (size_t i = 0; i < buf_len(scope->vars); ++i) {
       scope->vars[i].addr = *sp;
       *sp += sizeof_value(scope->vars[i].type, false);

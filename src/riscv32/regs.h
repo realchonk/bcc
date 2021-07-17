@@ -1,3 +1,5 @@
+#ifndef FILE_RISCV32_REGS_H
+#define FILE_RISCV32_REGS_H
 #include "error.h"
 
 typedef uint32_t uintreg_t;
@@ -7,3 +9,7 @@ static const char* regs[] = { "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "t
 
 #define REGSIZE 4
 
+static uintreg_t align_stack_size(uintreg_t sz) {
+   return sz & 15 ? (sz & ~15) + 16 : sz;
+}
+#endif /* FILE_RISCV32_REGS_H */
