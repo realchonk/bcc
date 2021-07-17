@@ -97,6 +97,10 @@ struct token* tokenize(const char* str) {
    do {
       str = next(str, &tk);
       buf_push(tokens, tk);
-   } while (*str);
+   } while (tk.type != TK_NEWLINE);
    return tokens;
+}
+bool is_cpp_line(const char* line) {
+   while (isspace(*line)) ++line;
+   return *line == '#';
 }

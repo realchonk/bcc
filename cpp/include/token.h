@@ -1,5 +1,6 @@
 #ifndef FILE_CPP_TOKEN_H
 #define FILE_CPP_TOKEN_H
+#include <stdbool.h>
 #include <stdio.h>
 
 enum token_type {
@@ -21,5 +22,6 @@ struct token {
 
 extern const char* token_type_str[];
 struct token* tokenize(const char* lines);
+bool is_cpp_line(const char* line);
 
 #endif /* FILE_CPP_TOKEN_H */

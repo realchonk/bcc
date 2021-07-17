@@ -2,12 +2,31 @@
 
 const char* source_name = NULL;
 
+static int read_char(FILE* file) {
+   int ch = fgetc(file);
+   if (ch == '/') {
+      ch = fgetc(file);
+      if (ch == '/') {
+         while (!feof(file) && fgetc(file) != '\n');
+         return read_char(file);
+      } else if (ch == '*') {
+         while (!feof(file)) {
+            if (fgetc(file) == '*' && fgetc(file) == '/')
+               return read_char(file);
+         }
+         return EOF;
+      } else {
+         return ungetc('/', file);
+      }
+   } else return ch;
+}
+
 char** read_lines(FILE* file) {
    char** buf = NULL;
    char* line = NULL;
    int ch;
    size_t row = 0, col = 0;
-   while ((ch = fgetc(file)) != EOF) {
+   while ((ch = read_char(file)) != EOF) {
    begin:;
       if (ch == '\n') {
          buf_push(line, '\0');
