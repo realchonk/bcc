@@ -315,8 +315,9 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       n = ir_lvalue(scope, e, &is_lv);
       if (is_lv) {
          tmp = new_node(IR_READ);
-         tmp->move.dest = tmp->move.src = creg - 1;
-         tmp->move.size = irs;
+         tmp->read.dest = tmp->read.src = creg - 1;
+         tmp->read.size = irs;
+         tmp->read.sign_extend = vt_is_signed(vt);
          ir_append(n, tmp);
       }
       break;
@@ -327,8 +328,9 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       n = ir_lvalue(scope, e, &is_lv);
       if (!is_lv) parse_error(&e->begin, "expected lvalue");
       tmp = new_node(IR_READ);
-      tmp->move.dest = tmp->move.src = creg - 1;
-      tmp->move.size = irs;
+      tmp->read.dest = tmp->read.src = creg - 1;
+      tmp->read.size = irs;
+      tmp->read.sign_extend = vt_is_signed(vt);
       ir_append(n, tmp);
       break;
    }
@@ -355,8 +357,9 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       if (!is_lv && ve->type != VAL_FUNC) parse_error(&e->begin, "expected lvalue");
       if (ve->type == VAL_POINTER && ve->pointer.is_array) {
          tmp = new_node(IR_READ);
-         tmp->move.dest = tmp->move.src = creg - 1;
-         tmp->move.size = IRS_PTR;
+         tmp->read.dest = tmp->read.src = creg - 1;
+         tmp->read.size = IRS_PTR;
+         tmp->read.sign_extend = false;
          ir_append(n, tmp);
       }
       break;
@@ -419,9 +422,10 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       --creg;
 
       tmp = new_node(IR_READ);
-      tmp->move.dest = creg - 1;
-      tmp->move.src = creg;
-      tmp->move.size = irs;
+      tmp->read.dest = creg - 1;
+      tmp->read.src = creg;
+      tmp->read.size = irs;
+      tmp->read.sign_extend = false;
       ir_append(n, tmp);
 
       tmp = new_node(e->unary.op.type == TK_PLPL ? IR_IADD : IR_ISUB);
@@ -449,9 +453,10 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       --creg;
 
       tmp = new_node(IR_READ);
-      tmp->move.dest = creg - 1;
-      tmp->move.src = creg;
-      tmp->move.size = irs;
+      tmp->read.dest = creg - 1;
+      tmp->read.src = creg;
+      tmp->read.size = irs;
+      tmp->read.sign_extend = false;
       ir_append(n, tmp);
 
       tmp = new_node(e->unary.op.type == TK_PLPL ? IR_IADD : IR_ISUB);

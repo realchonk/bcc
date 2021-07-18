@@ -144,5 +144,6 @@ struct value_type* func2vt(const struct function*);
 bool is_func_vt(const struct value_type*);
 const struct value_type* actual_func_vt(const struct value_type*);
 void eval_expr(struct expression*, struct value*);
+bool vt_is_signed(const struct value_type*);
 
 #endif /* FILE_VALUE_H */

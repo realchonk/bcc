@@ -94,28 +94,26 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    {
    ir_read:;
       ir_node_t* next = n->next;
-      ir_reg_t dest = n->move.dest;
-      bool sign_extend = false;
+      ir_reg_t dest = n->read.dest;
       if (optim_level >= 1
          && ir_is(next, IR_IICAST)
-         && n->move.dest == next->iicast.src) {
+         && n->read.dest == next->iicast.src) {
          dest = next->iicast.dest;
-         sign_extend = next->iicast.sign_extend;
          next = next->next;
       }
       switch (n->move.size) {
       case IRS_BYTE:
-      case IRS_CHAR:    instr = sign_extend ? "lb  " : "lbu "; break;
-      case IRS_SHORT:   instr = sign_extend ? "lh  " : "lhu "; break;
+      case IRS_CHAR:    instr = n->read.sign_extend ? "lb  " : "lbu "; break;
+      case IRS_SHORT:   instr = n->read.sign_extend ? "lh  " : "lhu "; break;
       case IRS_PTR:
       case IRS_INT:
       case IRS_LONG:    instr = "lw  ";  break;
-      default:          panic("unsupported operand size '%s'", ir_size_str[n->move.size]);
+      default:          panic("unsupported operand size '%s'", ir_size_str[n->read.size]);
       }
       if (flag) {
          emit("%s %s, %d(fp)", instr, reg_op(dest), off);
       } else {
-         emit("%s %s, 0(%s)", instr, reg_op(dest), reg_op(n->move.src));
+         emit("%s %s, 0(%s)", instr, reg_op(dest), reg_op(n->read.src));
       }
       return next;
    }

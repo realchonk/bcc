@@ -34,7 +34,7 @@ enum ir_node_type {
    IR_BEGIN_SCOPE,   // .scope      | beginning of a scope
    IR_END_SCOPE,     // .scope      | ending of a scope
    // TODO: change to .read
-   IR_READ,          // .move       | read data from memory
+   IR_READ,          // .read       | read data from memory
    IR_WRITE,         // .move       | write data to memory
    IR_PROLOGUE,      // .func       | beginning of a function
    IR_EPILOGUE,      // .func       | ending of a function
@@ -113,6 +113,11 @@ typedef struct ir_node {
          ir_reg_t dest, src;
          enum ir_value_size size;
       } move;
+      struct {
+         ir_reg_t dest, src;
+         enum ir_value_size size;
+         bool sign_extend;
+      } read;
       struct {
          ir_reg_t dest;
          uintmax_t value;

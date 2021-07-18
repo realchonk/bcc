@@ -124,9 +124,12 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
    case NUM_IR_NODES:
       break;
    case IR_MOVE:
-   case IR_READ:
    case IR_WRITE:
       fprintf(file, ".%s R%u, R%u", ir_size_str[n->move.size], n->move.dest, n->move.src);
+      break;
+   case IR_READ:
+      fprintf(file, "%c.%s R%u, R%u", n->read.sign_extend ? 'u' : 's', ir_size_str[n->read.size],
+            n->read.dest, n->read.src);
       break;
    case IR_LOAD:
       fprintf(file, ".%s R%u, %ju", ir_size_str[n->load.size], n->load.dest, n->load.value);

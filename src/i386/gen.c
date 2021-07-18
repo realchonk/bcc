@@ -144,9 +144,9 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
    case IR_READ:
    {
       const char* dest;
-      const char* src =  mreg(n->move.src);
-      reg_op(dest, n->move.dest, n->move.size);
-      emit("mov %s, %s [%s]", dest, nasm_size(n->move.size), src);
+      const char* src =  mreg(n->read.src);
+      reg_op(dest, n->read.dest, n->read.size);
+      emit("mov %s, %s [%s]", dest, nasm_size(n->read.size), src);
       return n->next;
    }
    case IR_WRITE:
@@ -333,11 +333,11 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
 #if BCC_x86_64
       idx += my_min(arraylen(param_regs), buf_len(cur_func->params)) * REGSIZE;
 #endif
-      // TODO: experimental
+      // TODO: experimental, port from riscv32
       if (optim_level >= 2) {
-         if (ir_is(n->next, IR_READ) && n->next->move.src == n->lookup.reg) {
+         if (ir_is(n->next, IR_READ) && n->next->read.src == n->lookup.reg) {
             ir_node_t* read = n->next;
-            if (ir_isv(read->next, IR_IADD, IR_ISUB, NUM_IR_NODES) && read->next->binary.dest == read->move.dest) {
+            if (ir_isv(read->next, IR_IADD, IR_ISUB, NUM_IR_NODES) && read->next->binary.dest == read->read.dest) {
                ir_node_t* inc = read->next;
                if (inc->binary.a.type != IRT_REG || inc->binary.a.reg != inc->binary.dest) goto lookup_lea;
                if (ir_is(inc->next, IR_WRITE) && inc->next->move.src == inc->binary.dest && inc->next->move.dest == n->lookup.reg) {

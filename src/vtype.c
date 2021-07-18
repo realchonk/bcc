@@ -1035,3 +1035,6 @@ struct value_type* func2vt(const struct function* f) {
       buf_push(vt->func.params, copy_value_type(f->params[i].type));
    return vt;
 }
+bool vt_is_signed(const struct value_type* vt) {
+   return vt->type == VAL_INT && !vt->integer.is_unsigned;
+}

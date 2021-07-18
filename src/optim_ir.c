@@ -4,17 +4,6 @@
 #include "optim.h"
 #include "bcc.h"
 
-// utility functions
-
-static bool reg_is_referenced(const ir_node_t* n, ir_reg_t reg) {
-   while (n) {
-      if (ir_is_source(n, reg)) return true;
-      else if (ir_get_target(n) == reg) return false;
-      else n = n->next;
-   }
-   return false;
-}
-
 // remove NOPs
 static bool remove_nops(ir_node_t** n) {
    bool success = false;
@@ -241,7 +230,7 @@ static bool remove_unreferenced(ir_node_t** n) {
    if (optim_level < 3) return false; // XXX: experimental
    bool success = false;
    for (ir_node_t* cur = *n; cur; cur = cur->next) {
-      if (cur->type == IR_READ && !reg_is_referenced(cur->next, cur->move.dest)) {
+      if (cur->type == IR_READ && !ir_is_used(cur->next, cur->read.dest)) {
          cur->type = IR_NOP;
          success = true;
       }
@@ -342,7 +331,7 @@ ir_node_t* optim_ir_nodes(ir_node_t* n) {
       || fold(&n)
       || reorder_params(&n)
       || add_zero(&n)
-      //|| remove_unreferenced(&n)
+      || remove_unreferenced(&n)
       || direct_call(&n)
       || mod_to_and(&n)
       || fuse_load_iicast(&n)
