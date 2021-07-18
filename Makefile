@@ -61,6 +61,7 @@ clean:
 	rm -f src/riscv32/as.h
 	make -C test clean
 	make -C cpp clean
+	make -C test2 clean
 
 todo:
 	@grep -n TODO $(sources) $(includes) || true
