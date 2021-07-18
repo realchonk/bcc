@@ -16,7 +16,7 @@ static int read_char(FILE* file) {
          }
          return EOF;
       } else {
-         return ungetc('/', file);
+         return ungetc(ch, file), '/';
       }
    } else return ch;
 }

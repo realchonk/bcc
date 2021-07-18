@@ -1,15 +1,7 @@
 int printf(const char*, ...);
-
-#define text "Hello World"
-
-/*
- * this is a comment 
- * */
-
-// this is a single-line comment
-
-#undef text
-
-int main(int argc, char** argv) {
-   printf(text);
+int main(void) {
+   int a = 42;
+   int b = 99;
+   printf("%d", (a * b) + (b / a));
 }
+
