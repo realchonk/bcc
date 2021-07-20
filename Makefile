@@ -31,7 +31,7 @@ target_includes=$(wildcard src/$(ARCH)/*.h)
 
 all: bcc bcpp
 
-bcc: include/help_options.h check_arch check_deps obj/$(ARCH) $(objects)
+bcc: include/help_options.h check_arch check_deps $(objects)
 	$(CC) -o $@ $(objects) $(CFLAGS) $(LIBS)
 	@if [ -z "$(OLD_TARGET)" ]; then rm -f .program_prefix; else echo "$(OLD_TARGET)-" > .program_prefix; fi
 
@@ -42,16 +42,12 @@ bcpp:
 include/help_options.h: bcc.1
 	./util/read_doc.sh <$< >$@
 
-obj:
-	mkdir -p obj
-
-obj/$(ARCH): obj
-	mkdir -p obj/$(ARCH)
-
 obj/$(ARCH)/%.o: src/$(ARCH)/%.c $(includes) $(target_includes)
+	@mkdir -p obj/$(ARCH)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 obj/%.o: src/%.c $(includes)
+	@mkdir -p obj
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 clean:
