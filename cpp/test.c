@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include "cpp.h"
 
 int printf(const char*, ...);
 int main(void) {

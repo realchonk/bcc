@@ -3,11 +3,14 @@
 #include <stdio.h>
 #include <errno.h>
 #include "cpp.h"
+#include "buf.h"
+
+extern const char** cmdline_includes;
 
 int main(int argc, char* argv[]) {
    const char* output_name = "-";
    int option;
-   while ((option = getopt(argc, argv, ":D:VEo:")) != -1) {
+   while ((option = getopt(argc, argv, ":D:VEo:I:")) != -1) {
       switch (option) {
       case 'V':
          puts("bcpp " BCC_VER);
@@ -27,6 +30,9 @@ int main(int argc, char* argv[]) {
       case 'o':
          output_name = optarg;
          break;
+      case 'I':
+         buf_push(cmdline_includes, optarg);
+         break;
       default:
          goto print_usage;
       }
@@ -36,6 +42,7 @@ int main(int argc, char* argv[]) {
       fputs("Usage: bcpp [options] input\n", stderr);
       return 1;
    }
+   buf_push(cmdline_includes, NULL);
 
    source_name = argv[optind];
    FILE* source = !strcmp(source_name, "-") ? stdin : fopen(source_name, "r");
