@@ -14,6 +14,8 @@
 bool enable_warnings;
 unsigned optim_level;
 
+extern char** includes;
+
 static istr_t replace_ending(const char* s, const char* end) {
    const size_t len_end = strlen(end);
    const char* dot = strrchr(s, '.');
@@ -113,7 +115,7 @@ int main(int argc, char* argv[]) {
    enable_warnings = true;
    optim_level = 1;
    int option;
-   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:")) != -1) {
+   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:")) != -1) {
       switch (option) {
       case 'h':
          printf("Usage: bcc [options] file...\nOptions:\n%s", help_options);
@@ -162,6 +164,9 @@ int main(int argc, char* argv[]) {
          return 0;
       case 'm':
          if (!parse_mach_opt(optarg)) return false;
+         break;
+      case 'I':
+         buf_push(includes, optarg);
          break;
       case ':':
          if (optopt == 'd') goto print_usage;
