@@ -1,9 +1,8 @@
-#include "cpp.h"
+#define MACRO 1
 
-int printf(const char*, ...);
-int main(void) {
-   int a = 42;
-   int b = 99;
-   printf("%d", (a * b) + (b / a));
-}
+#ifdef MACRO
+#define MACRO 2
+#endif
+
+MACRO
 

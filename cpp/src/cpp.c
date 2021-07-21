@@ -8,6 +8,8 @@
 #include "buf.h"
 #include "dir.h"
 
+extern bool suppress_code;
+
 static bool do_cpp_stuff(size_t linenum, const char* line, struct token* tokens, FILE* out) {
    const size_t num_tks = buf_len(tokens);
    size_t tki = 0;
@@ -32,6 +34,7 @@ static bool do_cpp_stuff(size_t linenum, const char* line, struct token* tokens,
       warn(linenum, "invalid pre-processor directive '%s'", strrint(tk_dir.begin, tk_dir.end));
       return false;
    }
+   if (dir->suppressable && suppress_code) return true;
    ++tki;
    if (tki < num_tks && tokens[tki].type == TK_WHITESPACE)
       ++tki;
@@ -51,6 +54,8 @@ int run_cpp(FILE* in, FILE* out) {
          buf_free(tokens);
          continue;
       }
+
+      if (suppress_code) continue;
 
       for (size_t j = 0; j < buf_len(tokens); ++j) {
          const struct token tk = tokens[j];
