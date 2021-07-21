@@ -5,13 +5,11 @@ objects=$(patsubst src/%.c,obj/%.o,$(sources))
 
 all: bcpp
 
-bcpp: obj $(objects)
+bcpp: $(objects)
 	$(CC) -o $@ $(objects) $(CFLAGS)
 
-obj:
-	mkdir -p obj
-
 obj/%.o: src/%.c include
+	@mkdir -p obj
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 clean:
