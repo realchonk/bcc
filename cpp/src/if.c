@@ -18,12 +18,13 @@ static void update_suppress(void) {
 
 static bool ifdef_impl(size_t linenum, struct token* tokens, size_t num_tks, bool negate) {
    if (num_tks < 1) {
-   expected_name:
       warn(linenum, "expected macro name");
       return false;
    }
-   if (tokens[0].type != TK_WORD)
-      goto expected_name;
+   if (tokens[0].type != TK_WORD) {
+      warn(linenum, "expected macro name, got '%s'", token_type_str[tokens[0].type]);
+      return false;
+   }
 
    istr_t name = strrint(tokens[0].begin, tokens[0].end);
    bool exists = !negate && (get_macro(name) != NULL);
