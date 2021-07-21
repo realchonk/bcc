@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 int printf(const char*, ...);
 int main(void) {
    int a = 42;

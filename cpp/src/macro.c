@@ -57,6 +57,8 @@ const struct macro* get_macro(istr_t name) {
 
 
 bool dir_define(size_t linenum, const char* line, struct token* tokens, size_t num_tks, FILE* out) {
+   (void)line;
+   (void)out;
    if (num_tks < 1) {
       warn(linenum, "expected word");
       return false;
@@ -80,6 +82,8 @@ bool dir_define(size_t linenum, const char* line, struct token* tokens, size_t n
    return true;
 }
 bool dir_undef(size_t linenum, const char* line, struct token* tokens, size_t num_tks, FILE* out) {
+   (void)line;
+   (void)out;
    if (num_tks < 1) {
       warn(linenum, "expected word");
       return false;

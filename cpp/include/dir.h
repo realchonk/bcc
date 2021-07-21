@@ -15,5 +15,6 @@ struct directive* get_dir(const char* name, size_t len);
 
 bool dir_define(size_t, const char*, struct token*, size_t num_tks, FILE*);
 bool dir_undef(size_t, const char*, struct token*, size_t num_tks, FILE*);
+bool dir_include(size_t, const char*, struct token*, size_t num_tks, FILE*);
 
 #endif /* FILE_DIR_H */

@@ -11,12 +11,13 @@
 static bool do_cpp_stuff(size_t linenum, const char* line, struct token* tokens, FILE* out) {
    const size_t num_tks = buf_len(tokens);
    size_t tki = 0;
-   if (tokens[tki].type == TK_WHITESPACE)
+   while (tokens[tki].type == TK_WHITESPACE)
       ++tki;
    ++tki;
+   while (tokens[tki].type == TK_WHITESPACE)
+      ++tki;
 
    if (tki >= num_tks) {
-      // TODO: proper error handling
       warn(linenum, "expected word, got newline");
       return false;
    }
@@ -28,7 +29,7 @@ static bool do_cpp_stuff(size_t linenum, const char* line, struct token* tokens,
    }
    const struct directive* dir = get_dir(tk_dir.begin, tk_dir.end - tk_dir.begin);
    if (!dir) {
-      warn(linenum, "invalid pre-processor directive");
+      warn(linenum, "invalid pre-processor directive '%s'", strrint(tk_dir.begin, tk_dir.end));
       return false;
    }
    ++tki;

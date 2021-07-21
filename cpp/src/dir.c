@@ -6,6 +6,7 @@
 static struct directive dirs[] = {
    { .name = "define", .handler = dir_define, },
    { .name = "undef", .handler = dir_undef, },
+   { .name = "include", .handler = dir_include, },
 };
 
 struct directive* get_dir(const char* name, size_t len) {
