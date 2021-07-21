@@ -10,6 +10,7 @@ static struct directive dirs[] = {
    { .name = "ifdef",   .handler = dir_ifdef,   false },
    { .name = "ifndef",  .handler = dir_ifndef,  false },
    { .name = "endif",   .handler = dir_endif,   false },
+   { .name = "else",    .handler = dir_else,    false },
 };
 
 struct directive* get_dir(const char* name, size_t len) {

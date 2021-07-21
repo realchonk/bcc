@@ -1,6 +1,8 @@
-#define MACRO 1
+//#define COND 1
 
-#ifdef MACRO
+#ifdef COND
+#define MACRO 1
+#else
 #define MACRO 2
 #endif
 

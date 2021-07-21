@@ -56,3 +56,16 @@ bool dir_endif(size_t linenum, const char* line, struct token* tokens, size_t nu
    update_suppress();
    return true;
 }
+bool dir_else(size_t linenum, const char* line, struct token* tokens, size_t num_tks, FILE* out) {
+   (void)line;
+   (void)tokens;
+   (void)num_tks;
+   (void)out;
+   if (buf_len(layers) < 1) {
+      warn(linenum, "invalid #else");
+      return false;
+   }
+   buf_last(layers) = !buf_last(layers);
+   update_suppress();
+   return true;
+}

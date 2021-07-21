@@ -20,5 +20,6 @@ bool dir_include(size_t, const char*, struct token*, size_t num_tks, FILE*);
 bool dir_ifdef(size_t, const char*, struct token*, size_t num_tks, FILE*);
 bool dir_ifndef(size_t, const char*, struct token*, size_t num_tks, FILE*);
 bool dir_endif(size_t, const char*, struct token*, size_t num_tks, FILE*);
+bool dir_else(size_t, const char*, struct token*, size_t num_tks, FILE*);
 
 #endif /* FILE_DIR_H */
