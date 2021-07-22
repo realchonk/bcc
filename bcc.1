@@ -5,12 +5,13 @@ bcc - brainlet C compiler
 
 .SH SYNOPSIS
 .SY bcc
-.OP -c\fR|\fB-i\fR|\fB-A\fR|\fB-S\fR|\fB-E
+.OP -c\fR|\fB-i\fR|\fB-A\fR|\fB-S\fR|\fB-E\fR|\fB-C
 .OP -w
 .OP -e \fIpath\fR
 .OP -O \fIolevel\fR
 .OP -o \fIoutput\fR
 .OP -m \fImach_opt\fR
+.OP -I \fIinclude_path\fR
 .I source
 .YS
 .SY bcc
@@ -115,6 +116,16 @@ Print the version.
 .RS 5
 Specify the path to the preprocessor.
 .RE
+.B -C
+.RE
+.RS 5
+Suppress the color output.
+.RE
+.B -I \fIinclude_path\fR
+.RE
+.RS 5
+Specify the include path for the pre-processor.
+.RE
 
 .SH OPERANDS
 .I output
@@ -153,6 +164,12 @@ of more than 3 has the same effect as level 3.
 A target-specific option.
 For a list of all target-specific options issue
 .B bcc -mhelp\fR.
+
+.RE
+.I include_path
+.RE
+.RS 5
+A directory path which will be searched by the preprocessor for #include's.
 
 
 .SH LANGUAGE

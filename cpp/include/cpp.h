@@ -1,9 +1,11 @@
 #ifndef FILE_CPP_H
 #define FILE_CPP_H
+#include <stdbool.h>
 #include <stdio.h>
 #include "buf.h"
 
 extern const char* source_name;
+extern bool console_color;
 
 int run_cpp(FILE* in, FILE* out);
 char** read_lines(FILE* file);

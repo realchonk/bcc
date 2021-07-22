@@ -20,7 +20,6 @@
 #endif
 
 noreturn void panic_impl(const char*, const char*, ...) PRINTF_FMT_WARN(2, 3);
-noreturn void lex_error(const char*, ...) PRINTF_FMT_WARN(1, 2);
 noreturn void parse_error(const struct source_pos*, const char*, ...) PRINTF_FMT_WARN(2, 3);
 void parse_warn(const struct source_pos*, const char*, ...) PRINTF_FMT_WARN(2, 3);
 

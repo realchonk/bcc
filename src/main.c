@@ -13,6 +13,7 @@
 
 bool enable_warnings;
 unsigned optim_level;
+bool console_colors = true;
 
 extern char** includes;
 
@@ -115,7 +116,7 @@ int main(int argc, char* argv[]) {
    enable_warnings = true;
    optim_level = 1;
    int option;
-   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:")) != -1) {
+   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:C")) != -1) {
       switch (option) {
       case 'h':
          printf("Usage: bcc [options] file...\nOptions:\n%s", help_options);
@@ -167,6 +168,9 @@ int main(int argc, char* argv[]) {
          break;
       case 'I':
          buf_push(includes, optarg);
+         break;
+      case 'C':
+         console_colors = false;
          break;
       case ':':
          if (optopt == 'd') goto print_usage;

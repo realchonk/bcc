@@ -12,7 +12,11 @@ noreturn void panic_impl(const char* func, const char* fmt, ...) {
 
    const int errno_saved = errno;
 
+   if (console_colors)
+      fputs("\033[31;1m", stderr);
    fprintf(stderr, "bcc: %s(): ", func);
+   if (console_colors)
+      fputs("\033[0m", stderr);
    vfprintf(stderr, fmt, ap);
    if (errno) fprintf(stderr, ": %s\n", strerror(errno_saved));
    else fputc('\n', stderr);
@@ -26,8 +30,12 @@ noreturn void parse_error(const struct source_pos* pos, const char* fmt, ...) {
    va_list ap;
    va_start(ap, fmt);
 
+   if (console_colors)
+      fputs("\033[31m", stderr);
    print_source_pos(stderr, pos);
    fputs(": ", stderr);
+   if (console_colors)
+      fputs("\033[0m", stderr);
    vfprintf(stderr, fmt, ap);
    fputc('\n', stderr);
 
@@ -41,8 +49,12 @@ void parse_warn(const struct source_pos* pos, const char* fmt, ...) {
    va_list ap;
    va_start(ap, fmt);
 
+   if (console_colors)
+      fputs("\033[33m", stderr);
    print_source_pos(stderr, pos);
    fputs(": ", stderr);
+   if (console_colors)
+      fputs("\033[0m", stderr);
    vfprintf(stderr, fmt, ap);
    fputc('\n', stderr);
 

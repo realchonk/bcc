@@ -1,5 +1,3 @@
-#include <stdbool.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include "strint.h"
 #include "token.h"
@@ -80,13 +78,3 @@ int run_cpp(FILE* in, FILE* out) {
    return 0;
 }
 
-void warn(size_t linenum, const char* msg, ...) {
-   va_list ap;
-   va_start(ap, msg);
-
-   fprintf(stderr, "bcpp: %zu: ", linenum + 1);
-   vfprintf(stderr, msg, ap);
-   fputc('\n', stderr);
-
-   va_end(ap);
-}

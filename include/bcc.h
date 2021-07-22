@@ -5,7 +5,7 @@
 
 extern bool enable_warnings;
 extern unsigned optim_level;
-
+extern bool console_colors;
 
 unsigned popcnt(uintmax_t);
 #define is_pow2(n) (popcnt(n) == 1)

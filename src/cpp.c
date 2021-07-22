@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include "error.h"
 #include "cpp.h"
+#include "bcc.h"
 #include "buf.h"
 
 const char* cpp_path = "bcpp";
@@ -24,6 +25,8 @@ FILE* run_cpp(const char* source_name) {
 
       char** args = NULL;
       buf_push(args, strdup("bcpp"));
+      if (!console_colors)
+         buf_push(args, strdup("-C"));
       buf_push(args, strdup("-E"));
       buf_push(args, strdup("-o"));
       buf_push(args, strdup("-"));

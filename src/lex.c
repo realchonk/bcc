@@ -39,6 +39,9 @@ static bool input_match(char ch) {
    else return false;
 }
 
+#define lex_error(...) parse_error(&pos, __VA_ARGS__)
+
+/*
 noreturn void lex_error(const char* fmt, ...) {
    va_list ap;
    va_start(ap, fmt);
@@ -51,7 +54,7 @@ noreturn void lex_error(const char* fmt, ...) {
    va_end(ap);
 
    exit(1);
-}
+}*/
 
 // LEXER STUFF
 

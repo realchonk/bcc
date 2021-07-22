@@ -6,11 +6,12 @@
 #include "buf.h"
 
 extern const char** cmdline_includes;
+bool console_color = true;
 
 int main(int argc, char* argv[]) {
    const char* output_name = "-";
    int option;
-   while ((option = getopt(argc, argv, ":D:VEo:I:")) != -1) {
+   while ((option = getopt(argc, argv, ":D:VEo:I:C")) != -1) {
       switch (option) {
       case 'V':
          puts("bcpp " BCC_VER);
@@ -32,6 +33,9 @@ int main(int argc, char* argv[]) {
          break;
       case 'I':
          buf_push(cmdline_includes, optarg);
+         break;
+      case 'C':
+         console_color = false;
          break;
       default:
          goto print_usage;
