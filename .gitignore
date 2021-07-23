@@ -13,3 +13,4 @@ test2/test
 src/riscv32/as.h
 include/help_options.h
 .program_prefix
+cpp/include/help_options.h

@@ -36,7 +36,7 @@ bcc: include/help_options.h check_arch check_deps $(objects)
 	@if [ -z "$(OLD_TARGET)" ]; then rm -f .program_prefix; else echo "$(OLD_TARGET)-" > .program_prefix; fi
 
 bcpp:
-	$(MAKE) -C cpp
+	$(MAKE) TOP=$(PWD) -C cpp
 
 
 include/help_options.h: bcc.1
@@ -66,7 +66,9 @@ install:
 	install -Dm755 bcc $(PREFIX)/$(BINDIR)/$(PROGRAM_PREFIX)bcc
 	install -Dm755 cpp/bcpp $(PREFIX)/$(BINDIR)/bcpp
 	install -Dm644 bcc.1 $(PREFIX)/$(MANDIR)/$(PROGRAM_PREFIX)bcc.1
+	install -Dm644 cpp/bcpp.1 $(PREFIX)/$(MANDIR)/bcpp.1
 	install -Dm644 util/bcc.bash $(PREFIX)/share/bash-completion/completions/$(PROGRAM_PREFIX)bcc
+	install -Dm644 util/bcpp.bash $(PREFIX)/share/bash-completion/completions/bcpp
 	sed -i "s/VERSION/$(VER)/g" $(PREFIX)/$(MANDIR)/$(PROGRAM_PREFIX)bcc.1
 
 check: test

@@ -1,12 +1,12 @@
-.TH bcc 1 "2021-07-17" "bcc-VERSION"
+.TH bcc 1 "2021-07-23" "bcc-VERSION"
 
 .SH NAME
 bcc - brainlet C compiler
 
 .SH SYNOPSIS
 .SY bcc
-.OP -c\fR|\fB-i\fR|\fB-A\fR|\fB-S\fR|\fB-E\fR|\fB-C
-.OP -w
+.OP -c\fR|\fB-i\fR|\fB-A\fR|\fB-S\fR|\fB-E\fR
+.OP -wC
 .OP -e \fIpath\fR
 .OP -O \fIolevel\fR
 .OP -o \fIoutput\fR
@@ -124,7 +124,7 @@ Suppress the color output.
 .B -I \fIinclude_path\fR
 .RE
 .RS 5
-Specify the include path for the pre-processor.
+Specify an include path for the preprocessor to search.
 .RE
 
 .SH OPERANDS
@@ -255,4 +255,6 @@ The compiler uses the System V ABI, where applicable.
 There is no multilib support, the compiler is installed for a single target-architecture.
 If a second target is wanted, the compiler must be rebuild and reinstalled for the specific architecure.
 
+.SH SEE ALSO
+.BR bcpp (1)
 

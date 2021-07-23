@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include "help_options.h"
 #include "cpp.h"
 #include "buf.h"
 
@@ -11,8 +12,12 @@ bool console_color = true;
 int main(int argc, char* argv[]) {
    const char* output_name = "-";
    int option;
-   while ((option = getopt(argc, argv, ":D:VEo:I:C")) != -1) {
+   // TODO: implement -Dmacro=value and -h
+   while ((option = getopt(argc, argv, ":D:VEo:I:Ch")) != -1) {
       switch (option) {
+      case 'h':
+         printf("Usage: bcpp [options] file\nOptions:\n%s", help_options);
+         return 0;
       case 'V':
          puts("bcpp " BCC_VER);
          puts("Copyleft Benjamin Stürz.");
