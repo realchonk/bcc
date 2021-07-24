@@ -2,6 +2,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdio.h>
+#include "riscv/cpu.h"
 #include "target.h"
 #include "error.h"
 #include "regs.h"
