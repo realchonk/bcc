@@ -6,6 +6,8 @@ void warn(size_t linenum, const char* msg, ...) {
    va_list ap;
    va_start(ap, msg);
 
+   fflush(stdout);
+
    if (console_color) {
       fputs("\033[31;1m", stderr);
    }

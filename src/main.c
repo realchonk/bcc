@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
    }
    
    if (level == 'E') {
-      char ch;
+      int ch;
       while ((ch = fgetc(source)) != EOF) {
          fputc(ch, output);
       }

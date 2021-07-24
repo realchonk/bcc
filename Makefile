@@ -31,7 +31,7 @@ target_includes=$(wildcard src/$(ARCH)/*.h)
 
 all: bcc bcpp
 
-bcc: include/help_options.h check_arch check_deps $(objects)
+bcc: check_deps include/help_options.h $(objects)
 	$(CC) -o $@ $(objects) $(CFLAGS) $(LIBS)
 	@if [ -z "$(OLD_TARGET)" ]; then rm -f .program_prefix; else echo "$(OLD_TARGET)-" > .program_prefix; fi
 

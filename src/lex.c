@@ -10,7 +10,7 @@
 #include "buf.h"
 
 static FILE* file = NULL;
-static char peekd_ch = '\0';
+static int peekd_ch = '\0';
 static struct token peekd_tk;
 static struct source_pos pos;
 
@@ -19,7 +19,7 @@ static struct source_pos pos;
 #define input_peek() (peekd_ch ? peekd_ch : (peekd_ch = input_read()))
 #define input_skip() (peekd_ch ? peekd_ch = '\0' : (input_read(), 0))
 static int input_read(void) {
-   const char ch = fgetc(file);
+   const int ch = fgetc(file);
    if (ch == '\n') {
       pos.line += 1;
       pos.column = 0;
@@ -29,32 +29,17 @@ static int input_read(void) {
 
 static int input_next(void) {
    if (peekd_ch) {
-      const char tmp = peekd_ch;
+      const int tmp = peekd_ch;
       peekd_ch = '\0';
       return tmp;
    } else return input_read();
 }
-static bool input_match(char ch) {
+static bool input_match(int ch) {
    if (input_peek() == ch) return input_skip(), true;
    else return false;
 }
 
 #define lex_error(...) parse_error(&pos, __VA_ARGS__)
-
-/*
-noreturn void lex_error(const char* fmt, ...) {
-   va_list ap;
-   va_start(ap, fmt);
-
-   print_source_pos(stderr, &pos);
-   fputs(": ", stderr);
-   vfprintf(stderr, fmt, ap);
-   fputc('\n', stderr);
-
-   va_end(ap);
-
-   exit(1);
-}*/
 
 // LEXER STUFF
 
@@ -110,18 +95,18 @@ struct token lexer_expect(enum token_type type) {
 
 #define skip_ws() while (isspace(input_peek())) input_skip()
 
-static int xctoi(char ch) {
+static int xctoi(int ch) {
    if (isdigit(ch)) return ch - '0';
    else if (ch >= 'A' && ch <= 'F') return ch - 'A' + 10;
    else if (ch >= 'a' && ch <= 'f') return ch - 'a' + 10;
    else lex_error("expected hexadecimal digit, got '%c'", ch);
 }
-static bool isodigit(char ch) {
+static bool isodigit(int ch) {
    return ch >= '0' && ch <= '7';
 }
 
-static char parse_escape_seq(void) {
-   char result, ch = input_next();
+static int parse_escape_seq(void) {
+   int result, ch = input_next();
    if (isodigit(ch)) {
       result = ch - '0';
       for (int i = 0; i < 2 && isodigit(input_peek()); ++i)
