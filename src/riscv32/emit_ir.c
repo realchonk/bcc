@@ -1,5 +1,5 @@
 #include <string.h>
-#include "riscv32/cpu.h"
+#include "riscv/cpu.h"
 #include "emit_ir.h"
 #include "strdb.h"
 #include "error.h"
@@ -105,9 +105,15 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       case IRS_BYTE:
       case IRS_CHAR:    instr = n->read.sign_extend ? "lb  " : "lbu "; break;
       case IRS_SHORT:   instr = n->read.sign_extend ? "lh  " : "lhu "; break;
+#if BITS == 32
       case IRS_PTR:
       case IRS_INT:
-      case IRS_LONG:    instr = "lw  ";  break;
+      case IRS_LONG:    instr = "lw  "; break;
+#else
+      case IRS_INT:     instr = n->read.sign_extend ? "lw  " : "lwu "; break;
+      case IRS_LONG:
+      case IRS_PTR:     instr = "ld  "; break;
+#endif
       default:          panic("unsupported operand size '%s'", ir_size_str[n->read.size]);
       }
       if (flag) {
@@ -123,9 +129,15 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       case IRS_BYTE:
       case IRS_CHAR:    instr = "sb  "; break;
       case IRS_SHORT:   instr = "sh  "; break;
+#if BITS == 32
       case IRS_PTR:
       case IRS_INT:
       case IRS_LONG:    instr = "sw  "; break;
+#else
+      case IRS_INT:     instr = "sw  "; break;
+      case IRS_LONG:
+      case IRS_PTR:     instr = "sd  "; break;
+#endif
       default:          panic("unsupported operand size '%s'", ir_size_str[n->move.size]);
       }
       if (flag) {
@@ -148,13 +160,14 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       size_stack = align_stack_size(size_stack);
       emit("addi sp, sp, -%zu", size_stack);
       uintreg_t sp = size_stack;
-      emit("sw   fp, %zu(sp)", sp -= REGSIZE);
-      emit("sw   ra, %zu(sp)", sp -= REGSIZE);
+      emit(SW "   fp, %zu(sp)", sp -= REGSIZE);
+      emit(SW "   ra, %zu(sp)", sp -= REGSIZE);
       for (size_t i = 0; i < num_reg_params; ++i) {
-         emit("sw   a%zu, %zu(sp)", i, sp -= REGSIZE);
+         emit(SW "   a%zu, %zu(sp)", i, sp -= REGSIZE);
       }
       emit("addi fp, sp, %zu", size_stack);
 
+      // TODO: why 20?
       sp = 20;
       assign_scope(n->func->scope, &sp);
 
@@ -164,8 +177,8 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       if (!strcmp(n->func->name, "main"))
          emit("mv   a0, x0");
       emit("%s.ret:", n->func->name);
-      emit("lw   fp, %zu(sp)", size_stack - 1*REGSIZE);
-      emit("lw   ra, %zu(sp)", size_stack - 2*REGSIZE);
+      emit(LW "   fp, %zu(sp)", size_stack - 1*REGSIZE);
+      emit(LW "   ra, %zu(sp)", size_stack - 2*REGSIZE);
       emit("addi sp, sp, %zu",     size_stack);
       emit("ret");
       return n->next;
@@ -232,7 +245,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    case IR_FPARAM:
       if (n->fparam.idx < 8) {
          const char* dest = reg_op(n->fparam.reg);
-         const size_t addr = 12 + n->fparam.idx * REGSIZE;
+         const size_t addr = (3 + n->fparam.idx) * REGSIZE;
          const ir_reg_t reg = n->lookup.reg;
          if (optim_level >= 2
             && n->next
@@ -372,6 +385,12 @@ ir_node_t* emit_ir(const ir_node_t* n) {
             emit("slli %s, %s, 16", dest, src);
             emit("srai %s, %s, 16", dest, dest);
             break;
+#if BITS == 64
+         case IRS_INT:
+            emit("slli %s, %s, 32", dest, src);
+            emit("srai %s, %s, 32", dest, dest);
+            break;
+#endif
          default:
             panic("unreachable reached");
          }
@@ -410,20 +429,20 @@ ir_node_t* emit_ir(const ir_node_t* n) {
 
       if (flag2) {
          for (size_t i = 0; i < dest; ++i) {
-            emit("sw %s, %zu(sp)", reg_op(i), sp -= REGSIZE);
+            emit(SW " %s, %zu(sp)", reg_op(i), sp -= REGSIZE);
          }
       }
 
       for (size_t i = 0; i < my_min(8, np); ++i) {
          ir_node_t* tmp = params[i];
          while ((tmp = emit_ir(tmp)) != NULL);
-         emit("sw a0, %zu(sp)", sp -= REGSIZE);
+         emit(SW " a0, %zu(sp)", sp -= REGSIZE);
       }
 
       for (size_t i = np - 1; i >= 8; --i) {
          ir_node_t* tmp = params[i];
          while ((tmp = emit_ir(tmp)) != NULL);
-         emit("sw a0, %zu", sp -= REGSIZE);
+         emit(SW " a0, %zu", sp -= REGSIZE);
       }
 
       if (flag) {
@@ -434,7 +453,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
 
       sp = saved_sp;
       for (size_t i = 0; i < my_min(8, np); ++i) {
-         emit("lw a%zu, %zu(sp)", i, sp -= REGSIZE);
+         emit(LW " a%zu, %zu(sp)", i, sp -= REGSIZE);
       }
       if (flag) {
          emit("jalr t0");
@@ -469,9 +488,13 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       av = n->binary.a;
       bv = n->binary.b;
 
-      if (!riscv32_cpu.has_mult) {
+      if (!riscv_cpu.has_mult) {
          panic("soft-multiplication is currently not implemented");
+#if BITS == 32
          char f[] = "__mulxi32";
+#else
+         char f[] = "__mulxi64";
+#endif
          memcpy(f + 2, instr, 3);
          f[5] = strlen(instr) == 3 ? 's' : 'u';
          request_builtin(f);
@@ -497,7 +520,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          b = reg_op(bv.reg);
       } else {
          b = "s1";
-         emit("sw s1, -4(sp)");
+         emit(SW " s1, -4(sp)");
          emit("li %s, %jd", b, bv.sVal);
       }
 
@@ -505,7 +528,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
 
 
       if (bv.type == IRT_UINT) {
-         emit("lw s1, -4(sp)");
+         emit(LW " s1, -4(sp)");
       }
 
       return n->next;

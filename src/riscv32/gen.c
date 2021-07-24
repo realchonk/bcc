@@ -1,5 +1,4 @@
 #include <ctype.h>
-#include "riscv32/cpu.h"
 #include "target.h"
 #include "strdb.h"
 
@@ -26,7 +25,6 @@ static void emit_end(void) {
 
 static void emit_func(const struct function* func) {
    ir_node_t* n = func->ir_code;
-   //cur_func = func;
    while ((n = emit_ir(n)) != NULL);
 }
 void emit_unit(void) {

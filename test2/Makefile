@@ -10,7 +10,17 @@ ARCH=x86
 else ifeq ($(ARCH),i386)
 BITS=32
 ARCH=x86
+else ifeq ($(ARCH),riscv32)
+BITS=32
+ARCH=riscv
+ABI=ilp32
+else ifeq ($(ARCH),riscv64)
+BITS=64
+ARCH=riscv
+ABI=lp64
 endif
+
+
 all: test
 
 test.ir: test.c ../bcc
@@ -26,10 +36,10 @@ test.o: test.asm
 test: test.o
 	gcc -m$(BITS) -o $@ $<
 
-else ifeq ($(ARCH),riscv32)
+else ifeq ($(ARCH),riscv)
 
 test: test.o
-	riscv32-linux-gcc -o $@ $<
+	riscv$(BITS)-linux-gcc -o $@ $< -mabi=$(ABI)
 
 test.o: test.s
 	../bcc -c -o $@ $<

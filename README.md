@@ -12,6 +12,7 @@ Planned features can be read in the [TODO](./TODO) file.
 - i386 (x86-32/IA-32)
 - x86\_64 (amd64/EMT64)
 - riscv32 (RISC-V 32bit)
+- riscv64 (RISC-V 64bit)
 
 ## Building/Installation
 Building the compiler for the host architecture:<br>

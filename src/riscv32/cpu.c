@@ -1,24 +1,22 @@
 #include <stdio.h>
 #include <ctype.h>
-#include "riscv32/cpu.h"
+#include "riscv/cpu.h"
 #include "target.h"
 
-struct riscv32_cpu riscv32_cpu;
+struct riscv_cpu riscv_cpu;
 
-
-
-bool parse_cpu(const char* s, struct riscv32_cpu* cpu) {
+bool parse_cpu(const char* s, struct riscv_cpu* cpu) {
    if (!s || !cpu) return false;
    size_t i = 0;
-   if (tolower(s[0]) != 'r' || tolower(s[1]) != 'v' || s[2] != '3' || s[3] != '2') {
-      fprintf(stderr, "bcc: invalid CPU '%s', expected rv32.\n", s);
+   if (tolower(s[0]) != 'r' || tolower(s[1]) != 'v' || s[2] != (BITS / 10 + '0') || s[3] != (BITS % 10 + '0')) {
+      fprintf(stderr, "bcc: invalid CPU '%s', expected rv%d.\n", s, BITS);
       return false;
    }
    i += 4;
    if (s[i] == 'i') ++s;
    else if (s[i] == 'e') ++s, cpu->is_embedded = true;
    else if (s[i] != 'g') {
-      fprintf(stderr, "bcc: invalid CPU '%s', expected i, g or e after rv32.\n", s);
+      fprintf(stderr, "bcc: invalid CPU '%s', expected i, g or e after rv%d.\n", s, BITS);
       return false;
    }
 
@@ -64,5 +62,5 @@ bool parse_cpu(const char* s, struct riscv32_cpu* cpu) {
 bool emit_prepare(void) {
    const struct machine_option* opt = get_mach_opt("cpu");
    assert(opt != NULL);
-   return parse_cpu(opt->sVal, &riscv32_cpu);
+   return parse_cpu(opt->sVal, &riscv_cpu);
 }

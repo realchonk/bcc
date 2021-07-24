@@ -19,6 +19,9 @@ i[3456]86)
 riscv32|rv32i*([mafdgc]))
    echo "riscv32"
    ;;
+riscv64|rv64i*([mafdgc]))
+   echo "riscv64"
+   ;;
 *)
 	exit 1
 	;;
