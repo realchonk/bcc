@@ -1,11 +1,8 @@
 int printf(const char*, ...);
 
-union A {
-   int a;
-   int b;
-};
+extern int a;
+int a = 42;
 
 int main(void) {
-   union A a;
-   return &a.a == &a.b;
+   return a;
 }

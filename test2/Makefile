@@ -1,6 +1,6 @@
 
 
-ARCH ?= $(shell ../bcc -dumpmachine)
+BCC_ARCH ?= $(shell ../bcc -dumpmachine)
 
 BCCFLAGS+=-O2
 
@@ -22,8 +22,14 @@ QLP=/opt/riscv64/riscv64-buildroot-linux-musl/sysroot/
 BCCFLAGS+=-mabi=lp64
 endif
 
+ifeq ($(BCC_ARCH),$(shell uname -m))
+GCC=gcc
+else
+GCC=$(BCC_ARCH)-linux-gcc
+endif
 
 all: test
+	echo $(CHOST)
 
 test.ir: test.c ../bcc
 	../bcc -i -o $@ $< $(BCCFLAGS)
@@ -36,12 +42,12 @@ test.o: test.asm
 	../bcc -c -o $@ $<
 
 test: test.o
-	gcc -m$(BITS) -o $@ $<
+	$(GCC) -m$(BITS) -o $@ $<
 
 else ifeq ($(ARCH),riscv)
 
 test: test.o
-	riscv$(BITS)-linux-gcc -o $@ $<
+	$(GCC) -o $@ $<
 
 test.o: test.s
 	../bcc -c -o $@ $< $(BCCFLAGS)
