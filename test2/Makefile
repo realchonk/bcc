@@ -4,18 +4,18 @@ BCC_ARCH ?= $(shell ../bcc -dumpmachine)
 
 BCCFLAGS+=-O2
 
-ifeq ($(ARCH),x86_64)
+ifeq ($(BCC_ARCH),x86_64)
 BITS=64
 ARCH=x86
-else ifeq ($(ARCH),i386)
+else ifeq ($(BCC_ARCH),i386)
 BITS=32
 ARCH=x86
-else ifeq ($(ARCH),riscv32)
+else ifeq ($(BCC_ARCH),riscv32)
 BITS=32
 ARCH=riscv
 QLP=/opt/riscv/riscv32-buildroot-linux-gnu/sysroot/
 BCCFLAGS+=-mabi=ilp32d
-else ifeq ($(ARCH),riscv64)
+else ifeq ($(BCC_ARCH),riscv64)
 BITS=64
 ARCH=riscv
 QLP=/opt/riscv64/riscv64-buildroot-linux-musl/sysroot/
@@ -29,7 +29,6 @@ GCC=$(BCC_ARCH)-linux-gcc
 endif
 
 all: test
-	echo $(CHOST)
 
 test.ir: test.c ../bcc
 	../bcc -i -o $@ $< $(BCCFLAGS)
