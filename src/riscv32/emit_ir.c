@@ -155,7 +155,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       // stack allocation
       const size_t num_reg_params = my_min(8, buf_len(n->func->params));
       size_stack = sizeof_scope(n->func->scope);
-      size_stack += 2 * REGSIZE;
+      size_stack += 3 * REGSIZE;
       size_stack += num_reg_params * REGSIZE;
       size_stack = align_stack_size(size_stack);
       emit("addi sp, sp, -%zu", size_stack);
@@ -167,9 +167,8 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       }
       emit("addi fp, sp, %zu", size_stack);
 
-      // TODO: why 20?
-      sp = 20;
-      assign_scope(n->func->scope, &sp);
+      uintreg_t fp = REGSIZE * (3 + num_reg_params);
+      assign_scope(n->func->scope, &fp);
 
       return n->next;
    }

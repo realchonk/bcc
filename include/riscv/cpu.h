@@ -22,4 +22,16 @@ bool parse_cpu(const char*, struct riscv_cpu*);
 #define BITS 64
 #endif
 
+#if BITS == 32
+
+#define DEF_MACH  "rv32gc"
+#define DEF_ABI   "ilp32d"
+
+#else
+
+#define DEF_MACH  "rv64gc"
+#define DEF_ABI   "lp64d"
+
+#endif
+
 #endif /* FILE_RISCV_CPU_H */

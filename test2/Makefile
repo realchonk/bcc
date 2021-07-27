@@ -13,11 +13,11 @@ ARCH=x86
 else ifeq ($(ARCH),riscv32)
 BITS=32
 ARCH=riscv
-ABI=ilp32
+QLP=/opt/riscv/riscv32-buildroot-linux-gnu/sysroot/
 else ifeq ($(ARCH),riscv64)
 BITS=64
 ARCH=riscv
-ABI=lp64
+QLP=/opt/riscv64/riscv64-buildroot-linux-musl/sysroot/
 endif
 
 
@@ -39,7 +39,7 @@ test: test.o
 else ifeq ($(ARCH),riscv)
 
 test: test.o
-	riscv$(BITS)-linux-gcc -o $@ $< -mabi=$(ABI)
+	riscv$(BITS)-linux-gcc -o $@ $<
 
 test.o: test.s
 	../bcc -c -o $@ $<
@@ -50,8 +50,9 @@ endif
 
 clean:
 	rm -f test.s test.asm test.o test test.ir
+
 run: test
-	./test;
+	@QEMU_LD_PREFIX=$(QLP) ./test;
 
 .PHONY: all clean
 

@@ -9,14 +9,12 @@ typedef int32_t intreg_t;
 #define REGSIZE 4
 #define LW "lw"
 #define SW "sw"
-#define DEF_MACH "rv32gc"
 #else
 typedef uint64_t uintreg_t;
 typedef int64_t intreg_t;
 #define REGSIZE 8
 #define LW "ld"
 #define SW "sd"
-#define DEF_MACH "rv64gc"
 #endif
 
 

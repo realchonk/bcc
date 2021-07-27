@@ -1,3 +1,4 @@
+#define _GNU_SOURCE 1
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -8,15 +9,9 @@
 #include "regs.h"
 #include "as.h"
 
-#if BITS == 32
-#define ABI "ilp32"
-#else
-#define ABI "lp64"
-#endif
-
-
 struct machine_option mach_opts[] = {
    { "cpu", "The target CPU", 2, .sVal = DEF_MACH },
+   { "abi", "The target ABI", 2, .sVal = DEF_ABI  },
 };
 
 const size_t num_mach_opts = arraylen(mach_opts);
@@ -27,7 +22,9 @@ int assemble(const char* source, const char* output) {
    const pid_t pid = fork();
    if (pid < 0) panic("failed to fork()");
    if (pid == 0) {
-      execlp(gnu_as, gnu_as, "-mabi=" ABI, "-o", output, source, NULL);
+      char* mabi = NULL;
+      asprintf(&mabi, "-mabi=%s", get_mach_opt("abi")->sVal);
+      execlp(gnu_as, gnu_as, mabi, "-o", output, source, NULL);
       perror("bcc: failed to invoke assembler");
       _exit(1);
    } else {
