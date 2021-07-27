@@ -17,6 +17,20 @@ static ir_node_t* new_node(enum ir_node_type t) {
    return n;
 }
 
+static bool is_cmp(const enum token_type t) {
+   switch (t) {
+   case TK_EQEQ:
+   case TK_NEQ:
+   case TK_GR:
+   case TK_LE:
+   case TK_GREQ:
+   case TK_LEEQ:
+      return true;
+   default:
+      return false;
+   }
+}
+
 static ir_reg_t creg = 0;
 static size_t clbl = 0;
 static istr_t begin_loop = NULL, end_loop = NULL;
@@ -225,7 +239,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       }
       
       n = ir_expr(scope, e->binary.left);
-      if (irs != vt2irs(vl)) {
+      if (irs != vt2irs(vl) && !is_cmp(e->binary.op.type)) {
          tmp = new_node(IR_IICAST);
          tmp->iicast.dest = tmp->iicast.src = creg - 1;
          tmp->iicast.ds = irs;
@@ -234,7 +248,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          ir_append(n, tmp);
       }
       ir_append(n, ir_expr(scope, e->binary.right));
-      if (irs != vt2irs(vr)) {
+      if (irs != vt2irs(vr) && !is_cmp(e->binary.op.type)) {
          tmp = new_node(IR_IICAST);
          tmp->iicast.dest = tmp->iicast.src = creg - 1;
          tmp->iicast.ds = irs;
