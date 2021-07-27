@@ -295,7 +295,8 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       if (n->binary.b.type == IRT_REG) {
          emit("sub %s, %s, %s", dest, a, reg_op(n->binary.b.reg));
       } else {
-         emit("subi %s, %s, %jd", dest, a, n->binary.b.sVal);
+         const char* sign = n->binary.b.sVal < 0 ? "" : "-";
+         emit("addi %s, %s, %s%jd", dest, a, sign, n->binary.b.sVal);
       }
       emit("%s %s, %s", instr, dest, dest);
       return n->next;
