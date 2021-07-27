@@ -19,7 +19,7 @@
 #if defined(__x86_64__) || defined(__i386__)
 #define BCC_ADD "-mstack-check"
 #else
-#define BCC_ADD
+#define BCC_ADD "-mabi=lp64"
 #endif
 
 #define BCC "../bcc -C -e ../cpp/bcpp -c -O2 -w " BCC_ADD " -o "
@@ -158,7 +158,7 @@ static struct test_case* get_case(const char* name) {
 
 int main(int argc, char* argv[]) {
    if (argc > 2) {
-      fputs("usage: tester [test]\n", stderr);
+      fputs("usage: tester [-v] [test]\n", stderr);
       return 1;
    }
    remove("bcc.log");

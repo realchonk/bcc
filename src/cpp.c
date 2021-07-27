@@ -24,7 +24,7 @@ FILE* run_cpp(const char* source_name) {
          panic("failed to duplicate file descriptor");
 
       char** args = NULL;
-      buf_push(args, strdup("bcpp"));
+      buf_push(args, cpp_path);
       if (!console_colors)
          buf_push(args, strdup("-C"));
       buf_push(args, strdup("-E"));
@@ -38,7 +38,7 @@ FILE* run_cpp(const char* source_name) {
       buf_push(args, NULL);
 
       execvp(cpp_path, args);
-      panic("failed to exec bcpp");
+      panic("failed to exec %s", cpp_path);
    } else {
       close(pipes[1]);
       FILE* file = fdopen(pipes[0], "r");
