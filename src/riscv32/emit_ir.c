@@ -391,7 +391,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
             break;
 #endif
          default:
-            panic("unreachable reached");
+            panic("unreachable reached, ds=%s, ss=%s", ir_size_str[n->iicast.ds], ir_size_str[n->iicast.ss]);
          }
       } else {
          if (n->iicast.sign_extend) {

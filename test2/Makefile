@@ -2,7 +2,7 @@
 
 ARCH ?= $(shell ../bcc -dumpmachine)
 
-BCCFLAGS ?= -O2
+BCCFLAGS+=-O2
 
 ifeq ($(ARCH),x86_64)
 BITS=64
@@ -14,10 +14,12 @@ else ifeq ($(ARCH),riscv32)
 BITS=32
 ARCH=riscv
 QLP=/opt/riscv/riscv32-buildroot-linux-gnu/sysroot/
+BCCFLAGS+=-mabi=ilp32d
 else ifeq ($(ARCH),riscv64)
 BITS=64
 ARCH=riscv
 QLP=/opt/riscv64/riscv64-buildroot-linux-musl/sysroot/
+BCCFLAGS+=-mabi=lp64
 endif
 
 
@@ -42,7 +44,7 @@ test: test.o
 	riscv$(BITS)-linux-gcc -o $@ $<
 
 test.o: test.s
-	../bcc -c -o $@ $<
+	../bcc -c -o $@ $< $(BCCFLAGS)
 
 test.s: test.c ../bcc
 	../bcc -S -o $@ $< $(BCCFLAGS)
