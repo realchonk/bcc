@@ -440,20 +440,20 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          for (size_t i = 0; i < dest; ++i) {
             emit(SW " %s, %zu(sp)", reg_op(i), sp -= REGSIZE);
          }
-         sp = saved_sp;
       }
+      const size_t params_sp = sp;
 
       for (size_t i = 0; i < my_min(8, np); ++i) {
          ir_node_t* tmp = params[i];
          while ((tmp = emit_ir(tmp)) != NULL);
-         emit(SW " a0, %zu(sp)", sp -= REGSIZE);
+         emit(SW " %s, %zu(sp)", reg_op(dest), sp -= REGSIZE);
       }
 
       if (np) {
          for (size_t i = np - 1; i >= 8; --i) {
             ir_node_t* tmp = params[i];
             while ((tmp = emit_ir(tmp)) != NULL);
-            emit(SW " a0, %zu", sp -= REGSIZE);
+            emit(SW " %s, %zu", reg_op(dest), sp -= REGSIZE);
          }
       }
 
@@ -463,7 +463,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          emit("mv t0, a0");
       }
 
-      sp = saved_sp;
+      sp = params_sp;
       for (size_t i = 0; i < my_min(8, np); ++i) {
          emit(LW " a%zu, %zu(sp)", i, sp -= REGSIZE);
       }

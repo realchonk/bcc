@@ -1,7 +1,7 @@
 int printf(const char*, ...);
 int atoi(const char*);
 
-
+/*
 int fib(int n) {
    if (n < 2) {
       return n;
@@ -10,13 +10,13 @@ int fib(int n) {
       const int b = fib(n - 2);
       return a + b;
    }
-}
+}*/
 
 int fib2(int n) {
    if (n < 2) {
       return n;
    } else {
-      return fib(n - 1) + fib(n - 2);
+      return fib2(n - 1) + fib2(n - 2);
    }
 }
 
@@ -26,5 +26,5 @@ int main(int argc, char** argv) {
       return 1;
    }
    const int a = atoi(argv[1]);
-   printf("fib(%d) = %d\n", a, fib(a));
+   printf("fib(%d) = %d\n", a, fib2(a));
 }
