@@ -12,6 +12,7 @@
 struct machine_option mach_opts[] = {
    { "cpu", "The target CPU", 2, .sVal = DEF_MACH },
    { "abi", "The target ABI", 2, .sVal = DEF_ABI  },
+   { "stack-check", "Check the stack for alignment", 0, .bVal = false },
 };
 
 const size_t num_mach_opts = arraylen(mach_opts);

@@ -1,11 +1,30 @@
-
 int printf(const char*, ...);
-
-int f(void) { return 10; }
-int g(void) { return 20; }
+int atoi(const char*);
 
 
-int main(void) {
-   const int r = f() + g();
-   printf("%d\n", r);
+int fib(int n) {
+   if (n < 2) {
+      return n;
+   } else {
+      const int a = fib(n - 1);
+      const int b = fib(n - 2);
+      return a + b;
+   }
+}
+
+int fib2(int n) {
+   if (n < 2) {
+      return n;
+   } else {
+      return fib(n - 1) + fib(n - 2);
+   }
+}
+
+int main(int argc, char** argv) {
+   if (argc != 2) {
+      printf("Usage: %s <number>\n", argv[0]);
+      return 1;
+   }
+   const int a = atoi(argv[1]);
+   printf("fib(%d) = %d\n", a, fib(a));
 }

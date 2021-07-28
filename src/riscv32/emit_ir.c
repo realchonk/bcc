@@ -152,6 +152,15 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          emit(".global %s", n->func->name);
       emit("%s:", n->func->name);
 
+      if (get_mach_opt("stack-check")->bVal) {
+         emit("addi sp, sp, -16");
+         emit(SW " ra, %zu(sp)", 16 - REGSIZE);
+         emit("call __check_sp");
+         emit(LW " ra, %zu(sp)", 16 - REGSIZE);
+         emit("addi sp, sp, 16");
+         request_builtin("__check_sp");
+      }
+
       // stack allocation
       const size_t num_reg_params = my_min(8, buf_len(n->func->params));
       size_stack = sizeof_scope(n->func->scope);
@@ -431,6 +440,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          for (size_t i = 0; i < dest; ++i) {
             emit(SW " %s, %zu(sp)", reg_op(i), sp -= REGSIZE);
          }
+         sp = saved_sp;
       }
 
       for (size_t i = 0; i < my_min(8, np); ++i) {
