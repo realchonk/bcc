@@ -24,7 +24,7 @@ FILE* run_cpp(const char* source_name) {
          panic("failed to duplicate file descriptor");
 
       char** args = NULL;
-      buf_push(args, cpp_path);
+      buf_push(args, strdup(cpp_path));
       if (!console_colors)
          buf_push(args, strdup("-C"));
       buf_push(args, strdup("-E"));

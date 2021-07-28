@@ -23,7 +23,10 @@ int assemble(const char* source, const char* output) {
    if (pid < 0) panic("failed to fork()");
    if (pid == 0) {
       char* mabi = NULL;
-      asprintf(&mabi, "-mabi=%s", get_mach_opt("abi")->sVal);
+      if (asprintf(&mabi, "-mabi=%s", get_mach_opt("abi")->sVal) < 0) {
+         perror("bcc: failed to invoke asprintf");
+         _exit(1);
+      }
       execlp(gnu_as, gnu_as, mabi, "-o", output, source, NULL);
       perror("bcc: failed to invoke assembler");
       _exit(1);
