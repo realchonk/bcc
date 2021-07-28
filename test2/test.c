@@ -1,8 +1,11 @@
+
 int printf(const char*, ...);
 
-extern int a;
-int a = 42;
+int f(void) { return 10; }
+int g(void) { return 20; }
+
 
 int main(void) {
-   return a;
+   const int r = f() + g();
+   printf("%d\n", r);
 }
