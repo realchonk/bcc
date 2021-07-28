@@ -16,8 +16,8 @@ static size_t sizeof_scope(const struct scope* scope) {
 
 static void assign_scope(struct scope* scope, uintreg_t* sp) {
    for (size_t i = 0; i < buf_len(scope->vars); ++i) {
-      scope->vars[i].addr = *sp;
       *sp += sizeof_value(scope->vars[i].type, false);
+      scope->vars[i].addr = *sp;
    }
    for (size_t i = 0; i < buf_len(scope->children); ++i) {
       assign_scope(scope->children[i], sp);

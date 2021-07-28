@@ -1,30 +1,18 @@
 int printf(const char*, ...);
 int atoi(const char*);
 
-/*
-int fib(int n) {
-   if (n < 2) {
-      return n;
-   } else {
-      const int a = fib(n - 1);
-      const int b = fib(n - 2);
-      return a + b;
+void f(void) {
+   int arr[8];
+   for (unsigned i = 0; i < arraylen(arr); ++i) {
+      arr[i] = i;
    }
-}*/
-
-int fib2(int n) {
-   if (n < 2) {
-      return n;
-   } else {
-      return fib2(n - 1) + fib2(n - 2);
+   for (unsigned i = 0; i < arraylen(arr); ++i) {
+      printf("arr[%u] = %u\n", i, arr[i]);
    }
+   printf("finished\n");
 }
-
-int main(int argc, char** argv) {
-   if (argc != 2) {
-      printf("Usage: %s <number>\n", argv[0]);
-      return 1;
-   }
-   const int a = atoi(argv[1]);
-   printf("fib(%d) = %d\n", a, fib2(a));
+int main(void) {
+   f();
+   printf("f finished\n");
+   return 0;
 }
