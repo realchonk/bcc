@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include "target.h"
+#include "optim.h"
 #include "error.h"
 
 const struct target_info target_info = {
@@ -69,4 +70,7 @@ int assemble(const char* source, const char* output) {
    }
 }
 
-
+// TODO: implement target-specific IR optimizations
+bool target_optim_ir(struct ir_node** n) {
+   return false;
+}

@@ -324,7 +324,10 @@ static bool fuse_load_iicast(ir_node_t** n) {
 }
 
 ir_node_t* optim_ir_nodes(ir_node_t* n) {
-   if (optim_level < 1) return n;
+   if (optim_level < 1) {
+      while (target_optim_ir(&n));
+      return n;
+   }
    while (remove_nops(&n)
       //|| direct_val(&n)
       || unmuldiv(&n)
@@ -335,6 +338,7 @@ ir_node_t* optim_ir_nodes(ir_node_t* n) {
       || direct_call(&n)
       || mod_to_and(&n)
       || fuse_load_iicast(&n)
+      || target_optim_ir(&n)
    );
    return n;
 }

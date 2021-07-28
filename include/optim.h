@@ -8,4 +8,6 @@ struct expression* optim_expr(struct expression*);
 struct statement* optim_stmt(struct statement*);
 struct ir_node* optim_ir_nodes(struct ir_node*);
 
+bool target_optim_ir(struct ir_node**);
+
 #endif /* FILE_OPTIM_H */
