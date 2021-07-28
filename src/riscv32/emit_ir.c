@@ -418,8 +418,8 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    {
    ir_call:;
       ir_reg_t dest = flag ? n->rcall.dest : n->ifcall.dest;
-      const size_t np = buf_len(flag ? n->rcall.params : n->ifcall.params);
       struct ir_node** params = flag ? n->rcall.params : n->ifcall.params;
+      const size_t np = buf_len(params);
       uintreg_t n_stack = ((flag2 ? dest : 0) + np) * REGSIZE;
       const uintreg_t saved_sp = n_stack;
       uintreg_t sp = saved_sp;
@@ -439,10 +439,12 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          emit(SW " a0, %zu(sp)", sp -= REGSIZE);
       }
 
-      for (size_t i = np - 1; i >= 8; --i) {
-         ir_node_t* tmp = params[i];
-         while ((tmp = emit_ir(tmp)) != NULL);
-         emit(SW " a0, %zu", sp -= REGSIZE);
+      if (np) {
+         for (size_t i = np - 1; i >= 8; --i) {
+            ir_node_t* tmp = params[i];
+            while ((tmp = emit_ir(tmp)) != NULL);
+            emit(SW " a0, %zu", sp -= REGSIZE);
+         }
       }
 
       if (flag) {
@@ -460,9 +462,14 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       } else {
          emit("call %s", n->ifcall.name);
       }
-      emit("addi sp, sp, %zu", n_stack);
-      if (flag2 && dest != 0)
+      if (flag2 && dest != 0) {
          emit("mv %s, a0", reg_op(dest));
+         sp = saved_sp;
+         for (size_t i = 0; i < dest; ++i) {
+            emit(LW " %s, %zu(sp)", reg_op(i), sp -= REGSIZE);
+         }
+      }
+      emit("addi sp, sp, %zu", n_stack);
       return n->next;
    }
 
