@@ -38,6 +38,12 @@ static int prim(size_t linenum, const char** str) {
          ++*str;
       istr_t name = strrint(begin, *str);
       skip_ws(str);
+      if (**str == '(') {
+         ++*str;
+         // TODO: implement macro functions
+         fail(linenum, "macro functions are currently not implemented");
+         return 0;
+      }
       const struct macro* m = get_macro(name);
       if (m)
          return eval(linenum, m->text);
