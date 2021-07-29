@@ -13,6 +13,11 @@ static void skip_ws(const char** str) {
 
 static int do_eval(size_t linenum, const char** str);
 
+static const char* defined(void) {
+   static const char* str = NULL;
+   return str ? str : (str = strint("defined"));
+}
+
 static int prim(size_t linenum, const char** str) {
    skip_ws(str);
    if (**str == '(') {
@@ -38,6 +43,29 @@ static int prim(size_t linenum, const char** str) {
          ++*str;
       istr_t name = strrint(begin, *str);
       skip_ws(str);
+      if (name == defined()) {
+         const bool has_paren = **str == '(';
+         if (has_paren) {
+            ++*str;
+            skip_ws(str);
+         }
+         if (!isname1(**str)) {
+            fail(linenum, "operator 'defined' expects an identifier");
+            return 0;
+         }
+         begin = *str;
+         while (isname(**str))
+            ++*str;
+         name = strrint(begin, *str);
+         skip_ws(str);
+         if (has_paren) {
+            if (**str != ')') {
+               fail(linenum, "missing ')'");
+               return 0;
+            } else ++*str;
+         }
+         return get_macro(name) != NULL;
+      }
       if (**str == '(') {
          ++*str;
          // TODO: implement macro functions
@@ -157,7 +185,7 @@ static int equal(size_t linenum, const char** str) {
 
 static int bitand(size_t linenum, const char** str) {
    int left = equal(linenum, str);
-   while (skip_ws(str), **str == '&') {
+   while (skip_ws(str), **str == '&' && (*str)[1] != **str) {
       ++*str;
       const int right = equal(linenum, str);
       left &= right;
@@ -166,7 +194,7 @@ static int bitand(size_t linenum, const char** str) {
 }
 static int bitor(size_t linenum, const char** str) {
    int left = bitand(linenum, str);
-   while (skip_ws(str), **str == '|') {
+   while (skip_ws(str), **str == '|' && (*str)[1] != **str) {
       ++*str;
       const int right = bitand(linenum, str);
       left |= right;
