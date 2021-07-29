@@ -60,7 +60,7 @@ clean:
 	make -C test2 clean
 
 todo:
-	@grep -n TODO $(sources) $(includes) || true
+	@grep --color=yes -rn TODO src include cpp/src cpp/include || true
 
 install:
 	install -Dm755 bcc $(PREFIX)/$(BINDIR)/$(PROGRAM_PREFIX)bcc
