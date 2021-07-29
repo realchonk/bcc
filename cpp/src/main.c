@@ -45,7 +45,6 @@ int main(int argc, char* argv[]) {
       case 'D':
          add_cmdline_macro(optarg);
          break;
-
       default:
          goto print_usage;
       }

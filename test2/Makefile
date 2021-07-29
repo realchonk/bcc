@@ -2,7 +2,7 @@
 
 BCC_ARCH ?= $(shell ../bcc -dumpmachine)
 
-BCCFLAGS+=-O2
+BCCFLAGS+=-O2 -e ../cpp/bcpp
 
 ifeq ($(BCC_ARCH),x86_64)
 BITS=64

@@ -62,7 +62,7 @@ void add_cmdline_macro(const char* arg) {
    }
 
    m.name = strrint(begin_name, arg);
-   m.text = *arg ? arg : NULL;
+   m.text = *arg ? arg + 1 : NULL;
    m.is_func = false;
    m.params = NULL;
    add_macro(&m);

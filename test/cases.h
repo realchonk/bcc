@@ -680,3 +680,12 @@
    .output = "Hello World\n",
    .ret_val = 0,
 },
+{
+   .name = "predefined macros",
+   .compiles = true,
+   .source =
+      "int main(void) {"
+      "  return __bcc__;"
+      "}",
+   .ret_val = 1,
+},

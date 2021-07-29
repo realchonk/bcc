@@ -29,21 +29,28 @@ FILE* run_cpp(const char* source_name) {
       if (!console_colors)
          buf_push(args, strdup("-C"));
       buf_push(args, strdup("-E"));
-      buf_push(args, strdup("-o"));
-      buf_push(args, strdup("-"));
-      buf_push(args, strdup(source_name));
       for (size_t i = 0; i < buf_len(includes); ++i) {
          buf_push(args, strdup("-I"));
          buf_push(args, includes[i]);
       }
-      char* dash_D = strdup("-D");
       buf_push(args, strdup("-D__bcc__=1"));
       buf_push(args, strdup("-D__" BCC_ARCH "__=1"));
       for (size_t i = 0; i < buf_len(predef_macros); ++i) {
-         buf_push(args, dash_D);
+         buf_push(args, strdup("-D"));
          buf_push(args, predef_macros[i]);
       }
+      buf_push(args, strdup("-o"));
+      buf_push(args, strdup("-"));
+      buf_push(args, strdup(source_name));
       buf_push(args, NULL);
+
+#if 0
+      fprintf(stderr, "bcpp");
+      for (size_t i = 0; args[i]; ++i) {
+         fprintf(stderr, " %s", args[i]);
+      }
+      fputc('\n', stderr);
+#endif
 
       execvp(cpp_path, args);
       panic("failed to exec %s", cpp_path);
