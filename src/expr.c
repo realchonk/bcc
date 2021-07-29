@@ -415,7 +415,7 @@ static struct expression* expr_ternary(void) {
       tmp->begin = expr->begin;
       tmp->ternary.cond = expr;
       get_value_type(scope, tmp->ternary.cond);
-      tmp->ternary.true_case = expr_or();
+      tmp->ternary.true_case = expr_ternary();
       lexer_expect(TK_COLON);
       tmp->ternary.false_case = expr_ternary();
       tmp->end = tmp->ternary.false_case->end;

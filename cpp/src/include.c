@@ -63,9 +63,12 @@ bool dir_include(size_t linenum, const char* line, struct token* tokens, size_t 
       warn(linenum, "failed to open '%s': %s", path, strerror(errno));
       return false;
    }
-   free(path);
+   const char* saved_name = source_name;
+   source_name = path;
    const int ec = run_cpp(file, out);
+   source_name = saved_name;
    fclose(file);
+   free(path);
    return ec == 0;
 }
 

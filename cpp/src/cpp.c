@@ -17,10 +17,8 @@ static bool do_cpp_stuff(size_t linenum, const char* line, struct token* tokens,
    while (tokens[tki].type == TK_WHITESPACE)
       ++tki;
 
-   if (tki >= num_tks) {
-      warn(linenum, "expected word, got newline");
-      return false;
-   }
+   if (tki >= num_tks || tokens[tki].type == TK_NEWLINE)
+      return true;
 
    const struct token tk_dir = tokens[tki];
    if (tk_dir.type != TK_WORD) {
@@ -41,14 +39,18 @@ static bool do_cpp_stuff(size_t linenum, const char* line, struct token* tokens,
 }
 
 int run_cpp(FILE* in, FILE* out) {
-   char** lines = read_lines(in);
+   struct line_pair* lines = read_lines(in);
+
+   char* buf;
+   size_t len_buf;
+   FILE* tmp = open_memstream(&buf, &len_buf);
    
    for (size_t i = 0; i < buf_len(lines); ++i) {
-      const char* line = lines[i];
-      struct token* tokens = tokenize(line);
+      const struct line_pair pair = lines[i];
+      struct token* tokens = tokenize(pair.line);
 
-      if (is_directive(line)) {
-         do_cpp_stuff(i, line, tokens, out);
+      if (is_directive(pair.line)) {
+         failed |= !do_cpp_stuff(pair.linenum, pair.line, tokens, tmp);
          buf_free(tokens);
          continue;
       }
@@ -61,20 +63,25 @@ int run_cpp(FILE* in, FILE* out) {
             const istr_t word = strnint(tk.begin, tk.end - tk.begin);
             const struct macro* m = get_macro(word);
             if (m) {
-               fputs(m->text, out);
+               fputs(m->text, tmp);
                continue;
             }
          }
          for (const char* s = tk.begin; s != tk.end; ++s)
-            fputc(*s, out);
+            fputc(*s, tmp);
       }
 
-      fputc('\n', out);
+      fputc('\n', tmp);
       buf_free(tokens);
    }
-
-
    free_lines(lines);
-   return 0;
+
+   fclose(tmp);
+
+   if (!failed)
+      fwrite(buf, 1, len_buf, out);
+   free(buf);
+
+   return failed;
 }
 

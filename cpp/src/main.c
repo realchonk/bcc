@@ -67,7 +67,6 @@ int main(int argc, char* argv[]) {
       return 1;
    }
 
-
    const int status = run_cpp(source, output);
 
    fclose(source);

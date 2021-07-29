@@ -2,17 +2,26 @@
 
 const char* source_name = NULL;
 
-static int read_char(FILE* file) {
-   int ch = fgetc(file);
+static int read_char2(FILE* file, size_t* linenum) {
+   const int ch = fgetc(file);
+   if (ch == '\n') {
+      ++*linenum;
+   }
+   return ch;
+}
+
+static int read_char(FILE* file, size_t* linenum) {
+   int ch = read_char2(file, linenum);
    if (ch == '/') {
       ch = fgetc(file);
       if (ch == '/') {
-         while (!feof(file) && fgetc(file) != '\n');
-         return read_char(file);
+         while (!feof(file) && read_char2(file, linenum) != '\n');
+         return read_char(file, linenum);
       } else if (ch == '*') {
          while (!feof(file)) {
-            if (fgetc(file) == '*' && fgetc(file) == '/')
-               return read_char(file);
+            ch = read_char2(file, linenum);
+            if (read_char2(file, linenum) == '*' && read_char2(file, linenum) == '/')
+               return read_char(file, linenum);
          }
          return EOF;
       } else {
@@ -21,54 +30,55 @@ static int read_char(FILE* file) {
    } else return ch;
 }
 
-char** read_lines(FILE* file) {
-   char** buf = NULL;
+static char* read_line(FILE* file, bool* eof, size_t* linenum) {
    char* line = NULL;
    int ch;
-   size_t row = 0, col = 0;
-   while ((ch = read_char(file)) != EOF) {
+   while ((ch = read_char(file, linenum)) != EOF) {
    begin:;
-      if (ch == '\n') {
-         buf_push(line, '\0');
-         buf_push(buf, line);
-         line = NULL;
-         ++row;
-         col = 0;
-         continue;
-      }
-      if (ch == '\\') {
-         ch = fgetc(file);
-         if (ch == '\n') {
-            ++row;
-            col = 0;
+      if (ch == '\n')
+         break;
+      else if (ch == '\\') {
+         ch = read_char2(file, linenum);
+         if (ch == '\n')
             continue;
-         }
          else if (ch == EOF) {
-            fprintf(stderr, "%s:%zu:%zu: backslash at end of file\n", source_name, row + 1, col + 1);
+            warn(*linenum, "'\\' at end of file");
+            *eof = true;
             break;
          }
          buf_push(line, '\\');
-         ++col;
          goto begin;
-      }
-      buf_push(line, ch);
-      ++col;
+      } else buf_push(line, ch);
    }
-   if (line) {
+   if (line)
       buf_push(line, '\0');
-      buf_push(buf, line);
-   }
-   return buf;
+   *eof |= (ch == EOF);
+   return line;
 }
-void free_lines(char** lines) {
+
+struct line_pair* read_lines(FILE* file) {
+   struct line_pair* pairs = NULL;
+   bool eof;
+   size_t linenum = 0;
+   do {
+      struct line_pair pair;
+      pair.linenum = linenum;
+      pair.line = read_line(file, &eof, &linenum);
+      if (pair.line)
+         buf_push(pairs, pair);
+   } while (!eof);
+   return pairs;
+}
+
+void free_lines(struct line_pair* lines) {
    for (size_t i = 0; i < buf_len(lines); ++i) {
-      buf_free(lines[i]);
+      buf_free(lines[i].line);
    }
    buf_free(lines);
 }
-void print_lines(FILE* file, char** lines) {
+void print_lines(FILE* file, const struct line_pair* lines) {
    for (size_t i = 0; i < buf_len(lines); ++i) {
-      fprintf(file, "%s\n", lines[i]);
+      fprintf(file, "%s\n", lines[i].line);
    }
 }
 

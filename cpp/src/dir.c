@@ -11,12 +11,16 @@ static struct directive dirs[] = {
    { .name = "ifndef",  .handler = dir_ifndef,  false },
    { .name = "endif",   .handler = dir_endif,   false },
    { .name = "else",    .handler = dir_else,    false },
-   { .name = "error",   .handler = dir_error,   false },
+   { .name = "error",   .handler = dir_error,   true  },
+   { .name = "if",      .handler = dir_if,      false },
+   { .name = "elif",    .handler = dir_elif,    false },
 };
 
 struct directive* get_dir(const char* name, size_t len) {
    for (size_t i = 0; i < arraylen(dirs); ++i) {
-      if (!strncmp(name, dirs[i].name, len))
+      const size_t len_dir = strlen(dirs[i].name);
+      if (len_dir != len) continue;
+      else if (!memcmp(name, dirs[i].name, len))
          return &dirs[i];
    }
    return NULL;
