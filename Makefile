@@ -70,6 +70,7 @@ install:
 	install -Dm644 util/bcc.bash $(PREFIX)/share/bash-completion/completions/$(PROGRAM_PREFIX)bcc
 	install -Dm644 util/bcpp.bash $(PREFIX)/share/bash-completion/completions/bcpp
 	sed -i "s/VERSION/$(VER)/g" $(PREFIX)/$(MANDIR)/$(PROGRAM_PREFIX)bcc.1
+	sed -i "s/VERSION/$(VER)/g" $(PREFIX)/$(MANDIR)/bcpp.1
 
 check: test
 test:
