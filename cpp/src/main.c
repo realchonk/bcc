@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include "help_options.h"
+#include "config.h"
 #include "macro.h"
 #include "cpp.h"
 #include "buf.h"
@@ -19,7 +20,7 @@ int main(int argc, char* argv[]) {
          printf("Usage: bcpp [options] file\nOptions:\n%s", help_options);
          return 0;
       case 'V':
-         puts("bcpp " BCC_VER);
+         puts("bcpp " VERSION);
          puts("Copyleft Benjamin Stürz.");
          puts("This software is distributed under the terms of the GPLv2");
          puts("Compiled on " __DATE__);
