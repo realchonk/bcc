@@ -1,10 +1,8 @@
 //#include <unistd.h>
 #define COND 1
 
-#if COND == 1, COND
+#ifdef __bcc__
 #define MACRO 42
-#else
-#define MACRO 24
 #endif
 
 MACRO

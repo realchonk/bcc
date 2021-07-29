@@ -54,7 +54,21 @@ const struct macro* get_macro(istr_t name) {
    const struct macro_entry* e = find_me(name);
    return e ? &e->macro : NULL;
 }
+void add_cmdline_macro(const char* arg) {
+   struct macro m;
+   const char* begin_name = arg;
+   while (*arg && *arg != '=') {
+      ++arg;
+   }
 
+   m.name = strrint(begin_name, arg);
+   m.text = *arg ? arg : NULL;
+   m.is_func = false;
+   m.params = NULL;
+   add_macro(&m);
+}
+
+// PREPROCESSOR DIRECTIVES
 
 bool dir_define(size_t linenum, const char* line, struct token* tokens, size_t num_tks, FILE* out) {
    (void)line;

@@ -9,6 +9,7 @@ bcpp - brainlet C preprocessor
 .OP -C
 .OP -o \fIoutput\fR
 .OP -I \fIinclude_path\fR
+.OP -D \fIname\fR[=\fIvalue\fR]
 .I source
 .YS
 .SY bcpp
@@ -60,6 +61,11 @@ Print the version information.
 .RE
 .RS 5
 Print a simple help message.
+.RE
+.B -D \fIname\fR[=\fIvalue\fR]
+.RE
+.RS 5
+Specify a predefined macro.
 .RE
 
 .SH OPERANDS

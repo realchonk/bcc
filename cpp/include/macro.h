@@ -14,5 +14,6 @@ struct macro {
 void add_macro(const struct macro*);
 bool remove_macro(istr_t);
 const struct macro* get_macro(istr_t);
+void add_cmdline_macro(const char* arg);
 
 #endif /* FILE_MACRO_H */

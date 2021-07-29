@@ -8,7 +8,8 @@
 #include "buf.h"
 
 const char* cpp_path = "bcpp";
-char** includes;
+char** predef_macros = NULL;
+char** includes = NULL;
 
 FILE* run_cpp(const char* source_name) {
    int pipes[2];
@@ -34,6 +35,13 @@ FILE* run_cpp(const char* source_name) {
       for (size_t i = 0; i < buf_len(includes); ++i) {
          buf_push(args, strdup("-I"));
          buf_push(args, includes[i]);
+      }
+      char* dash_D = strdup("-D");
+      buf_push(args, strdup("-D__bcc__=1"));
+      buf_push(args, strdup("-D__" BCC_ARCH "__=1"));
+      for (size_t i = 0; i < buf_len(predef_macros); ++i) {
+         buf_push(args, dash_D);
+         buf_push(args, predef_macros[i]);
       }
       buf_push(args, NULL);
 

@@ -12,6 +12,7 @@ bcc - brainlet C compiler
 .OP -o \fIoutput\fR
 .OP -m \fImach_opt\fR
 .OP -I \fIinclude_path\fR
+.OP -D \fIname\fR[=\fIvalue\fR]
 .I source
 .YS
 .SY bcc
@@ -125,6 +126,11 @@ Suppress the color output.
 .RE
 .RS 5
 Specify an include path for the preprocessor to search.
+.RE
+.B -D \fIname\fR[=\fIvalue\fR]
+.RE
+.RS 5
+Specify a predefined macro.
 .RE
 
 .SH OPERANDS

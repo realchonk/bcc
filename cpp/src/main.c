@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include "help_options.h"
+#include "macro.h"
 #include "cpp.h"
 #include "buf.h"
 
@@ -12,7 +13,6 @@ bool console_color = true;
 int main(int argc, char* argv[]) {
    const char* output_name = "-";
    int option;
-   // TODO: implement -Dmacro=value and -h
    while ((option = getopt(argc, argv, ":D:VEo:I:Ch")) != -1) {
       switch (option) {
       case 'h':
@@ -42,6 +42,10 @@ int main(int argc, char* argv[]) {
       case 'C':
          console_color = false;
          break;
+      case 'D':
+         add_cmdline_macro(optarg);
+         break;
+
       default:
          goto print_usage;
       }
