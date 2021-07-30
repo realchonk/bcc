@@ -15,11 +15,10 @@ Planned features can be read in the [TODO](./TODO) file.
 - riscv64 (RISC-V 64bit)
 
 ## Building/Installation
-
-## Configuration
+### Configuration
 NOTE: if no configure script is available, please run
-<code>./autogen.sh</code><br>
-<code>./configure</code><br>
+<code>./autogen.sh</code><br><br>
+<code>./configure</code><br><br>
 Common configure options:<br>
 | Option | Description |
 |--------|-------------|
@@ -28,10 +27,11 @@ Common configure options:<br>
 | --with-target=TARGET | target architecture (SEE Target architectures) |
 | --disable-fp | disable preliminary floating-point support |
 
-## Building
+### Building
+Just a simple<br>
 <code>make</code>
 
-## Installation
+### Installation
 Just install to PREFIX (default: /usr/local)<br>
 <code>sudo make install</code><br>
 Install to a different PREFIX:<br>
