@@ -4,6 +4,7 @@ AC_PREREQ([2.69])
 AC_CONFIG_SRCDIR([src/main.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([build-aux])
+AC_CANONICAL_TARGET 
 AM_INIT_AUTOMAKE([1.16 foreign subdir-objects -Wall])
 
 # Required programs
@@ -37,27 +38,26 @@ AC_ARG_ENABLE(fp,
 # Make it visible to Makefile.am
 AC_SUBST([ENABLE_FP])
 
-# Select the target architecture (default: host)
-# TODO: change to --target= instead of --with-target=
-AC_ARG_WITH(target,
-            [AS_HELP_STRING([[--with-target=[ARG]]], [select the target architecture])],
-            [TARGET=$(./util/getarch.sh ${withval})],
-            [TARGET=$(./util/getarch.sh)])
-
-# Make it visible to Makefile.am
-AC_SUBST([TARGET])
-
 die() {
    echo "configure error: $1"
    exit 1
 }
+
+# Set the target architecture
+TARGET=$(./util/getarch.sh $(echo ${target} | cut -d'-' -f1)) || exit 1
+AC_SUBST([TARGET])
+
+TOP=$PWD ARCH=$TARGET ./src/$TARGET/check_deps.sh || exit 1
+
+# Do stupid stuff because every simpler solution does not work -_-
+AM_CONDITIONAL([TARGET_x86], [test $TARGET = x86_64 -o $TARGET = i386])
+AM_CONDITIONAL([TARGET_riscv], [test $TARGET = riscv32 -o $TARGET = riscv64])
 
 # Patch bcc.1
 sed "s/VERSION/$VERSION/g" src/bcc.1 >bcc.1 || die "failed to patch bcc.1"
 
 # Generate include/help_options.h
 ./util/read_doc.sh <bcc.1 >include/help_options.h || die "failed to generate help options"
-
 
 # Generate a Makefile
 AC_CONFIG_FILES([Makefile])
