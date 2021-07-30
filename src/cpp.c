@@ -34,7 +34,7 @@ FILE* run_cpp(const char* source_name) {
          buf_push(args, includes[i]);
       }
       buf_push(args, strdup("-D__bcc__=1"));
-      buf_push(args, strdup("-D__" BCC_ARCH "__=1"));
+      buf_push(args, strdup("-D__" "TODO" "__=1"));
       for (size_t i = 0; i < buf_len(predef_macros); ++i) {
          buf_push(args, strdup("-D"));
          buf_push(args, predef_macros[i]);

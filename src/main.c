@@ -6,6 +6,7 @@
 #include "help_options.h"
 #include "parser.h"
 #include "target.h"
+#include "config.h"
 #include "lex.h"
 #include "bcc.h"
 #include "cpp.h"
@@ -132,7 +133,7 @@ int main(int argc, char* argv[]) {
          break;
       case 'd':
          if (!strcmp(optarg, "umpversion")) {
-            puts(BCC_VER);
+            puts(VERSION);
             return 0;
          } else if (!strcmp(optarg, "umpmachine")) {
             puts(BCC_ARCH);
@@ -153,7 +154,7 @@ int main(int argc, char* argv[]) {
          break;
       case 'V':
          printf("bcc %s\nCopyleft Benjamin Stürz.\n"
-               "This software is distributed under the terms of the GPLv2\n", BCC_VER);
+               "This software is distributed under the terms of the GPLv2\n", VERSION);
 #if DISABLE_FP
          puts("Has floating-point: no");
 #else
