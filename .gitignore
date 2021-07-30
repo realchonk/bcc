@@ -9,5 +9,5 @@ src/riscv32/as.h
 include/help_options.h
 .program_prefix
 cpp/include/help_options.h
-bcc.1
+./bcc.1
 cpp/bcpp.1
