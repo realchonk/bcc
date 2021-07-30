@@ -2,7 +2,7 @@ bcc
 obj
 cpp/obj
 cpp/bcpp
-test/run_tests
+test/tester
 test/*.log
 test2/
 src/riscv32/as.h
