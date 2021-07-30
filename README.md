@@ -15,16 +15,28 @@ Planned features can be read in the [TODO](./TODO) file.
 - riscv64 (RISC-V 64bit)
 
 ## Building/Installation
-Building the compiler for the host architecture:<br>
-```make```<br>
-Builting the compiler for a different target architecture (eg. i386)<br>
-```make TARGET=i386 all```<br>
-Installing the compiler to /usr/local:<br>
-```sudo make install```<br>
-Installing the compiler to a different location (eg. /usr)<br>
-```make PREFIX=/usr install```<br>
-Disabling floating-point support can be done with DISABLE_FP=y as a make flag.<br>
+
+## Configuration
+NOTE: if no configure script is available, please run
+<code>./autogen.sh</code><br>
+<code>./configure</code><br>
+Common configure options:<br>
+| Option | Description |
+|--------|-------------|
+| --help | see all available options |
+| --prefix=PREFIX  | installation path |
+| --with-target=TARGET | target architecture (SEE Target architectures) |
+| --disable-fp | disable preliminary floating-point support |
+
+## Building
+<code>make</code>
+
+## Installation
+Just install to PREFIX (default: /usr/local)<br>
+<code>sudo make install</code><br>
+Install to a different PREFIX:<br>
+<code>make DESTDIR=... install</code><br>
 
 ## Testing
 Testing can be performed with:<br>
-```make test```
+<code>make test</code>
