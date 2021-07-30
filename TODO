@@ -1,18 +1,17 @@
 Planned features:
 
 Long term:
-- implement a C pre-processor
+- improve preprocessor
 - improve test-suite
 - labels & goto
 - more optimization techniques
 - improve warnings
-- port to other architectures (like RISC-V, ARM)
+- port to other architectures (like MIPS, ARM)
 - floating-point support
 
 Short term:
 - fix stack-alignment for x86
 - fix calling convention for struct/union
 - fix nasm warning for indirect function calls on x86_64
-- improve test logs
+- add -v option to tester
 - more test cases for switch/case
-- remove bash dependency from scripts

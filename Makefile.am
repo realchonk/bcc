@@ -24,7 +24,7 @@ clean-local:
 	rm -f include/help_options.h
 
 test: all
-	make -C test
+	$(MAKE) -C test
 
 check: test
 
