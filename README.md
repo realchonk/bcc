@@ -24,7 +24,7 @@ Common configure options:<br>
 |--------|-------------|
 | --help | see all available options |
 | --prefix=PREFIX  | installation path |
-| --with-target=TARGET | target architecture (SEE Target architectures) |
+| --target=TARGET | target architecture (SEE Target architectures) |
 | --disable-fp | disable preliminary floating-point support |
 
 ### Building
