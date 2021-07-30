@@ -19,6 +19,17 @@ AC_CHECK_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 AC_C_INLINE
 
+die() {
+   echo "configure error: $1"
+   exit 1
+}
+
+# Patch bcpp.1
+sed "s/VERSION/$VERSION/g" src/bcpp.1 >bcpp.1 || die "failed to patch bcpp.1"
+
+# Generate include/help_options.h
+../util/read_doc.sh <bcpp.1 >include/help_options.h || die "failed to generate help options"
+
 AC_CONFIG_FILES([Makefile])
 
 AC_OUTPUT

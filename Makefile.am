@@ -5,7 +5,8 @@ bcc_SOURCES = src/bcc.c src/cpp.c src/error.c src/expr.c src/func.c src/ir.c src
 				  src/main.c src/optim_expr.c src/optim_ir.c src/optim_stmt.c src/scope.c src/stmt.c \
 				  src/strdb.c src/strint.c src/target.c src/token.c src/unit.c src/value.c src/vtype.c
 
-bcc_CPPFLAGS = -DBCC_ARCH=\"$(TARGET)\" -I$(top_srcdir)/include
+bcc_CPPFLAGS = -DBCC_ARCH=\"$(TARGET)\" -I$(top_srcdir)/include -DBCC_$(TARGET)=1
+bcc_CFLAGS = -Wextra
 
 include src/x86_64/Makefile.am
 
@@ -20,3 +21,11 @@ clean-local:
 	rm -f Makefile Makefile.in configure src/.dirstamp src/$(TARGET)/.dirstamp
 	rm -f config.h config.h.in config.log config.status stamp-h1 aclocal.m4
 	rm -rf autom4te.cache build-aux src/.deps .deps src/$(TARGET)/.deps
+	rm -f include/help_options.h
+
+test: all
+	make -C test
+
+check: test
+
+.PHONY: clean-local test

@@ -58,7 +58,7 @@ static char* read_line(FILE* file, bool* eof, size_t* linenum) {
 
 struct line_pair* read_lines(FILE* file) {
    struct line_pair* pairs = NULL;
-   bool eof;
+   bool eof = false;
    size_t linenum = 0;
    do {
       struct line_pair pair;

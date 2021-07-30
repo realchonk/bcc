@@ -47,6 +47,17 @@ AC_ARG_WITH(target,
 # Make it visible to Makefile.am
 AC_SUBST([TARGET])
 
+die() {
+   echo "configure error: $1"
+   exit 1
+}
+
+# Patch bcc.1
+sed "s/VERSION/$VERSION/g" src/bcc.1 >bcc.1 || die "failed to patch bcc.1"
+
+# Generate include/help_options.h
+./util/read_doc.sh <bcc.1 >include/help_options.h || die "failed to generate help options"
+
 
 # Generate a Makefile
 AC_CONFIG_FILES([Makefile])

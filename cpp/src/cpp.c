@@ -78,8 +78,9 @@ int run_cpp(FILE* in, FILE* out) {
 
    fclose(tmp);
 
-   if (!failed)
+   if (!failed) {
       fwrite(buf, 1, len_buf, out);
+   }
    free(buf);
 
    return failed;
