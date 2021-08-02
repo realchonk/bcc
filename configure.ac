@@ -44,10 +44,10 @@ die() {
 }
 
 # Set the target architecture
-TARGET=$(./util/getarch.sh $(echo ${target} | cut -d'-' -f1)) || exit 1
+TARGET=$(./util/getarch.sh $(echo ${target} | cut -d'-' -f1)) || die "invalid target architecture ${target}"
 AC_SUBST([TARGET])
 
-TOP=$PWD ARCH=$TARGET ./src/$TARGET/check_deps.sh || exit 1
+TOP=$PWD ARCH=$TARGET ./src/$TARGET/check_deps.sh || die "please check all the dependencies"
 
 # Do stupid stuff because every simpler solution does not work -_-
 AM_CONDITIONAL([TARGET_x86], [test $TARGET = x86_64 -o $TARGET = i386])
