@@ -11,6 +11,18 @@ AM_INIT_AUTOMAKE([1.16 foreign subdir-objects -Wall])
 AC_PROG_AWK
 AC_PROG_CC
 
+die() {
+   echo "configure error: $1"
+   exit 1
+}
+
+# Set the target architecture
+TARGET=$(./util/getarch.sh $(echo ${target} | cut -d'-' -f1)) || die "invalid target architecture ${target}"
+AC_SUBST([TARGET])
+
+# Check for target-dependent dependencies
+TOP=$PWD ARCH=$TARGET ./src/$TARGET/check_deps.sh || die "please check all the dependencies"
+
 # Suggested by autoscan
 AC_FUNC_STRNLEN
 AC_FUNC_MALLOC
@@ -37,17 +49,6 @@ AC_ARG_ENABLE(fp,
               ENABLE_FP=yes)
 # Make it visible to Makefile.am
 AC_SUBST([ENABLE_FP])
-
-die() {
-   echo "configure error: $1"
-   exit 1
-}
-
-# Set the target architecture
-TARGET=$(./util/getarch.sh $(echo ${target} | cut -d'-' -f1)) || die "invalid target architecture ${target}"
-AC_SUBST([TARGET])
-
-TOP=$PWD ARCH=$TARGET ./src/$TARGET/check_deps.sh || die "please check all the dependencies"
 
 # Do stupid stuff because every simpler solution does not work -_-
 AM_CONDITIONAL([TARGET_x86], [test $TARGET = x86_64 -o $TARGET = i386])
