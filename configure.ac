@@ -17,7 +17,7 @@ die() {
 }
 
 # Set the target architecture
-ARCH=$(./util/getarch.sh $(echo ${target_cpu})) || die "invalid target architecture ${target}"
+ARCH=$(${srcdir}/util/getarch.sh $(echo ${target_cpu})) || die "invalid target architecture ${target}"
 AC_SUBST([ARCH])
 
 # Find the assembler (NASM for x86, GNU as for other)
@@ -82,10 +82,10 @@ AM_CONDITIONAL([ARCH_x86], [test $ARCH = x86_64 -o $ARCH = i386])
 AM_CONDITIONAL([ARCH_riscv], [test $ARCH = riscv32 -o $ARCH = riscv64])
 
 # Patch bcc.1
-sed "s/VERSION/$VERSION/g" src/bcc.1 >bcc.1 || die "failed to patch bcc.1"
+sed "s/VERSION/$VERSION/g" ${srcdir}/src/bcc.1 >bcc.1 || die "failed to patch bcc.1"
 
 # Generate include/help_options.h
-./util/read_doc.sh <bcc.1 >include/help_options.h || die "failed to generate help options"
+${srcdir}/util/read_doc.sh <bcc.1 >help_options.h || die "failed to generate help options"
 
 # Generate a Makefile
 AC_CONFIG_FILES([Makefile])

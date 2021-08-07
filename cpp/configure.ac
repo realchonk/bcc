@@ -25,10 +25,10 @@ die() {
 }
 
 # Patch bcpp.1
-sed "s/VERSION/$VERSION/g" src/bcpp.1 >bcpp.1 || die "failed to patch bcpp.1"
+sed "s/VERSION/$VERSION/g" ${srcdir}/src/bcpp.1 >bcpp.1 || die "failed to patch bcpp.1"
 
 # Generate include/help_options.h
-../util/read_doc.sh <bcpp.1 >include/help_options.h || die "failed to generate help options"
+${srcdir}//../util/read_doc.sh <bcpp.1 >help_options.h || die "failed to generate help options"
 
 AC_CONFIG_FILES([Makefile])
 

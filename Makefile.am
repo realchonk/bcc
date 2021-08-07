@@ -41,7 +41,7 @@ clean-local:
 	rm -f Makefile Makefile.in configure src/.dirstamp src/$(ARCH)/.dirstamp
 	rm -f config.h config.h.in config.h.in~ config.log config.status stamp-h1 aclocal.m4
 	rm -rf autom4te.cache build-aux src/.deps .deps src/$(ARCH)/.deps
-	rm -f include/help_options.h bcc.1 configure~
+	rm -f help_options.h bcc.1 configure~
 
 test: all
 	$(MAKE) -C test
