@@ -2,7 +2,7 @@ Planned features:
 
 configure-related:
 - simplify
-- install bash-completion
+- somehow fix 'make dist'
 
 Long term:
 - improve preprocessor

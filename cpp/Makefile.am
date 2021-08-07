@@ -6,6 +6,9 @@ bcpp_CFLAGS = -Wextra -std=c99 -D_XOPEN_SOURCE=700
 
 man1_MANS = bcpp.1
 
+install-data-local:
+	install -Dm644 bcpp.bash $(DESTDIR)/$(datadir)/bash-completion/completions/bcpp
+
 clean-local:
 	rm -f Makefile Makefile.in configure src/.dirstamp
 	rm -f config.h config.h.in config.log config.status stamp-h1 aclocal.m4
