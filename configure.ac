@@ -29,7 +29,16 @@ if test $ARCH = x86_64 -o $ARCH = i386; then
       AC_DEFINE_UNQUOTED([NASM], ["$NASM"], [Path to the NASM assembler])
    fi
 else
-   AC_PATH_PROG(GNU_AS, [${target_alias}-as], [no])
+   if test "x${target_alias}" = "x"; then
+      if test "x${host}" = "x${target}"; then
+         PRE_AS=as
+      else
+         die "failed to determine target for assembler. Please specify --target="
+      fi
+   else
+      PRE_AS="${target_alias}-as"
+   fi
+   AC_PATH_PROG(GNU_AS, [${PRE_AS}], [no])
    if test "x$GNU_AS" = "xno"; then
       AC_MSG_ERROR([GNU assembler not found])
    else
