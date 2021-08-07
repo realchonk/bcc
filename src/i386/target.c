@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include "target.h"
+#include "config.h"
 #include "error.h"
 
 const struct target_info target_info = {
@@ -58,7 +59,7 @@ int assemble(const char* source, const char* output) {
    const pid_t pid = fork();
    if (pid < 0) panic("failed to fork");
    if (pid == 0) {
-      execlp("nasm", "nasm", "-f", "elf32", "-o", output, source, NULL);
+      execlp(NASM, NAS NASM, "elf32", "-o", output, source, NULL);
       perror("bcc: failed to invoke nasm");
       _exit(1);
    } else {

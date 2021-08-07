@@ -1,5 +1,8 @@
 Planned features:
 
+configure-related:
+- remove check_deps.sh and use autoconf
+
 Long term:
 - improve preprocessor
 - improve test-suite

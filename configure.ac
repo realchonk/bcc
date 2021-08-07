@@ -17,11 +17,22 @@ die() {
 }
 
 # Set the target architecture
-TARGET=$(./util/getarch.sh $(echo ${target} | cut -d'-' -f1)) || die "invalid target architecture ${target}"
-AC_SUBST([TARGET])
+ARCH=$(./util/getarch.sh $(echo ${target} | cut -d'-' -f1)) || die "invalid target architecture ${target}"
+AC_SUBST([ARCH])
 
 # Check for target-dependent dependencies
-TOP=$PWD ARCH=$TARGET ./src/$TARGET/check_deps.sh || die "please check all the dependencies"
+if test -e ./src/$ARCH/check_deps.sh; then
+   TOP=$PWD ARCH=$ARCH ./src/$ARCH/check_deps.sh || die "please check all the dependencies"
+fi
+
+# Check for NASM if x86
+if test $ARCH = x86_64 -o $ARCH = i386; then
+   AC_PATH_PROG(NASM, [nasm], [no])
+   if test "x$nasm" = "xno"; then
+      AC_MSG_ERROR([NASM assembler not found])
+   fi
+   AC_DEFINE_UNQUOTED([NASM], ["$NASM"], [Path to the NASM assembler])
+fi
 
 # Suggested by autoscan
 AC_FUNC_STRNLEN
@@ -50,9 +61,12 @@ AC_ARG_ENABLE(fp,
 # Make it visible to Makefile.am
 AC_SUBST([ENABLE_FP])
 
+AC_DEFINE_UNQUOTED([TARGET], [$target], [The full target architecture])
+AC_DEFINE_UNQUOTED([GNU_AS], [$AS], [Path to the GNU as program (does not apply for x86)])
+
 # Do stupid stuff because every simpler solution does not work -_-
-AM_CONDITIONAL([TARGET_x86], [test $TARGET = x86_64 -o $TARGET = i386])
-AM_CONDITIONAL([TARGET_riscv], [test $TARGET = riscv32 -o $TARGET = riscv64])
+AM_CONDITIONAL([ARCH_x86], [test $ARCH = x86_64 -o $ARCH = i386])
+AM_CONDITIONAL([ARCH_riscv], [test $ARCH = riscv32 -o $ARCH = riscv64])
 
 # Patch bcc.1
 sed "s/VERSION/$VERSION/g" src/bcc.1 >bcc.1 || die "failed to patch bcc.1"
