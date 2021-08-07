@@ -1,7 +1,8 @@
 Planned features:
 
 configure-related:
-- remove check_deps.sh and use autoconf
+- simplify
+- install bash-completion
 
 Long term:
 - improve preprocessor

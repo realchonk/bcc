@@ -59,7 +59,7 @@ int assemble(const char* source, const char* output) {
    const pid_t pid = fork();
    if (pid < 0) panic("failed to fork");
    if (pid == 0) {
-      execlp(NASM, NAS NASM, "elf32", "-o", output, source, NULL);
+      execlp(NASM, NASM, "-f", "elf32", "-o", output, source, NULL);
       perror("bcc: failed to invoke nasm");
       _exit(1);
    } else {

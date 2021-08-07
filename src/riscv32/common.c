@@ -7,7 +7,7 @@
 #include "target.h"
 #include "error.h"
 #include "regs.h"
-#include "as.h"
+#include "config.h"
 
 struct machine_option mach_opts[] = {
    { "cpu", "The target CPU", 2, .sVal = DEF_MACH },
@@ -28,7 +28,7 @@ int assemble(const char* source, const char* output) {
          perror("bcc: failed to invoke asprintf");
          _exit(1);
       }
-      execlp(gnu_as, gnu_as, mabi, "-o", output, source, NULL);
+      execlp(GNU_AS, GNU_AS, mabi, "-o", output, source, NULL);
       perror("bcc: failed to invoke assembler");
       _exit(1);
    } else {

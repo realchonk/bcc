@@ -17,21 +17,24 @@ die() {
 }
 
 # Set the target architecture
-ARCH=$(./util/getarch.sh $(echo ${target} | cut -d'-' -f1)) || die "invalid target architecture ${target}"
+ARCH=$(./util/getarch.sh $(echo ${target_cpu})) || die "invalid target architecture ${target}"
 AC_SUBST([ARCH])
 
-# Check for target-dependent dependencies
-if test -e ./src/$ARCH/check_deps.sh; then
-   TOP=$PWD ARCH=$ARCH ./src/$ARCH/check_deps.sh || die "please check all the dependencies"
-fi
-
-# Check for NASM if x86
+# Find the assembler (NASM for x86, GNU as for other)
 if test $ARCH = x86_64 -o $ARCH = i386; then
    AC_PATH_PROG(NASM, [nasm], [no])
    if test "x$nasm" = "xno"; then
       AC_MSG_ERROR([NASM assembler not found])
+   else
+      AC_DEFINE_UNQUOTED([NASM], ["$NASM"], [Path to the NASM assembler])
    fi
-   AC_DEFINE_UNQUOTED([NASM], ["$NASM"], [Path to the NASM assembler])
+else
+   AC_PATH_PROG(GNU_AS, [${target_alias}-as], [no])
+   if test "x$GNU_AS" = "xno"; then
+      AC_MSG_ERROR([GNU assembler not found])
+   else
+      AC_DEFINE_UNQUOTED([GNU_AS], ["$GNU_AS"], [Path to the GNU assembler])
+   fi
 fi
 
 # Suggested by autoscan
@@ -62,7 +65,6 @@ AC_ARG_ENABLE(fp,
 AC_SUBST([ENABLE_FP])
 
 AC_DEFINE_UNQUOTED([TARGET], [$target], [The full target architecture])
-AC_DEFINE_UNQUOTED([GNU_AS], [$AS], [Path to the GNU as program (does not apply for x86)])
 
 # Do stupid stuff because every simpler solution does not work -_-
 AM_CONDITIONAL([ARCH_x86], [test $ARCH = x86_64 -o $ARCH = i386])
