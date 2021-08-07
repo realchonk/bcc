@@ -1,6 +1,7 @@
 #ifndef FILE_RISCV32_REGS_H
 #define FILE_RISCV32_REGS_H
 #include "riscv/cpu.h"
+#include "config.h"
 #include "error.h"
 
 #if BITS == 32

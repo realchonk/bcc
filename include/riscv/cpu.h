@@ -1,6 +1,7 @@
 #ifndef FILE_RISCV_CPU_H
 #define FILE_RISCV_CPU_H
 #include <stdbool.h>
+#include "config.h"
 
 struct riscv_cpu {
    bool is_embedded;
@@ -24,13 +25,23 @@ bool parse_cpu(const char*, struct riscv_cpu*);
 
 #if BITS == 32
 
-#define DEF_MACH  "rv32gc"
+#ifndef DEF_CPU
+#define DEF_CPU "rv32gc"
+#endif
+
+#ifndef DEF_ABI
 #define DEF_ABI   "ilp32d"
+#endif
 
 #else
 
-#define DEF_MACH  "rv64gc"
+#ifndef DEF_CPU
+#define DEF_CPU  "rv64gc"
+#endif
+
+#ifndef DEF_ABI
 #define DEF_ABI   "lp64d"
+#endif
 
 #endif
 

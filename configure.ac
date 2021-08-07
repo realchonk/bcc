@@ -61,6 +61,17 @@ AC_ARG_ENABLE(fp,
               [AS_HELP_STRING([--disable-fp], [build with floating-point support])],
               ENABLE_FP=$enableval,
               ENABLE_FP=yes)
+
+# --with-cpu=
+AC_ARG_WITH([cpu],
+            [AS_HELP_STRING([--with-cpu], [select the default target processor])],
+            [AC_DEFINE_UNQUOTED([DEF_CPU], ["$withval"], [Default processor])])
+
+# --with-abi=
+AC_ARG_WITH([abi],
+            [AS_HELP_STRING([--with-abi], [select the default target ABI])],
+            [AC_DEFINE_UNQUOTED([DEF_ABI], ["$withval"], [Default application binary interface])])
+
 # Make it visible to Makefile.am
 AC_SUBST([ENABLE_FP])
 
