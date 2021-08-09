@@ -44,7 +44,7 @@ static int get_mach_opt_vtype(const char* value) {
 }
 static bool parse_mach_opt(char* arg) {
    if (!strcmp(arg, "help")) {
-      puts("Machine Options for " BCC_ARCH);
+      puts("Machine Options for " BCC_FULL_ARCH);
       const size_t max_len = 24;
       for (size_t i = 0; i < num_mach_opts; ++i) {
          const struct machine_option* opt = &mach_opts[i];
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
             puts(VERSION);
             return 0;
          } else if (!strcmp(optarg, "umpmachine")) {
-            puts(BCC_ARCH);
+            puts(BCC_TARGET);
             return 0;
          } else goto print_usage;
       case 'O':
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
 #else
          puts("Has floating-point: yes");
 #endif
-         printf("Compiled on %s for %s\n", __DATE__, BCC_ARCH);
+         printf("Compiled on %s for %s\n", __DATE__, BCC_TARGET);
          return 0;
       case 'm':
          if (!parse_mach_opt(optarg)) return false;

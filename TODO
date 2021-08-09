@@ -2,7 +2,6 @@ Planned features:
 
 configure-related:
 - simplify
-- somehow fix 'make dist'
 
 Long term:
 - improve preprocessor

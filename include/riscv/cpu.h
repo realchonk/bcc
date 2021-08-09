@@ -17,12 +17,6 @@ extern struct riscv_cpu riscv_cpu;
 
 bool parse_cpu(const char*, struct riscv_cpu*);
 
-#ifdef BCC_riscv32
-#define BITS 32
-#else
-#define BITS 64
-#endif
-
 #if BITS == 32
 
 #ifndef DEF_CPU
@@ -33,7 +27,7 @@ bool parse_cpu(const char*, struct riscv_cpu*);
 #define DEF_ABI   "ilp32d"
 #endif
 
-#else
+#else // BITS
 
 #ifndef DEF_CPU
 #define DEF_CPU  "rv64gc"

@@ -7,24 +7,25 @@ bcc_SOURCES = src/bcc.c src/cpp.c src/error.c src/expr.c src/func.c src/ir.c src
 				  src/main.c src/optim_expr.c src/optim_ir.c src/optim_stmt.c src/scope.c src/stmt.c \
 				  src/strdb.c src/strint.c src/target.c src/token.c src/unit.c src/value.c src/vtype.c
 
-bcc_CPPFLAGS = -DBCC_ARCH=\"$(ARCH)\" -I$(top_srcdir)/include -DBCC_$(ARCH)=1
+bcc_CPPFLAGS = -DBCC_TARGET=\"$(TARGET)\" -DBCC_ARCH=\"$(ARCH)\" -DBCC_FULL_ARCH=\"$(FULL_ARCH)\" \
+					-I$(top_srcdir)/include -DBCC_$(ARCH)=1 -DBITS=$(BITS)
 bcc_CFLAGS = -Wextra
 
 if ARCH_x86
-bcc_SOURCES += $(ARCHDIR)/builtins.c \
-					$(ARCHDIR)/gen.c \
-					$(ARCHDIR)/optim.c \
-					$(ARCHDIR)/target.c
+bcc_SOURCES += src/x86/builtins.c \
+					src/x86/gen.c \
+					src/x86/optim.c \
+					src/x86/target.c
 endif
 if ARCH_riscv
-bcc_SOURCES+=$(ARCHDIR)/builtins.c \
-				 $(ARCHDIR)/common.c \
-				 $(ARCHDIR)/cpu.c \
-				 $(ARCHDIR)/emit_ir.c \
-				 $(ARCHDIR)/gen.c \
-				 $(ARCHDIR)/optim.c \
-				 $(ARCHDIR)/regs.c \
-				 $(ARCHDIR)/target.c
+bcc_SOURCES += src/riscv/builtins.c \
+				 	src/riscv/common.c \
+				 	src/riscv/cpu.c \
+				 	src/riscv/emit_ir.c \
+				 	src/riscv/gen.c \
+				 	src/riscv/optim.c \
+				 	src/riscv/regs.c \
+				 	src/riscv/target.c
 endif
 
 print-config:

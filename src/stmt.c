@@ -360,7 +360,7 @@ struct statement* parse_stmt(struct scope* scope) {
                   vtype->pointer.array.size = val.uVal;
                } else {
                   if (!target_info.has_c99_array)
-                     parse_error(&expr->begin, BCC_ARCH " does not support C99 arrays.");
+                     parse_error(&expr->begin, BCC_FULL_ARCH " does not support C99 arrays.");
                   const struct value_type* st = get_value_type(scope, expr);
                   if (st->type != VAL_INT)
                      parse_error(&expr->begin, "expected integer size");

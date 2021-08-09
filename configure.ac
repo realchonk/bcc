@@ -16,12 +16,50 @@ die() {
    exit 1
 }
 
+if test "x${target_alias}" != "x"; then
+   TARGET="${target_alias}"
+elif test "x${target}" != "x"; then
+   TARGET="${target}"
+else
+   TARGET="${host}"
+fi
+
+case ${TARGET} in
+i386-*)
+   FULL_ARCH=i386
+   ARCH=x86
+   BITS=32
+   ;;
+x86_64-*)
+   FULL_ARCH=x86_64
+   ARCH=x86
+   BITS=64
+   ;;
+riscv32-*)
+   FULL_ARCH=riscv32
+   ARCH=riscv
+   BITS=32
+   ;;
+riscv64-*)
+   FULL_ARCH=riscv64
+   ARCH=riscv
+   BITS=64
+   ;;
+*)
+   die "Invalid architectue '${TARGET}'"
+esac
+
 # Set the target architecture
-ARCH=$(${srcdir}/util/getarch.sh $(echo ${target_cpu})) || die "invalid target architecture ${target}"
+AC_SUBST([TARGET])
+AC_SUBST([FULL_ARCH])
 AC_SUBST([ARCH])
+AC_SUBST([BITS])
+
+AM_CONDITIONAL([ARCH_x86], [test x$ARCH = xx86])
+AM_CONDITIONAL([ARCH_riscv], [test x$ARCH = xriscv])
 
 # Find the assembler (NASM for x86, GNU as for other)
-if test $ARCH = x86_64 -o $ARCH = i386; then
+if test $ARCH = x86; then
    AC_PATH_PROG(NASM, [nasm], [no])
    if test "x$nasm" = "xno"; then
       AC_MSG_ERROR([NASM assembler not found])
@@ -83,12 +121,6 @@ AC_ARG_WITH([abi],
 
 # Make it visible to Makefile.am
 AC_SUBST([ENABLE_FP])
-
-AC_DEFINE_UNQUOTED([TARGET], [$target], [The full target architecture])
-
-# Do stupid stuff because every simpler solution does not work -_-
-AM_CONDITIONAL([ARCH_x86], [test $ARCH = x86_64 -o $ARCH = i386])
-AM_CONDITIONAL([ARCH_riscv], [test $ARCH = riscv32 -o $ARCH = riscv64])
 
 # Patch bcc.1
 sed "s/VERSION/$VERSION/g" ${srcdir}/src/bcc.1 >bcc.1 || die "failed to patch bcc.1"
