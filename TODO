@@ -2,6 +2,7 @@ Planned features:
 
 configure-related:
 - simplify
+- fix program-prefix for bash completion & cpp
 
 Long term:
 - improve preprocessor

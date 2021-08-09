@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdnoreturn.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -22,7 +23,8 @@
 #define BCC_ADD "-mabi=lp64"
 #endif
 
-#define BCC "../bcc -C -e ../cpp/bcpp -c -O2 -w " BCC_ADD " -o "
+#define PATH_BCC "../bcc"
+#define BCC PATH_BCC " -C -e ../cpp/bcpp -c -O2 -w " BCC_ADD " -o "
 #define LINKER "gcc"
 #define TEST_SOURCE "/tmp/test.c"
 #define TEST_OBJECT "/tmp/test.o"
@@ -60,12 +62,38 @@ static void write_test(const char* s) {
    fwrite(s, 1, strlen(s), file);
    fclose(file);
 }
+
+static int run_linker(void) {
+   FILE* file = popen(PATH_BCC " -dumpmachine", "r");
+   if (!file) 
+      panic("failed to determine linker");
+
+   char* target = malloc(256);
+   if (!target)
+      panic("failed to allocate 256 bytes");
+   if (!fgets(target, 256, file))
+      panic("failed to run " BCC " -dumpmachine");
+   pclose(file);
+
+   const size_t len_target = strlen(target);
+   if (target[len_target - 1] == '\n')
+      target[len_target - 1] = '\0';
+   
+   char* cmdline = NULL;
+   if (asprintf(&cmdline, "%s-gcc -o %s %s 2>>gcc.log", target, TEST_BINARY, TEST_OBJECT) < 0)
+      panic("failed to construct linker cmdline");
+   const int ec = system(cmdline);
+   free(target);
+   free(cmdline);
+   return ec;
+}
+
 static int compile_test(void) {
    int ec = system(BCC TEST_OBJECT " " TEST_SOURCE " 2>>bcc.log");
    if (ec < 0 || ec == 127) panic("failed to invoke bcc");
    else if (ec != 0) return ec;
 
-   ec = system(LINKER " -o " TEST_BINARY " " TEST_OBJECT " 2>>gcc.log");
+   ec = run_linker();
    if (ec < 0 || ec == 127) panic("failed to invoke linker");
    else return ec;
 }

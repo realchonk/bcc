@@ -636,9 +636,8 @@
       "typedef __builtin_uint8_t uint8_t;"
       "typedef __builtin_uint16_t uint16_t;"
       "typedef __builtin_uint32_t uint32_t;"
-      "typedef __builtin_uint64_t uint64_t;"
-      "int main(void) { return sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint64_t); }",
-   .ret_val = 15,
+      "int main(void) { return sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint32_t); }",
+   .ret_val = 7,
 },
 {
    .name = "simple switch/case",

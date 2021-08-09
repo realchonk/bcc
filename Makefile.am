@@ -8,7 +8,7 @@ bcc_SOURCES = src/bcc.c src/cpp.c src/error.c src/expr.c src/func.c src/ir.c src
 				  src/strdb.c src/strint.c src/target.c src/token.c src/unit.c src/value.c src/vtype.c
 
 bcc_CPPFLAGS = -DBCC_TARGET=\"$(TARGET)\" -DBCC_ARCH=\"$(ARCH)\" -DBCC_FULL_ARCH=\"$(FULL_ARCH)\" \
-					-I$(top_srcdir)/include -DBCC_$(ARCH)=1 -DBITS=$(BITS)
+					-I$(top_srcdir)/include -DBCC_$(FULL_ARCH)=1 -DBITS=$(BITS)
 bcc_CFLAGS = -Wextra
 
 if ARCH_x86

@@ -55,7 +55,11 @@ const struct target_info target_info = {
    .size_int8 = INT_BYTE,
    .size_int16 = INT_SHORT,
    .size_int32 = INT_INT,
+#if BITS == 32
+   .size_int64 = NUM_INTS,
+#else
    .size_int64 = INT_LONG,
+#endif
 
 #if BITS == 32
    .max_immed = INT32_MAX,

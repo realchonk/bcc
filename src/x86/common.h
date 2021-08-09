@@ -22,7 +22,7 @@ static const char* nasm_size(enum ir_value_size s) {
    case IRS_SHORT:   return "word";
 
    case IRS_PTR:
-#if BCC_x86_64
+#if BITS == 64
    case IRS_LONG:    return "qword";
 #endif
    case IRS_INT:     return "dword";
@@ -163,7 +163,7 @@ static void emit_end(void) {
             break;
 #endif
          case VAL_POINTER:
-#if BCC_x86_64
+#if BITS == 64
             emitraw("dq ");
 #else
             emitraw("dd ");

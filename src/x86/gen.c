@@ -174,7 +174,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       emit("mov %s, %s", reg_bp, reg_sp);
       esp = REGSIZE * 2;
       size_t addr = REGSIZE;
-#if BCC_x86_64
+#if BITS == 64
       for (size_t i = 0; i < my_min(buf_len(n->func->params), arraylen(param_regs)); ++i) {
          emit("push %s", mreg(param_regs[i]));
          esp += REGSIZE;
@@ -225,7 +225,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
             case IRS_BYTE:
             case IRS_CHAR:    mask = 0x000000ff; break;
             case IRS_SHORT:   mask = 0x0000ffff; break;
-#if BCC_x86_64
+#if BITS == 64
             case IRS_INT:
                emit("mov %s, %s", reg32(n->iicast.dest), reg32(n->iicast.dest));
                fallthrough;
@@ -263,7 +263,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
          emit("push %s", mreg(i));
          esp += REGSIZE;
       }
-#if BCC_x86_64
+#if BITS == 64
       if (np < arraylen(param_regs)) padding = 16 - (esp % 16);
       else padding = 16 - (esp + (np - arraylen(param_regs) * REGSIZE) % 16);
 #else
@@ -271,7 +271,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
 #endif
       if (padding == 16) padding = 0;
       if (padding) emit("sub %s, %u", reg_sp, padding);
-#if BCC_x86_64
+#if BITS == 64
       if (np > arraylen(param_regs)) {
          for (i = np; i != arraylen(param_regs); --i) {
             ir_node_t* tmp = n->ifcall.params[i - 1];
@@ -330,7 +330,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
    case IR_LOOKUP:
    {
       size_t idx = n->lookup.scope->vars[n->lookup.var_idx].addr;
-#if BCC_x86_64
+#if BITS == 64
       idx += my_min(arraylen(param_regs), buf_len(cur_func->params)) * REGSIZE;
 #endif
       // TODO: experimental, port from riscv32
@@ -375,7 +375,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
    }
    case IR_FPARAM:
    {
-#if BCC_x86_64
+#if BITS == 64
       if (n->fparam.reg < arraylen(param_regs)) {
          emit("lea %s, [%s - %u]", mreg(n->fparam.reg), reg_bp, REGSIZE * (n->fparam.idx + 1));
       } else {
@@ -390,7 +390,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
    {
       const struct strdb_ptr* ptr;
       strdb_add(n->lstr.str, &ptr);
-#if BCC_x86_64
+#if BITS == 64
       emit("lea %s, [rel __strings + %zu]", mreg(n->lstr.reg), ptr->idx);
 #else
       emit("lea %s, [__strings + %zu]", mreg(n->lstr.reg), ptr->idx);
@@ -493,7 +493,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
    }
    case IR_COPY:
    {
-#if BCC_x86_64
+#if BITS == 64
       const size_t align = esp & 15 ? 16 - (esp & 15) : 0;
       if (align) emit("sub %s, %zu", reg_sp, align);
       emit("mov %s, %s", mreg(param_regs[1]), mreg(n->copy.src));
@@ -546,7 +546,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
          emit("push %s", mreg(i));
          esp += REGSIZE;
       }
-#if BCC_x86_64
+#if BITS == 64
       if (np < arraylen(param_regs)) padding = 16 - (esp % 16);
       else padding = 16 - (esp + (np - arraylen(param_regs) * REGSIZE) % 16);
 #else
@@ -554,7 +554,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
 #endif
       if (padding == 16) padding = 0;
       if (padding) emit("sub %s, %u", reg_sp, padding);
-#if BCC_x86_64
+#if BITS == 64
       if (np > arraylen(param_regs)) {
          for (i = np; i != arraylen(param_regs); --i) {
             ir_node_t* tmp = n->rcall.params[i - 1];
@@ -582,7 +582,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       ir_node_t* tmp = n->rcall.addr;
       while ((tmp = emit_ir(tmp)) != NULL);
       
-#if BCC_x86_64
+#if BITS == 64
       emit("mov %s, %s", reg_bx, mreg(n->rcall.dest));
 
       for (; i > 0; --i) {

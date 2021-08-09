@@ -21,11 +21,13 @@ void emit_init(FILE* f) {
    add_builtin_type("__builtin_int8_t", make_int(target_info.size_int8,    false));
    add_builtin_type("__builtin_int16_t", make_int(target_info.size_int16,  false));
    add_builtin_type("__builtin_int32_t", make_int(target_info.size_int32,  false));
-   add_builtin_type("__builtin_int64_t", make_int(target_info.size_int64,  false));
+   if (target_info.size_int64 != NUM_INTS)
+      add_builtin_type("__builtin_int64_t", make_int(target_info.size_int64,  false));
    add_builtin_type("__builtin_uint8_t", make_int(target_info.size_int8,   true));
    add_builtin_type("__builtin_uint16_t", make_int(target_info.size_int16, true));
    add_builtin_type("__builtin_uint32_t", make_int(target_info.size_int32, true));
-   add_builtin_type("__builtin_uint64_t", make_int(target_info.size_int64, true));
+   if (target_info.size_int64 != NUM_INTS)
+      add_builtin_type("__builtin_uint64_t", make_int(target_info.size_int64, true));
 }
 
 void emit_free(void) {
