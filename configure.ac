@@ -1,4 +1,5 @@
-AC_INIT([bcc], [0.11], [benni@stuerz.xyz])
+m4_define([bcc_VERSION], [0.11])
+AC_INIT([bcc], m4_defn([bcc_VERSION]), [benni@stuerz.xyz], [bcc-]m4_defn([bcc_VERSION]), [https://github.com/Benni3D/bcc])
 
 # Initialization stuff
 AC_PREREQ([2.69])
@@ -109,18 +110,18 @@ AC_TYPE_UINT64_T
 
 # Option to disable preliminary floating-point support
 AC_ARG_ENABLE(fp,
-              [AS_HELP_STRING([--disable-fp], [build with floating-point support])],
+              [AS_HELP_STRING([--disable-fp], [disable preliminary floating-point support])],
               ENABLE_FP=$enableval,
               ENABLE_FP=yes)
 
 # --with-cpu=
 AC_ARG_WITH([cpu],
-            [AS_HELP_STRING([--with-cpu], [select the default target processor])],
+            [AS_HELP_STRING([--with-cpu=CPU], [select the default target processor])],
             [AC_DEFINE_UNQUOTED([DEF_CPU], ["$withval"], [Default processor])])
 
 # --with-abi=
 AC_ARG_WITH([abi],
-            [AS_HELP_STRING([--with-abi], [select the default target ABI])],
+            [AS_HELP_STRING([--with-abi=ABI], [select the default target ABI])],
             [AC_DEFINE_UNQUOTED([DEF_ABI], ["$withval"], [Default application binary interface])])
 
 # Make it visible to Makefile.am
