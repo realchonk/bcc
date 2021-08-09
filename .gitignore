@@ -2,3 +2,7 @@ bcc
 test/tester
 test/*.log
 test2/
+src/*/.deps/
+src/.deps/
+src/.dirstamp
+src/*/.dirstamp

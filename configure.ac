@@ -1,5 +1,6 @@
 AC_INIT([bcc], [0.11], [benni@stuerz.xyz])
 
+# Initialization stuff
 AC_PREREQ([2.69])
 AC_CONFIG_SRCDIR([src/main.c])
 AC_CONFIG_HEADERS([config.h])
@@ -7,7 +8,7 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CANONICAL_TARGET 
 AM_INIT_AUTOMAKE([1.16 foreign subdir-objects -Wall])
 
-# Required programs
+# Search for required programs
 AC_PROG_AWK
 AC_PROG_CC
 
@@ -16,6 +17,7 @@ die() {
    exit 1
 }
 
+# set TARGET to the according value
 if test "x${target_alias}" != "x"; then
    TARGET="${target_alias}"
 elif test "x${target}" != "x"; then
@@ -24,6 +26,7 @@ else
    TARGET="${host}"
 fi
 
+# Determine the architecture
 case ${TARGET} in
 i386-*)
    FULL_ARCH=i386
@@ -55,6 +58,7 @@ AC_SUBST([FULL_ARCH])
 AC_SUBST([ARCH])
 AC_SUBST([BITS])
 
+# Pass the architecture info to Makefile.am
 AM_CONDITIONAL([ARCH_x86], [test x$ARCH = xx86])
 AM_CONDITIONAL([ARCH_riscv], [test x$ARCH = xriscv])
 

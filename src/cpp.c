@@ -2,12 +2,13 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
+#include "config.h"
 #include "error.h"
 #include "cpp.h"
 #include "bcc.h"
 #include "buf.h"
 
-const char* cpp_path = "bcpp";
+const char* cpp_path = BCPP_PATH;
 char** predef_macros = NULL;
 char** includes = NULL;
 
