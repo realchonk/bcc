@@ -4,6 +4,7 @@ AC_PREREQ([2.69])
 AC_CONFIG_SRCDIR([src/main.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([build-aux])
+AC_CANONICAL_TARGET 
 AM_INIT_AUTOMAKE([1.16 foreign subdir-objects -Wall])
 
 AC_PROG_CC
@@ -23,6 +24,7 @@ die() {
    echo "configure error: $1"
    exit 1
 }
+
 
 # Patch bcpp.1
 sed "s/VERSION/$VERSION/g" ${srcdir}/src/bcpp.1 >bcpp.1 || die "failed to patch bcpp.1"

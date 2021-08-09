@@ -35,8 +35,14 @@ print-config:
 
 man1_MANS = bcc.1
 
+completionsdir = $(datadir)/bash-completion/completions
+transform = @program_transform_name@
+
 install-data-local:
-	install -Dm644 util/bcc.bash $(DESTDIR)/$(datadir)/bash-completion/completions/bcc
+	install -Dm644 util/bcc.bash $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
+
+uninstall-local:
+	rm -f $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
 
 clean-local:
 	rm -f Makefile Makefile.in configure src/.dirstamp src/$(ARCH)/.dirstamp

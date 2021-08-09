@@ -6,8 +6,14 @@ bcpp_CFLAGS = -Wextra -std=c99 -D_XOPEN_SOURCE=700
 
 man1_MANS = bcpp.1
 
+completionsdir = $(datadir)/bash-completion/completions
+transform = @program_transform_name@
+
 install-data-local:
-	install -Dm644 bcpp.bash $(DESTDIR)/$(datadir)/bash-completion/completions/bcpp
+	install -Dm644 bcpp.bash $(DESTDIR)/$(completionsdir)/`echo bcpp | sed '$(transform)'`
+
+uninstall-local:
+	rm -f $(DESTDIR)/$(completionsdir)/`echo bcpp | sed '$(transform)'`
 
 clean-local:
 	rm -f Makefile Makefile.in configure src/.dirstamp
