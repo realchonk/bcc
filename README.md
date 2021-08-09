@@ -26,6 +26,8 @@ Common configure options:<br>
 | --prefix=PREFIX  | installation path |
 | --target=TARGET | target architecture (SEE Target architectures) |
 | --disable-fp | disable preliminary floating-point support |
+| --with-cpu=CPU | select the target CPU |
+| --with-abi=ABI | select the target ABI |
 
 ### Building
 Just a simple<br>
