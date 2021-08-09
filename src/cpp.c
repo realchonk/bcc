@@ -2,7 +2,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
-#include "config.h"
 #include "error.h"
 #include "cpp.h"
 #include "bcc.h"
