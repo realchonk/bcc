@@ -1,9 +1,5 @@
 Planned features:
 
-configure-related:
-- maybe simplify
-- merge with master
-
 Long term:
 - improve preprocessor
 - improve test-suite

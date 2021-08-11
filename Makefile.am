@@ -46,7 +46,7 @@ install-data-local:
 uninstall-local:
 	rm -f $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
 
-clean-local:
+clean-at:
 	rm -f Makefile Makefile.in configure src/.dirstamp src/$(ARCH)/.dirstamp
 	rm -f config.h config.h.in config.h.in~ config.log config.status stamp-h1 aclocal.m4
 	rm -rf autom4te.cache build-aux src/.deps .deps src/$(ARCH)/.deps
