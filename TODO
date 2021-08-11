@@ -1,7 +1,8 @@
 Planned features:
 
 configure-related:
-- simplify
+- maybe simplify
+- merge with master
 
 Long term:
 - improve preprocessor
