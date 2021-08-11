@@ -13,11 +13,6 @@ AM_INIT_AUTOMAKE([1.16 foreign subdir-objects -Wall])
 AC_PROG_AWK
 AC_PROG_CC
 
-die() {
-   echo "configure error: $1"
-   exit 1
-}
-
 # set TARGET to the according value
 if test "x${target_alias}" != "x"; then
    TARGET="${target_alias}"
@@ -28,8 +23,9 @@ else
 fi
 
 # Determine the architecture
+AC_MSG_CHECKING([for target architecture])
 case ${TARGET} in
-i386-*)
+i386-*|i486-*|i586-*|i686-*)
    FULL_ARCH=i386
    ARCH=x86
    BITS=32
@@ -50,8 +46,9 @@ riscv64-*)
    BITS=64
    ;;
 *)
-   die "Invalid architectue '${TARGET}'"
+   AC_MSG_ERROR([invalid target architecture '${TARGET}'])
 esac
+AC_MSG_RESULT([$FULL_ARCH])
 
 # Set the target architecture
 AC_SUBST([TARGET])
@@ -76,7 +73,7 @@ else
       if test "x${host}" = "x${target}"; then
          PRE_AS=as
       else
-         die "failed to determine target for assembler. Please specify --target="
+         AC_MSG_ERROR([failed to determine target for assembler. Please specify --target=])
       fi
    else
       PRE_AS="${target_alias}-as"
@@ -128,10 +125,10 @@ AC_ARG_WITH([abi],
 AC_SUBST([ENABLE_FP])
 
 # Patch bcc.1
-sed "s/VERSION/$VERSION/g" ${srcdir}/src/bcc.1 >bcc.1 || die "failed to patch bcc.1"
+sed "s/VERSION/$VERSION/g" ${srcdir}/src/bcc.1 >bcc.1 || AC_MSG_ERROR([failed to patch bcc.1])
 
 # Generate include/help_options.h
-${srcdir}/util/read_doc.sh <bcc.1 >help_options.h || die "failed to generate help options"
+${srcdir}/util/read_doc.sh <bcc.1 >help_options.h || AC_MSG_ERROR([failed to generate help options])
 
 # Generate a Makefile
 AC_CONFIG_FILES([Makefile])
