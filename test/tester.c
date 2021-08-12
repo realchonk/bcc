@@ -30,6 +30,9 @@
 #define TEST_OBJECT "/tmp/test.o"
 #define TEST_BINARY "/tmp/test"
 
+// 0 = silent, 1 = default, 2 = verbose
+static int verbosity = 1;
+
 struct test_case {
    const char* name;
    bool compiles;
@@ -72,7 +75,7 @@ static int run_linker(void) {
    if (!target)
       panic("failed to allocate 256 bytes");
    if (!fgets(target, 256, file))
-      panic("failed to run " BCC " -dumpmachine");
+      panic("failed to run " PATH_BCC " -dumpmachine");
    pclose(file);
 
    const size_t len_target = strlen(target);
@@ -80,7 +83,14 @@ static int run_linker(void) {
       target[len_target - 1] = '\0';
    
    char* cmdline = NULL;
-   if (asprintf(&cmdline, "%s-gcc -o %s %s 2>>gcc.log", target, TEST_BINARY, TEST_OBJECT) < 0)
+   const char* redir;
+   if (verbosity < 2) {
+      redir = "2>>gcc.log";
+   } else {
+      // TODO: fix this, the exit value of the linkr is discarded
+      redir = "2>&1 | tee -a gcc.log";
+   }
+   if (asprintf(&cmdline, "%s-gcc -o %s %s %s", target, TEST_BINARY, TEST_OBJECT, redir) < 0)
       panic("failed to construct linker cmdline");
    const int ec = system(cmdline);
    free(target);
@@ -89,7 +99,14 @@ static int run_linker(void) {
 }
 
 static int compile_test(void) {
-   int ec = system(BCC TEST_OBJECT " " TEST_SOURCE " 2>>bcc.log");
+   const char* bcc_str;
+   if (verbosity < 2) {
+      bcc_str = BCC TEST_OBJECT " " TEST_SOURCE " 2>>bcc.log";
+   } else {
+      // TODO: fix this, the exit value of bcc is discarded
+      bcc_str = BCC TEST_OBJECT " " TEST_SOURCE " 2>&1 | tee -a bcc.log";
+   }
+   int ec = system(bcc_str);
    if (ec < 0 || ec == 127) panic("failed to invoke bcc");
    else if (ec != 0) return ec;
 
@@ -100,6 +117,8 @@ static int compile_test(void) {
 
 static bool run_test(const struct test_case* test) {
    const char* cause;
+   if (verbosity >= 2)
+      printf("Running test case '%s'\n", test->name);
    write_test(test->source);
    const int compiler_ec = compile_test();
    if (compiler_ec == 139) {
@@ -122,10 +141,13 @@ static bool run_test(const struct test_case* test) {
       if (pid == 0) {
          close(pipes[0]);                       // close read end
          close(STDOUT_FILENO);                  // close stdout
-         if (dup(pipes[1]) != STDOUT_FILENO)    // redirect stdout to pipes[1]
-            panic("failed to redirect");
+         if (dup(pipes[1]) != STDOUT_FILENO) {  // redirect stdout to pipes[1]
+            fputs("failed to redirect", stderr);
+            _exit(1);
+         }  
          execl(TEST_BINARY, TEST_BINARY, NULL);
-         fprintf(stderr, "failed to execl %s: %s\n", TEST_BINARY, strerror(errno));
+         if (verbosity > 0)
+            fprintf(stderr, "failed to execl %s: %s\n", TEST_BINARY, strerror(errno));
          _exit(1);
       } else {
          int wstatus;
@@ -169,11 +191,14 @@ static bool run_test(const struct test_case* test) {
 
    if (!r) goto failed;
 success:
-   printf(COLOR_BOLD_GREEN "TEST '%s' %s\033[0m\n", test->name, test->compiles ? "PASS" : "XFAIL");
+   if (verbosity > 0)
+      printf(COLOR_BOLD_GREEN "TEST '%s' %s\033[0m\n", test->name, test->compiles ? "PASS" : "XFAIL");
    return true;
 failed:
-   printf(COLOR_BOLD_RED "TEST '%s' FAIL\033[0m\n", test->name);
-   printf(COLOR_RED "%s.\033[0m\n", cause);
+   if (verbosity > 0) {
+      printf(COLOR_BOLD_RED "TEST '%s' FAIL\033[0m\n", test->name);
+      printf(COLOR_RED "%s.\033[0m\n", cause);
+   }
    return false;
 }
 
@@ -185,29 +210,55 @@ static struct test_case* get_case(const char* name) {
 }
 
 int main(int argc, char* argv[]) {
-   if (argc > 2) {
-      fputs("usage: tester [-v] [test]\n", stderr);
-      return 1;
+   int option;
+   while ((option = getopt(argc, argv, ":vsh")) != -1) {
+      switch (option) {
+      case 'v':
+         verbosity = 2;
+         break;
+      case 's':
+         verbosity = 0;
+         break;
+
+      case 'h':
+         puts("Usage: tester [-vsh] [test...]");
+         puts("Options:");
+         puts(" -h            Show this help message");
+         puts(" -s            Silence the output");
+         puts(" -v            Show more verbose output");
+         return 0;
+      case ':':
+         fprintf(stderr, "tester: missing argument for -%c\n", optopt);
+         return 1;
+      case '?':
+         fprintf(stderr, "tester: invalid option -%c\n", optopt);
+         return 1;
+      }
    }
    remove("bcc.log");
    remove("gcc.log");
-   if (argc == 2) {
-      const char* name = argv[1];
-      struct test_case* t = get_case(name);
-      if (!t) {
-         printf(COLOR_RED "TEST '%s' NOT FOUND\033[0m\n", name);
-         return 1;
-      }
-      const bool r = run_test(t);
-      return r ? 0 : 2;
-   } else {
+   if (optind == argc) {
       const size_t num = arraylen(cases);
       size_t failed = 0;
       for (size_t i = 0; i < num; ++i) {
          if (!run_test(&cases[i])) ++failed;
       }
 
-      printf("%s%zu out of %zu tests passed\033[0m\n", failed ? COLOR_RED : COLOR_GREEN, num - failed, num);
+      if (verbosity > 0)
+         printf("%s%zu out of %zu tests passed\033[0m\n", failed ? COLOR_RED : COLOR_GREEN, num - failed, num);
       return failed ? 2 : 0;
+   } else {
+      int ec = 0;
+      for (; optind < argc; ++optind) {
+         const char* name = argv[optind];
+         struct test_case* t = get_case(name);
+         if (!t) {
+            printf(COLOR_RED "TEST '%s' NOT FOUND\033[0m", name);
+            return 1;
+         }
+         if (!run_test(t))
+            ec = 2;
+      }
+      return ec;
    }
 }
