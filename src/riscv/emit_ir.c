@@ -422,7 +422,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       goto ir_call;
    case IR_IFCALL:
       flag2 = true;
-      goto ir_call;
+      fallthrough;
    case IR_FCALL:
    {
    ir_call:;
@@ -433,10 +433,12 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       const uintreg_t saved_sp = n_stack;
       uintreg_t sp = saved_sp;
       n_stack = align_stack_size(n_stack);
-      
+
       emit("addi sp, sp, -%zu", n_stack);
 
       if (flag2) {
+         if (is_builtin_func(n->ifcall.name))
+            request_builtin(n->ifcall.name);
          for (size_t i = 0; i < dest; ++i) {
             emit(SW " %s, %zu(sp)", reg_op(i), sp -= REGSIZE);
          }

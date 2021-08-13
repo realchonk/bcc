@@ -138,6 +138,9 @@ int main(int argc, char* argv[]) {
          } else if (!strcmp(optarg, "umpmachine")) {
             puts(BCC_TARGET);
             return 0;
+         } else if (!strcmp(optarg, "umparch")) {
+            puts(BCC_FULL_ARCH);
+            return 0;
          } else goto print_usage;
       case 'O':
       {
@@ -214,7 +217,7 @@ int main(int argc, char* argv[]) {
       }
    }
    FILE* output = NULL;
-   const char* asm_filename;
+   const char* asm_filename = NULL;
    FILE* asm_file;
    if (level == 'c') {
       asm_filename = tmpnam(NULL);

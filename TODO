@@ -15,3 +15,4 @@ Short term:
 - fix nasm warning for indirect function calls on x86_64
 - add -v option to tester
 - more test cases for switch/case
+- riscv: add divide/modulo builtins
