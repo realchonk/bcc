@@ -1,7 +1,11 @@
 bcc
 test/tester
 test/*.log
-test2/
+test2/test.s
+test2/test.asm
+test2/test.o
+test2/test.ir
+test2/test
 src/*/.deps/
 src/.deps/
 src/.dirstamp
