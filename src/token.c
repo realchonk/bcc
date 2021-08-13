@@ -93,6 +93,7 @@ const char* token_type_str[NUM_TOKENS] = {
    [KW_SWITCH]    = "switch",
    [KW_CASE]      = "case",
    [KW_DEFAULT]   = "default",
+   [KW_VOLATILE]  = "volatile",
 };
 
 void token_init(void) {

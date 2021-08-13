@@ -356,9 +356,10 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       if (!is_lv) parse_error(&e->binary.op.begin, "expected lvalue");
       ir_append(n, tmp);
       tmp = new_node(IR_WRITE);
-      tmp->move.size = irs;
-      tmp->move.dest = creg - 1;
-      tmp->move.src = creg - 2;
+      tmp->write.size = irs;
+      tmp->write.dest = creg - 1;
+      tmp->write.src = creg - 2;
+      tmp->write.is_volatile = vt->is_volatile;
       --creg;
       ir_append(n, tmp);
       break;
@@ -452,9 +453,10 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       ir_append(n, tmp);
 
       tmp = new_node(IR_WRITE);
-      tmp->move.dest = creg;
-      tmp->move.src = creg - 1;
-      tmp->move.size = irs;
+      tmp->write.dest = creg;
+      tmp->write.src = creg - 1;
+      tmp->write.size = irs;
+      tmp->write.is_volatile = vt->is_volatile;
       ir_append(n, tmp);
       break;
    }
@@ -483,9 +485,10 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       ir_append(n, tmp);
 
       tmp = new_node(IR_WRITE);
-      tmp->move.dest = creg;
-      tmp->move.src = creg - 1;
-      tmp->move.size = irs;
+      tmp->write.dest = creg;
+      tmp->write.src = creg - 1;
+      tmp->write.size = irs;
+      tmp->write.is_volatile = vt->is_volatile;
       ir_append(n, tmp);
       
       tmp = new_node(e->unary.op.type == TK_PLPL ? IR_ISUB : IR_IADD);
@@ -699,9 +702,10 @@ ir_node_t* irgen_stmt(const struct statement* s) {
                ir_append(cur, tmp);
 
                tmp = new_node(IR_WRITE);
-               tmp->move.dest = creg + 1;
-               tmp->move.src = creg;
-               tmp->move.size = IRS_PTR;
+               tmp->write.dest = creg + 1;
+               tmp->write.src = creg;
+               tmp->write.size = IRS_PTR;
+               tmp->write.is_volatile = type->is_volatile;
                ir_append(cur, tmp);
             } else {
                if (var->init) {
@@ -735,9 +739,10 @@ ir_node_t* irgen_stmt(const struct statement* s) {
             ir_append(cur, tmp);
 
             tmp = new_node(IR_WRITE);
-            tmp->move.size = vt2irs(var->type);
-            tmp->move.dest = creg;
-            tmp->move.src = creg - 1;
+            tmp->write.size = vt2irs(var->type);
+            tmp->write.dest = creg;
+            tmp->write.src = creg - 1;
+            tmp->write.is_volatile = true; // TODO
             ir_append(cur, tmp);
             --creg;
          } else cur = new_node(IR_NOP);

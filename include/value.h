@@ -67,6 +67,7 @@ struct value_type {
    enum value_base_type type;
    struct source_pos begin, end;
    bool is_const;
+   bool is_volatile;
    union {
       struct {
          enum integer_size size;

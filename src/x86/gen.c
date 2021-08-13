@@ -151,10 +151,10 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
    }
    case IR_WRITE:
    {
-      const char* dest = mreg(n->move.dest);;
+      const char* dest = mreg(n->write.dest);;
       const char* src;
-      reg_op(src, n->move.src, n->move.size);
-      emit("mov %s [%s], %s", nasm_size(n->move.size), dest, src);
+      reg_op(src, n->write.src, n->write.size);
+      emit("mov %s [%s], %s", nasm_size(n->write.size), dest, src);
       return n->next;
    }
    case IR_PROLOGUE:
@@ -335,12 +335,13 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
 #endif
       // TODO: experimental, port from riscv32
       if (optim_level >= 2) {
-         if (ir_is(n->next, IR_READ) && n->next->read.src == n->lookup.reg) {
+         if (ir_is(n->next, IR_READ) && n->next->read.src == n->lookup.reg && !n->next->read.is_volatile) {
             ir_node_t* read = n->next;
             if (ir_isv(read->next, IR_IADD, IR_ISUB, NUM_IR_NODES) && read->next->binary.dest == read->read.dest) {
                ir_node_t* inc = read->next;
                if (inc->binary.a.type != IRT_REG || inc->binary.a.reg != inc->binary.dest) goto lookup_lea;
-               if (ir_is(inc->next, IR_WRITE) && inc->next->move.src == inc->binary.dest && inc->next->move.dest == n->lookup.reg) {
+               if (ir_is(inc->next, IR_WRITE) && !inc->next->write.is_volatile
+                     && inc->next->move.src == inc->binary.dest && inc->next->move.dest == n->lookup.reg) {
                   ir_node_t* write = inc->next;
                   if (inc->binary.b.type == IRT_UINT) {
                      if (inc->binary.b.uVal == 1)
@@ -349,7 +350,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
                            nasm_size(read->move.size), reg_bp, idx, inc->binary.b.uVal);
                   } else if (inc->binary.b.type == IRT_REG) {
                      const char* reg;
-                     reg_op(reg, inc->binary.b.reg, write->move.size);
+                     reg_op(reg, inc->binary.b.reg, write->write.size);
                      emit("%s %s [%s - %zu], %s", (inc->type == IR_IADD ? "add" : "sub"),
                            nasm_size(read->move.size), reg_bp, idx, reg);
                   } else goto lookup_lea;
@@ -364,8 +365,8 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
          } else if (ir_is(n->next, IR_WRITE) && n->next->move.dest == n->lookup.reg) {
             ir_node_t* write = n->next;
             const char* src;
-            reg_op(src, write->move.src, write->move.size);
-            emit("mov %s [%s - %zu], %s", nasm_size(write->move.size), reg_bp, idx, src);
+            reg_op(src, write->write.src, write->write.size);
+            emit("mov %s [%s - %zu], %s", nasm_size(write->write.size), reg_bp, idx, src);
             return write->next;
          }
       }

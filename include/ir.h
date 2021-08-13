@@ -33,9 +33,8 @@ enum ir_node_type {
    IR_LOOKUP,        // .lookup     | load address of variable
    IR_BEGIN_SCOPE,   // .scope      | beginning of a scope
    IR_END_SCOPE,     // .scope      | ending of a scope
-   // TODO: change to .read
    IR_READ,          // .read       | read data from memory
-   IR_WRITE,         // .move       | write data to memory
+   IR_WRITE,         // .write      | write data to memory
    IR_PROLOGUE,      // .func       | beginning of a function
    IR_EPILOGUE,      // .func       | ending of a function
    IR_IICAST,        // .iicast     | integer-to-integer cast
@@ -117,7 +116,13 @@ typedef struct ir_node {
          ir_reg_t dest, src;
          enum ir_value_size size;
          bool sign_extend;
+         bool is_volatile;
       } read;
+      struct {
+         ir_reg_t dest, src;
+         enum ir_value_size size;
+         bool is_volatile;
+      } write;
       struct {
          ir_reg_t dest;
          uintmax_t value;

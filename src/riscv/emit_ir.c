@@ -125,7 +125,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    }
    case IR_WRITE:
    ir_write:;
-      switch (n->move.size) {
+      switch (n->write.size) {
       case IRS_BYTE:
       case IRS_CHAR:    instr = "sb  "; break;
       case IRS_SHORT:   instr = "sh  "; break;
@@ -138,12 +138,12 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       case IRS_LONG:
       case IRS_PTR:     instr = "sd  "; break;
 #endif
-      default:          panic("unsupported operand size '%s'", ir_size_str[n->move.size]);
+      default:          panic("unsupported operand size '%s'", ir_size_str[n->write.size]);
       }
       if (flag) {
-         emit("%s %s, %d(fp)", instr, reg_op(n->move.src), off);
+         emit("%s %s, %d(fp)", instr, reg_op(n->write.src), off);
       } else {
-         emit("%s %s, 0(%s)", instr, reg_op(n->move.src), reg_op(n->move.dest));
+         emit("%s %s, 0(%s)", instr, reg_op(n->write.src), reg_op(n->write.dest));
       }
       return n->next;
    case IR_PROLOGUE:
@@ -224,8 +224,8 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       const ir_reg_t reg = n->lookup.reg;
       if (optim_level >= 2
          && n->next
-         && ((n->next->type == IR_READ && n->next->move.src == reg)
-         || (n->next->type == IR_WRITE && n->next->move.dest == reg))) {
+         && ((n->next->type == IR_READ && n->next->read.src == reg)
+         || (n->next->type == IR_WRITE && n->next->write.dest == reg))) {
          flag = true;
          off = -(intreg_t)addr;
          n = n->next;
@@ -257,8 +257,8 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          const ir_reg_t reg = n->lookup.reg;
          if (optim_level >= 2
             && n->next
-            && ((n->next->type == IR_READ && n->next->move.src == reg)
-            || (n->next->type == IR_WRITE && n->next->move.dest == reg))) {
+            && ((n->next->type == IR_READ && n->next->read.src == reg)
+            || (n->next->type == IR_WRITE && n->next->write.dest == reg))) {
             flag = true;
             off = -(intreg_t)addr;
             n = n->next;

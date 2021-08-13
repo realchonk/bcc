@@ -688,3 +688,24 @@
       "}",
    .ret_val = 1,
 },
+{
+   .name = "volatile variable",
+   .compiles = true,
+   .source =
+      "int main(void) {"
+      "  volatile int x = 42;"
+      "  x = 49;"
+      "  return x;"
+      "}",
+   .ret_val = 49,
+},
+{
+   .name = "volatile pointer",
+   .compiles = true,
+   .source =
+      "int main(void) {"
+      "  volatile int* volatile p;"
+      "  return 0;"
+      "}",
+   .ret_val = 0,
+},

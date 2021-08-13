@@ -69,7 +69,7 @@ static bool ptreq(const struct value_type* a, const struct value_type* b) {
    }
 }
 bool value_type_equal(const struct value_type* a, const struct value_type* b) {
-   return a->is_const == b->is_const && ptreq(a, b);
+   return a->is_const == b->is_const && a->is_volatile == b->is_volatile && ptreq(a, b);
 }
 void print_value_type(FILE* file, const struct value_type* val) {
    switch (val->type) {
@@ -137,6 +137,7 @@ void print_value_type(FILE* file, const struct value_type* val) {
    default: panic("invalid value type '%d'", val->type);
    }
    if (val->is_const) fputs(" const", file);
+   if (val->is_volatile) fputs(" volatile", file);
 }
 
 void free_value_type(struct value_type* val) {
@@ -174,7 +175,7 @@ void free_value_type(struct value_type* val) {
 }
 
 static struct value_type* new_vt(void) {
-   struct value_type* vt = malloc(sizeof(struct value_type));
+   struct value_type* vt = calloc(1, sizeof(struct value_type));
    if (!vt) panic("failed to allocate value type");
    else return vt;
 }
@@ -197,6 +198,7 @@ static struct value_type* parse_ptr(struct value_type* vt) {
       ptr->begin = tk2.begin;
       ptr->end = tk2.end;
       while (lexer_match(KW_CONST)) ptr->is_const = true;
+      while (lexer_match(KW_VOLATILE)) ptr->is_volatile = true;
       vt = ptr;
    }
    return vt;
@@ -208,11 +210,14 @@ struct value_type* parse_value_type(struct scope* scope) {
    vt->type = NUM_VALS;
    vt->integer.is_unsigned = false;
    vt->is_const = false;
+   vt->is_volatile = false;
    
-   while (lexer_matches(KW_CONST) || lexer_matches(KW_SIGNED) || lexer_matches(KW_UNSIGNED)) {
+   while (lexer_matches(KW_CONST) || lexer_matches(KW_VOLATILE)
+         || lexer_matches(KW_SIGNED) || lexer_matches(KW_UNSIGNED)) {
       const struct token tk = lexer_next();
       switch (tk.type) {
       case KW_CONST:    vt->is_const = true; break;
+      case KW_VOLATILE: vt->is_volatile = true; break;
       case KW_SIGNED:
          vt->type = VAL_INT;
          vt->integer.size = INT_INT;
@@ -407,12 +412,17 @@ struct value_type* parse_value_type(struct scope* scope) {
       vt->is_const = true;
       vt->end = lexer_next().end;
    }
+   while (lexer_matches(KW_VOLATILE)) {
+      vt->is_volatile = true;
+      vt->end = lexer_next().end;
+   }
    vt = parse_ptr(vt);
    if (lexer_match(TK_LPAREN)) {
       struct value_type* func = new_vt();
       func->type = VAL_FUNC;
       func->begin = vt->begin;
       func->is_const = false;
+      func->is_volatile = false;
       func->func.name = NULL;
       func->func.ret_val = vt;
       func->func.params = NULL;
@@ -435,6 +445,7 @@ struct value_type* parse_value_type(struct scope* scope) {
 struct value_type* common_value_type(const struct value_type* a, const struct value_type* b, bool warn) {
    struct value_type* c = new_vt();
    c->is_const = false;
+   c->is_volatile = a->is_volatile && b->is_volatile;
    if (a->type == b->type) {
       c->type = a->type;
       // TODO: improve warnings
@@ -509,6 +520,7 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
       type->end = e->end;
       type->type = VAL_INT;
       type->is_const = false;
+
       type->integer.is_unsigned = e->type == EXPR_UINT;
       if (type->integer.is_unsigned) {
          type->integer.size = e->uVal > target_info.max_uint ? INT_LONG : INT_INT;
@@ -867,6 +879,8 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
       case VAL_POINTER:
          if (old->pointer.type->is_const && !type->pointer.type->is_const && implicit)
             warn_implicit("const pointer", "non-const pointer");
+         if (old->pointer.type->is_volatile && !type->pointer.type->is_volatile && implicit)
+            warn_implicit("volatile pointer", "non-volatile pointer");
          if (old->pointer.type->type == VAL_VOID || type->pointer.type->type == VAL_VOID) return true;
          if (!ptreq(old->pointer.type, type->pointer.type) && implicit)
             parse_warn(&old->begin, "implicit pointer conversion");
@@ -903,6 +917,7 @@ struct value_type* make_array_vt(struct value_type* vt) {
    arr->pointer.type = vt;
    arr->pointer.is_array = true;
    arr->is_const = true;
+   arr->is_volatile = false;
    return arr;
 }
 size_t sizeof_value(const struct value_type* vt, bool decay) {
