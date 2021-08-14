@@ -64,6 +64,8 @@ enum ir_value_size vt2irs(const struct value_type* vt) {
    case VAL_POINTER:    return IRS_PTR;
    case VAL_ENUM:       return IRS_INT;
    case VAL_FUNC:       return IRS_PTR;
+   case VAL_STRUCT:
+   case VAL_UNION:      return IRS_STRUCT;
    default:             panic("invalid value type '%d'", vt->type);
    }
 }
@@ -327,7 +329,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    {
       bool is_lv;
       n = ir_lvalue(scope, e, &is_lv);
-      if (is_lv) {
+      if (is_lv && !is_struct(vt->type)) {
          tmp = new_node(IR_READ);
          tmp->read.dest = tmp->read.src = creg - 1;
          tmp->read.size = irs;
@@ -355,13 +357,20 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       tmp = ir_lvalue(scope, e->assign.left, &is_lv);
       if (!is_lv) parse_error(&e->binary.op.begin, "expected lvalue");
       ir_append(n, tmp);
-      tmp = new_node(IR_WRITE);
-      tmp->write.size = irs;
-      tmp->write.dest = creg - 1;
-      tmp->write.src = creg - 2;
-      tmp->write.is_volatile = vt->is_volatile;
-      --creg;
+      if (is_struct(vt->type)) {
+         tmp = new_node(IR_COPY);
+         tmp->copy.dest = creg - 1;
+         tmp->copy.src = creg - 2;
+         tmp->copy.len = sizeof_value(vt, false);
+      } else {
+         tmp = new_node(IR_WRITE);
+         tmp->write.size = irs;
+         tmp->write.dest = creg - 1;
+         tmp->write.src = creg - 2;
+         tmp->write.is_volatile = vt->is_volatile;
+      }
       ir_append(n, tmp);
+      --creg;
       break;
    }
    case EXPR_ADDROF:
@@ -642,21 +651,40 @@ ir_node_t* irgen_stmt(const struct statement* s) {
 #if !DISABLE_FP
          if (vt->type == VAL_FLOAT) parse_error(&s->expr->begin, "floating-point numbers are not supported");
 #endif
-         enum ir_value_size irs = vt2irs(vt);
          n = ir_expr(s->parent, s->expr);
-         if (vt2irs(s->parent->func->type) != irs) {
-            tmp->type = IR_IICAST;
-            tmp->iicast.dest = tmp->iicast.src = creg - 1;
-            tmp->iicast.ds = vt2irs(s->parent->func->type);
-            tmp->iicast.ss = irs;
-            tmp->iicast.sign_extend = !s->parent->func->type->integer.is_unsigned;
+         switch (vt->type) {
+         case VAL_INT:
+         case VAL_ENUM:
+         case VAL_POINTER:
+         {
+            const enum ir_value_size irs = vt2irs(vt);
+            if (vt2irs(s->parent->func->type) != irs) {
+               tmp->type = IR_IICAST;
+               tmp->iicast.dest = tmp->iicast.src = creg - 1;
+               tmp->iicast.ds = vt2irs(s->parent->func->type);
+               tmp->iicast.ss = irs;
+               tmp->iicast.sign_extend = !s->parent->func->type->integer.is_unsigned;
+               ir_append(n, tmp);
+               tmp = new_node(IR_IRET);
+            }
+            tmp->type = IR_IRET;
+            tmp->unary.size = irs; // TODO
+            tmp->unary.reg = creg - 1;
             ir_append(n, tmp);
-            tmp = new_node(IR_IRET);
+            break;
          }
-         tmp->type = IR_IRET;
-         tmp->unary.size = irs; // TODO
-         tmp->unary.reg = creg - 1;
-         ir_append(n, tmp);
+         case VAL_STRUCT:
+         case VAL_UNION:
+         {
+            tmp->type = IR_SRET;
+            tmp->sret.ptr = creg - 1;
+            tmp->sret.size = sizeof_value(vt, false);
+            ir_append(n, tmp);
+            break;
+         }
+         default:
+            panic("unsupported return type '%s'", value_type_str[vt->type]);
+         }
          
       } else n = tmp;
       return n;
@@ -728,8 +756,7 @@ ir_node_t* irgen_stmt(const struct statement* s) {
                tmp->copy.len = my_min(type->pointer.array.size, strlen(var->init->str) + 1);
                ir_append(cur, tmp);
             }
-         }
-         else if (var->init) {
+         } else if (var->init) {
             struct expression* init = var->init;
             cur = ir_expr(s->parent, init);
             tmp = new_node(IR_LOOKUP);
@@ -738,11 +765,18 @@ ir_node_t* irgen_stmt(const struct statement* s) {
             tmp->lookup.var_idx = s->var_decl.idx + i;
             ir_append(cur, tmp);
 
-            tmp = new_node(IR_WRITE);
-            tmp->write.size = vt2irs(var->type);
-            tmp->write.dest = creg;
-            tmp->write.src = creg - 1;
-            tmp->write.is_volatile = true; // TODO
+            if (is_struct(var->type->type)) {
+               tmp = new_node(IR_COPY);
+               tmp->copy.dest = creg;
+               tmp->copy.src = creg - 1;
+               tmp->copy.len = sizeof_value(var->type, false);
+            } else {
+               tmp = new_node(IR_WRITE);
+               tmp->write.size = vt2irs(var->type);
+               tmp->write.dest = creg;
+               tmp->write.src = creg - 1;
+               tmp->write.is_volatile = true; // TODO
+            }
             ir_append(cur, tmp);
             --creg;
          } else cur = new_node(IR_NOP);

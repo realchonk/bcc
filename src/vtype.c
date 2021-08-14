@@ -907,6 +907,9 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
       else if (type->type == VAL_POINTER)
          return !implicit || ptreq(old, type->pointer.type);
       else return false;
+   case VAL_STRUCT:
+   case VAL_UNION:
+      return old->type == type->type && old->vstruct->name == type->vstruct->name;
    default: panic("invalid value type '%u'", type->type);
    }
 }

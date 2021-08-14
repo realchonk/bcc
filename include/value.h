@@ -147,4 +147,6 @@ const struct value_type* actual_func_vt(const struct value_type*);
 void eval_expr(struct expression*, struct value*);
 bool vt_is_signed(const struct value_type*);
 
+#define is_struct(t) ((t) == VAL_STRUCT || (t) == VAL_UNION)
+
 #endif /* FILE_VALUE_H */

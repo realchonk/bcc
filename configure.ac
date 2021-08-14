@@ -95,7 +95,7 @@ AC_SEARCH_LIBS([powl], [m])
 AC_CHECK_FUNCS([atexit strchr strdup strerror strrchr strtoul])
 
 # Suggested by autoscan
-AC_CHECK_HEADERS([fcntl.h stddef.h stdint.h stdlib.h string.h unistd.h])
+AC_CHECK_HEADERS([fcntl.h stddef.h stdint.h stdlib.h string.h unistd.h stdnoreturn.h])
 AC_CHECK_HEADER_STDBOOL
 AC_C_INLINE
 AC_TYPE_SIZE_T

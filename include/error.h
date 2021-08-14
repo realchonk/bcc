@@ -1,7 +1,12 @@
 #ifndef FILE_ERROR_H
 #define FILE_ERROR_H
-#include <stdnoreturn.h>
 #include "token.h"
+#include "config.h"
+#if HAVE_STDNORETURN_H
+#include <stdnoreturn.h>
+#else
+#define noreturn
+#endif
 
 #if defined(__GNUC__)
 #define fallthrough __attribute__((fallthrough))

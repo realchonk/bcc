@@ -709,3 +709,67 @@
       "}",
    .ret_val = 0,
 },
+{
+   .name = "copy struct",
+   .compiles = true,
+   .source =
+      "struct S {"
+      "  int a;"
+      "};"
+      "int main(void) {"
+      "  struct S s;"
+      "  s.a = 42;"
+      "  struct S t = s;"
+      "  return t.a;"
+      "}",
+   .ret_val = 42,
+},
+{
+   .name = "copy struct 2",
+   .compiles = true,
+   .source =
+      "struct S {"
+      "  int a;"
+      "};"
+      "int main(void) {"
+      "  struct S s;"
+      "  s.a = 42;"
+      "  struct S t;"
+      "  t = s;"
+      "  return t.a;"
+      "}",
+   .ret_val = 42,
+},
+{
+   .name = "return struct",
+   .compiles = true,
+   .source =
+      "struct S {"
+      "  int a;"
+      "};"
+      "struct S get_S(void) {"
+      "  struct S s;"
+      "  s.a = 42;"
+      "  return s;"
+      "int main(void) {"
+      "  struct S s;"
+      "  s = get_S();"
+      "  return s;"
+      "}",
+   .ret_val = 42,
+},
+{
+   .name = "pass struct",
+   .compiles = true,
+   .source =
+      "struct S {"
+      "  int a;"
+      "};"
+      "int f(struct S s) { return s.a; }"
+      "int main(void) {"
+      "  struct S s;"
+      "  s.a = 42;"
+      "  return f(s);"
+      "}",
+   .ret_val = 42,
+},

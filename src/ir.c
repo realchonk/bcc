@@ -10,6 +10,7 @@ const char* ir_size_str[NUM_IR_SIZES] = {
    [IRS_LONG]  = "long",
    [IRS_PTR]   = "ptr",
    [IRS_VOID]  = "void",
+   [IRS_STRUCT]= "struct",
 };
 
 const char* ir_node_type_str[NUM_IR_NODES] = {
@@ -68,6 +69,7 @@ const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_IRCALL]       = "ircall",
    [IR_RCALL]        = "rcall",
    [IR_FLOOKUP]      = "flookup",
+   [IR_SRET]         = "sret",
 };
 const char* ir_value_type_str[NUM_IR_VALUES] = {
    [IRT_REG]         = "register",

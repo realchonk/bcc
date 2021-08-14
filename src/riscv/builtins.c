@@ -9,6 +9,9 @@
 #define SP_REGSIZE "8"
 #endif
 
+
+// Generated assembly for mul/div/mod was derived from output by the GCC compiler
+
 #define gen_mului(nm) \
    { \
       .name = nm, \

@@ -63,6 +63,7 @@ enum ir_node_type {
    IR_IRCALL,        // .rcall      | indirect function call w/ integer return value
    IR_RCALL,         // .rcall      | indirect function call w/o return value
    IR_FLOOKUP,       // .lstr       | function lookup
+   IR_SRET,          // .sret       | return struct/union
 
    NUM_IR_NODES,
 };
@@ -74,6 +75,7 @@ enum ir_value_size {
    IRS_LONG,
    IRS_PTR,
    IRS_VOID,
+   IRS_STRUCT,
 
    NUM_IR_SIZES,
 };
@@ -181,6 +183,10 @@ typedef struct ir_node {
          struct ir_node* addr;
          struct ir_node** params;
       } rcall;
+      struct {
+         ir_reg_t ptr;
+         uintmax_t size;
+      } sret;
    };
 } ir_node_t;
 

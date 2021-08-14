@@ -610,6 +610,19 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       esp -= REGSIZE;
       return n->next;
    }
+   case IR_SRET:
+   {
+      const char* ptr = mreg(n->sret.ptr);
+#if BITS == 64
+      if (n->sret.size <= REGSIZE) {
+         emit("mov rax, qword [%s]", ptr);
+      }
+#else
+
+#endif
+      
+      return n->next;
+   }
 
    default: panic("unsupported ir_node type '%s'", ir_node_type_str[n->type]);
    }
