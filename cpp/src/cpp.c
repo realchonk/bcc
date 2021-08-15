@@ -1,4 +1,9 @@
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
+#include <errno.h>
+#include "expand.h"
 #include "strint.h"
 #include "token.h"
 #include "macro.h"
@@ -55,24 +60,18 @@ int run_cpp(FILE* in, FILE* out) {
          continue;
       }
 
+      buf_free(tokens);
       if (suppress_code) continue;
 
-      for (size_t j = 0; j < buf_len(tokens); ++j) {
-         const struct token tk = tokens[j];
-         if (tk.type == TK_WORD) {
-            const istr_t word = strnint(tk.begin, tk.end - tk.begin);
-            const struct macro* m = get_macro(word);
-            if (m) {
-               fputs(m->text, tmp);
-               continue;
-            }
-         }
-         for (const char* s = tk.begin; s != tk.end; ++s)
-            fputc(*s, tmp);
+      char* e = expand2(lines[i].linenum, lines[i].line, NULL, NULL);
+      if (!e) {
+         warn(i, "failed to expand");
+         failed = true;
+         continue;
       }
-
+      fputs(e, tmp);
       fputc('\n', tmp);
-      buf_free(tokens);
+      buf_free(e);
    }
    free_lines(lines);
 
@@ -84,5 +83,23 @@ int run_cpp(FILE* in, FILE* out) {
    free(buf);
 
    return failed;
+}
+noreturn void panic_impl(const char* func, const char* fmt, ...) {
+   va_list ap;
+   va_start(ap, fmt);
+
+   const int errno_saved = errno;
+
+   if (console_color)
+      fputs("\033[31;1m", stderr);
+   fprintf(stderr, "bcpp: %s(): ", func);
+   if (console_color)
+      fputs("\033[0m", stderr);
+   vfprintf(stderr, fmt, ap);
+   if (errno_saved) fprintf(stderr, ": %s\n", strerror(errno_saved));
+   else fputc('\n', stderr);
+
+   va_end(ap);
+   abort();
 }
 

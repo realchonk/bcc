@@ -773,3 +773,24 @@
       "}",
    .ret_val = 42,
 },
+{
+   .name = "preprocessor #",
+   .compiles = true,
+   .source =
+      "#define str(x) #x\n"
+      "int puts(const char*);"
+      "int main(void) {"
+      "  puts(str(42));"
+      "}",
+   .output = "42",
+},
+{
+   .name = "nested macro functions",
+   .compiles = true,
+   .source =
+      "#define f(x) x\n"
+      "#define f(x) f(x)\n"
+      "#define f(x) f(x)\n"
+      "int main(void) { return f(42); }",
+   .ret_val = 42,
+},

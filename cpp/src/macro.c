@@ -1,3 +1,5 @@
+#include "expand.h"
+#include "token.h"
 #include "macro.h"
 #include "dir.h"
 #include "cpp.h"
@@ -29,6 +31,8 @@ void add_macro(const struct macro* m) {
       e->macro = *m;
    } else {
       e = malloc(sizeof(struct macro_entry));
+      if (!e)
+         panic("failed to allocate macro");
       e->next = macros;
       e->prev = NULL;
       e->macro = *m;
@@ -70,6 +74,8 @@ void add_cmdline_macro(const char* arg) {
 
 // PREPROCESSOR DIRECTIVES
 
+#define skip_ws() if (tki < num_tks && tokens[tki].type == TK_WHITESPACE) ++tki
+
 bool dir_define(size_t linenum, const char* line, struct token* tokens, size_t num_tks, FILE* out) {
    (void)line;
    (void)out;
@@ -85,12 +91,39 @@ bool dir_define(size_t linenum, const char* line, struct token* tokens, size_t n
    m.is_func = false;
    m.text = "";
    m.params = NULL;
+   m.linenum = linenum;
    size_t tki = 1;
    if (tki < num_tks) {
-      if (tokens[tki].type == TK_WHITESPACE)
-         ++tki;
-      if (tki < num_tks)
-         m.text = tokens[tki].begin;
+      const char* s = tokens[tki].begin;
+      if (*s == '(') {
+         m.is_func = true;
+         ++s;
+         while (isspace(*s)) ++s;
+         if (*s != ')') {
+            do {
+               while (isspace(*s)) ++s;
+               const char* begin = s;
+               if (!isname1(*s)) {
+                  warn(linenum, "expected name for parameter");
+                  return false;
+               }
+               ++s;
+               while (isname(*s)) ++s;
+               const istr_t name = strrint(begin, s);
+               buf_push(m.params, name);
+               while (isspace(*s)) ++s;
+            } while (*s++ == ',');
+            if (s[-1] != ')') {
+               warn(linenum, "missing ')'");
+               return false;
+            }
+            while (isspace(*s)) ++s;
+            m.text = expand2(linenum, s, NULL, m.name);
+         }
+      } else {
+         while (isspace(*s)) ++s;
+         m.text = expand2(linenum, s, NULL, m.name);
+      }
    }
    add_macro(&m);
    return true;

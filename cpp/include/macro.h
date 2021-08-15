@@ -9,6 +9,7 @@ struct macro {
    bool is_func;
    const char* text;
    istr_t* params;
+   size_t linenum;
 };
 
 void add_macro(const struct macro*);

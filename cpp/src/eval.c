@@ -1,11 +1,10 @@
 #include <ctype.h>
+#include "token.h"
 #include "macro.h"
 #include "cpp.h"
 
 #define matches(ch) (*str == (ch))
 #define match(ch) (matches(ch) ? ++str, true : false)
-#define isname1(ch) (isalpha(ch) || (ch) == '_')
-#define isname(ch) (isname1(ch) || isdigit(ch))
 
 static void skip_ws(const char** str) {
    while (isspace(**str)) ++*str;

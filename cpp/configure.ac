@@ -14,7 +14,7 @@ AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([realpath strerror])
 
-AC_CHECK_HEADERS([stddef.h stdint.h stdlib.h string.h unistd.h])
+AC_CHECK_HEADERS([stddef.h stdint.h stdlib.h string.h unistd.h stdnoreturn.h])
 AC_CHECK_HEADER_STDBOOL
 
 AC_TYPE_SIZE_T

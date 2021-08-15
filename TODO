@@ -1,7 +1,7 @@
 Planned features:
 
 Long term:
-- improve preprocessor
+- create libbcc and default includes
 - improve test-suite
 - labels & goto
 - more optimization techniques
@@ -14,3 +14,6 @@ Short term:
 - fix calling convention for struct/union
 - fix nasm warning for indirect function calls on x86_64
 - more test cases for switch/case
+- cpp: add # and ## operator
+- cpp: more tests for macro expansion
+- cpp: support for variadic macros

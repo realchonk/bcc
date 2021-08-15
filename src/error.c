@@ -18,7 +18,7 @@ noreturn void panic_impl(const char* func, const char* fmt, ...) {
    if (console_colors)
       fputs("\033[0m", stderr);
    vfprintf(stderr, fmt, ap);
-   if (errno) fprintf(stderr, ": %s\n", strerror(errno_saved));
+   if (errno_saved) fprintf(stderr, ": %s\n", strerror(errno_saved));
    else fputc('\n', stderr);
 
    va_end(ap);

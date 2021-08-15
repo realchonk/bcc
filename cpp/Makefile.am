@@ -1,6 +1,6 @@
 bin_PROGRAMS = bcpp
 bcpp_SOURCES = src/cpp.c src/dir.c src/eval.c src/if.c src/include.c src/macro.c \
-					src/main.c src/strint.c src/token.c src/util.c src/warn.c
+					src/main.c src/strint.c src/token.c src/util.c src/warn.c src/expand.c
 bcpp_CPPFLAGS = -I$(top_srcdir)/include
 bcpp_CFLAGS = -Wextra -std=c99 -D_XOPEN_SOURCE=700
 
