@@ -1,0 +1,274 @@
+.TH bcc 1 "2021-08-13" "bcc-0.11"
+
+.SH NAME
+bcc - brainlet C compiler
+
+.SH SYNOPSIS
+.SY bcc
+.OP -c\fR|\fB-i\fR|\fB-A\fR|\fB-S\fR|\fB-E\fR
+.OP -wC
+.OP -e \fIpath\fR
+.OP -O \fIolevel\fR
+.OP -o \fIoutput\fR
+.OP -m \fImach_opt\fR
+.OP -I \fIinclude_path\fR
+.OP -D \fIname\fR[=\fIvalue\fR]
+.I source
+.YS
+.SY bcc
+.OP -V
+.YS
+.SY bcc
+.OP -h
+.YS
+
+.SH DESCRIPTION
+The
+.I bcc
+compiler is a small compiler for a C-like language.
+The language and the compiler are not fully complete
+and contain bugs.
+
+.SH OPTIONS
+.B -o \fIoutput\fR
+.RE
+.RS 5
+Specify the 
+.I output
+file (or '-' for standard output).
+By default the
+.I output
+file is derived from the 
+.I source
+file, except if the
+.B -A
+option was specified, then it is standard output.
+.RE
+.B -c
+.RE
+.RS 5
+Compile and assemble the program. (This is the default)
+.RE
+.RS 5
+Note: For x86_64 and i386 it is required that the
+.I nasm
+assembler is installed.
+.RE
+.B -A
+.RE
+.RS 5
+Only emit the abstract syntax tree of the program, as interpreted by the parser.
+.RE
+.B -i
+.RE
+.RS 5
+Only emit the intermediate representation.
+.RE
+.B -S
+.RE
+.RS 5
+Emit the assembly output.
+.RE
+.B -E
+.RE
+.RS 5
+Only pre-process the file.
+.RE
+.B -O
+.I olevel
+.RE
+.RS 5
+Specify the
+.I optimization
+level. (possible values: 0, 1, 2, 3)
+.RE
+.B -w
+.RE
+.RS 5
+Disable all \fIwarnings\fR.
+.RE
+.B -V
+.RE
+.RS 5
+Print the version information.
+.RE
+.B -m \fImach_opt\fR
+.RE
+.RS 5
+Specify a target-dependend option.
+.RE
+.B -h
+.RE
+.RS 5
+Print a simple help message.
+.RE
+.B -dumpmachine
+.RE
+.RS 5
+Print the target machine.
+.RE
+.B -dumpversion
+.RE
+.RS 5
+Print the version.
+.RE
+.B -dumparch
+.RE
+.RS 5
+Print the target machine architecture.
+.RE
+.B -e \fIpath\fR
+.RE
+.RS 5
+Specify the path to the preprocessor.
+.RE
+.B -C
+.RE
+.RS 5
+Suppress the color output.
+.RE
+.B -I \fIinclude_path\fR
+.RE
+.RS 5
+Specify an include path for the preprocessor to search.
+.RE
+.B -D \fIname\fR[=\fIvalue\fR]
+.RE
+.RS 5
+Specify a predefined macro.
+.RE
+
+.SH OPERANDS
+.I output
+.RE
+.RS 5
+The output file, to which to write the resulting output.
+
+.RE
+.I source
+.RE
+.RS 5
+The source file, for which to generate the output.
+
+.RE
+.I olevel
+.RE
+.RS 5
+The optimization level to perform. (default: 1)
+.RE
+.RS 5
+Optimization levels 2 and below are considered "stable" and should not break the program.
+.RE
+.RS 5
+Optimization level 3 is considered experimental and may be unsafe,
+therefore it is not recommended to use it.
+.RE
+.RS 5
+An
+.I olevel
+of more than 3 has the same effect as level 3.
+
+.RE
+.I mach_opt
+.RE
+.RS 5
+A target-specific option.
+For a list of all target-specific options issue
+.B bcc -mhelp\fR.
+
+.RE
+.I include_path
+.RE
+.RS 5
+A directory path which will be searched by the preprocessor for #include's.
+
+
+.SH LANGUAGE
+.I WIP
+.RE
+The compiler aims to implement a usable sub-set of the C99 standard,
+while changing some annoyance and adding a few extensions.
+Some of the changes break compatibility with the standard, this is intentional.
+The compiler does not support the full feature-set of neither C99 nor C90.
+But that was never the goal.
+This compiler was created as a learning project and as a successor to benc (an even worse compiler than this only available for 32-bit x86).
+.RE
+Changes/Extensions:
+.RE
+- do-while does not require a compound statement (eg.
+.B do f(); while (1);
+is valid).
+.RE
+- the pointer '*' is part of the type, instead of the name (
+.B int* a;
+not
+.B int *a;
+).
+.RE
+- added new basic type \fBbyte\fR, which is guaranteed to be exactly 8 bits wide.
+.RE
+- parameter names of function implementations may be omitted. (eg.
+.B int add(int, int a) { return a; }
+).
+.RE
+- added
+.B arraylen
+operator, which is similar to the
+.B sizeof
+operator. Instead it evaluates to the length in elements of the array.
+.RE
+- the
+.B auto
+keyword behaves as in C++11.
+.RE
+- function pointer types are now consistent (eg.
+.B int(int, int)*
+instead of
+.B int(*)(int, int)
+).
+.RE
+- added
+.B typeof
+operator, which is similar to the
+.B sizeof
+operator. Instead it evaluates the type and returns a string(const char*).
+
+
+.SH OPTIMIZATIONS
+Supported optimization techniques:
+.RE
+- constant folding (-O1)
+.RE
+- target-specific micro-optimizations (-O1)
+.RE
+- multiply to shift (-O1)
+.RE
+- fusion of memory instructions for x86 (-O2)
+.RE
+- dead-code elimination (-O1)
+.RE
+- constant evaluation of function call targets (-O1)
+.RE
+- experimental and/or unsafe optimizations (-O3)
+
+.SH TARGETS
+Currently supported target architectures:
+.RE
+- i386
+.RE
+- x86_64
+.RE
+- riscv32
+.RE
+- riscv64
+
+.RE
+The compiler uses the System V ABI, where applicable.
+.RE
+There is no multilib support, the compiler is installed for a single target-architecture.
+If a second target is wanted, the compiler must be rebuild and reinstalled for the specific architecure.
+
+.SH SEE ALSO
+.BR bcpp (1)
+.BR nasm (1)
+
