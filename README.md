@@ -28,6 +28,9 @@ Common configure options:<br>
 | --disable-fp | disable preliminary floating-point support |
 | --with-cpu=CPU | select the target CPU |
 | --with-abi=ABI | select the target ABI |
+<br>
+For Debug build use:<br>
+<code>CFLAGS=-g -Og ./configure</code>
 
 ### Building
 Just a simple<br>
@@ -41,4 +44,5 @@ Install to a different PREFIX:<br>
 
 ## Testing
 Testing can be performed with:<br>
-<code>make test</code>
+<code>make check</code><br>
+If you have any issues, please paste the output.<br>
