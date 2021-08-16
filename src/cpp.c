@@ -77,3 +77,15 @@ FILE* run_cpp(const char* source_name) {
    }
 
 }
+void cpp_remove_macro(const char* name) {
+   const size_t len_name = strlen(name);
+   for (size_t i = 0; i < buf_len(predef_macros); ++i) {
+      const char* m = predef_macros[i];
+      const char* end = strchr(m, '=');
+      if (!end) end = m + strlen(m);
+      if ((end - m) == len_name && !memcmp(name, m, len_name)) {
+         buf_remove(predef_macros, i, 1);
+         --i;
+      }
+   }
+}

@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
    enable_warnings = true;
    optim_level = 1;
    int option;
-   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:CD:")) != -1) {
+   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:CD:U:")) != -1) {
       switch (option) {
       case 'h':
          printf("Usage: bcc [options] file...\nOptions:\n%s", help_options);
@@ -191,6 +191,9 @@ int main(int argc, char* argv[]) {
          break;
       case 'D':
          buf_push(predef_macros, optarg);
+         break;
+      case 'U':
+         cpp_remove_macro(optarg);
          break;
       case ':':
          if (optopt == 'd') goto print_usage;

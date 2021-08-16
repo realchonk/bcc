@@ -21,5 +21,6 @@ extern const char* cpp_path;
 extern char** predef_macros;
 extern char** includes;
 FILE* run_cpp(const char* source_name);
+void cpp_remove_macro(const char*);
 
 #endif /* FILE_CPP_H */
