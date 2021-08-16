@@ -14,6 +14,8 @@ Short term:
 - fix calling convention for struct/union
 - fix nasm warning for indirect function calls on x86_64
 - more test cases for switch/case
+- add -U option
 - cpp: add # and ## operator
 - cpp: more tests for macro expansion
 - cpp: support for variadic macros
+- cpp: add #line directive

@@ -24,7 +24,8 @@ bcc_SOURCES = src/bcc.c src/cpp.c src/error.c src/expr.c src/func.c src/ir.c src
 
 bcc_CPPFLAGS = -DBCC_TARGET=\"$(TARGET)\" -DBCC_ARCH=\"$(ARCH)\" -DBCC_FULL_ARCH=\"$(FULL_ARCH)\" \
 					-I$(top_srcdir)/include -DBCC_$(FULL_ARCH)=1 -DBITS=$(BITS) \
-					-DBCPP_PATH=\"$(bindir)/`echo bcpp | sed '$(transform)'`\"
+					-DBCPP_PATH=\"$(bindir)/`echo bcpp | sed '$(transform)'`\" \
+					-D_XOPEN_SOURCE=700
 bcc_CFLAGS = -Wextra
 
 if ARCH_x86
