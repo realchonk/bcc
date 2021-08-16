@@ -29,7 +29,7 @@ bool console_color = true;
 int main(int argc, char* argv[]) {
    const char* output_name = "-";
    int option;
-   while ((option = getopt(argc, argv, ":D:VEo:I:Ch")) != -1) {
+   while ((option = getopt(argc, argv, ":D:VEo:I:ChU:")) != -1) {
       switch (option) {
       case 'h':
          printf("Usage: bcpp [options] file\nOptions:\n%s", help_options);
@@ -60,6 +60,9 @@ int main(int argc, char* argv[]) {
          break;
       case 'D':
          add_cmdline_macro(optarg);
+         break;
+      case 'U':
+         remove_macro(strint(optarg));
          break;
       default:
          goto print_usage;
