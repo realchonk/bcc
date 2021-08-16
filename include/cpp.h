@@ -17,10 +17,13 @@
 #define FILE_CPP_H
 #include <stdio.h>
 
+struct cpp_arg {
+   char option;
+   const char* arg;
+};
+
 extern const char* cpp_path;
-extern char** predef_macros;
-extern char** includes;
+extern struct cpp_arg* cpp_args;
 FILE* run_cpp(const char* source_name);
-void cpp_remove_macro(const char*);
 
 #endif /* FILE_CPP_H */

@@ -23,8 +23,7 @@
 #include "buf.h"
 
 const char* cpp_path = BCPP_PATH;
-char** predef_macros = NULL;
-char** includes = NULL;
+struct cpp_arg* cpp_args = NULL;
 
 FILE* run_cpp(const char* source_name) {
    int pipes[2];
@@ -44,28 +43,22 @@ FILE* run_cpp(const char* source_name) {
       if (!console_colors)
          buf_push(args, strdup("-C"));
       buf_push(args, strdup("-E"));
-      for (size_t i = 0; i < buf_len(includes); ++i) {
-         buf_push(args, strdup("-I"));
-         buf_push(args, includes[i]);
+      for (size_t i = 0; i < buf_len(cpp_args); ++i) {
+         char* s = malloc(3);
+         if (!s) panic("failed to allocate argument");
+         s[0] = '-';
+         s[1] = cpp_args[i].option;
+         s[2] = '\0';
+         buf_push(args, s);
+         if (cpp_args[i].arg)
+            buf_push(args, cpp_args[i].arg);
       }
       buf_push(args, strdup("-D__bcc__=1"));
       buf_push(args, strdup("-D__" BCC_FULL_ARCH "__=1"));
-      for (size_t i = 0; i < buf_len(predef_macros); ++i) {
-         buf_push(args, strdup("-D"));
-         buf_push(args, predef_macros[i]);
-      }
       buf_push(args, strdup("-o"));
       buf_push(args, strdup("-"));
       buf_push(args, strdup(source_name));
       buf_push(args, NULL);
-
-#if 0
-      fprintf(stderr, "bcpp");
-      for (size_t i = 0; args[i]; ++i) {
-         fprintf(stderr, " %s", args[i]);
-      }
-      fputc('\n', stderr);
-#endif
 
       execvp(cpp_path, args);
       panic("failed to exec %s", cpp_path);
@@ -76,16 +69,4 @@ FILE* run_cpp(const char* source_name) {
       else return file;
    }
 
-}
-void cpp_remove_macro(const char* name) {
-   const size_t len_name = strlen(name);
-   for (size_t i = 0; i < buf_len(predef_macros); ++i) {
-      const char* m = predef_macros[i];
-      const char* end = strchr(m, '=');
-      if (!end) end = m + strlen(m);
-      if ((end - m) == len_name && !memcmp(name, m, len_name)) {
-         buf_remove(predef_macros, i, 1);
-         --i;
-      }
-   }
 }

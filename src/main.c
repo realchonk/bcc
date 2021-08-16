@@ -27,108 +27,15 @@
 #include "cpp.h"
 #include "ir.h"
 
-bool enable_warnings;
-unsigned optim_level;
-bool console_colors = true;
-
-static istr_t replace_ending(const char* s, const char* end) {
-   const size_t len_end = strlen(end);
-   const char* dot = strrchr(s, '.');
-   const size_t len_s = dot ? (size_t)(dot - s) : strlen(s);
-   char new_str[len_s + len_end + 2];
-   memcpy(new_str, s, len_s);
-   new_str[len_s] = '.';
-   memcpy(new_str + len_s + 1, end, len_end);
-   new_str[len_s + len_end + 1] = '\0';
-   return strint(new_str);
-}
-static bool ends_with(const char* str, const char* end) {
-   const char* ending = strrchr(str, '.');
-   return ending && !strcmp(ending + 1, end);
-}
-
 static const char* remove_asm_filename;
 static void remove_asm_file(void) {
    remove(remove_asm_filename);
 }
 
-static int get_mach_opt_vtype(const char* value) {
-   if (!value) return 0;
-   while (isdigit(*value)) ++value;
-   return *value ? 2 : 1;
-}
-static bool parse_mach_opt(char* arg) {
-   if (!strcmp(arg, "help")) {
-      puts("Machine Options for " BCC_FULL_ARCH);
-      const size_t max_len = 24;
-      for (size_t i = 0; i < num_mach_opts; ++i) {
-         const struct machine_option* opt = &mach_opts[i];
-         size_t n = (size_t)printf("-m%s", opt->name);
-         switch (opt->type) {
-         case 1:
-            n += (size_t)printf("=integer");
-            break;
-         case 2:
-            n += (size_t)printf("=string");
-            break;
-         default:
-            break;
-         }
-         for (; n < max_len; ++n)
-            putchar(' ');
-         puts(opt->description);
-      }
-      return false;
-   }
-   char* value = strchr(arg, '=');
-   const size_t len_arg = value ? (size_t)(value - arg) : strlen(arg);
-   if (value) ++value;
-   for (size_t i = 0; i < num_mach_opts; ++i) {
-      struct machine_option* opt = &mach_opts[i];
-      const size_t len_name = strlen(opt->name);
-      if (len_name == len_arg && !memcmp(arg, opt->name, len_arg)) {
-         const int type = get_mach_opt_vtype(value);
-         if (type != opt->type) {
-            if (value) *value = '\0';
-            fprintf(stderr, "bcc: invalid type for option '-m%s'\n", arg);
-            return false;
-         } else if (value) {
-            if (type == 1) opt->iVal = atoi(value);
-            else if (type == 2) opt->sVal = value;
-            else {
-               *value = '\0';
-               fprintf(stderr, "bcc: unexpected value for '-m%s'\n", arg);
-               return false;
-            }
-         } else if (!value) {
-            if (type == 0) opt->bVal = true;
-            else {
-               fprintf(stderr, "bcc: expected value for '-m%s'\n", arg);
-               return false;
-            }
-         }
-         return true;
-      } else if (len_arg == (len_name + 3) && !memcmp("no-", arg, 3) && !memcmp(opt->name, arg + 3, len_arg - 3)) {
-         if (value) {
-            *value = '\0';
-            fprintf(stderr, "bcc: unexpected '=' for '-m%s'\n", arg);
-            return false;
-         } else if (opt->type) break;
-         opt->bVal = 0;
-         return true;
-      }
-   }
-   if (value) *value = '\0';
-   fprintf(stderr, "bcc: invalid option '-m%s'\n", arg);
-   return false;
-}
-
-
 int main(int argc, char* argv[]) {
+   struct cpp_arg cpp_arg;
    const char* output_file = NULL;
    int level = 'c';
-   enable_warnings = true;
-   optim_level = 1;
    int option;
    while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:CD:U:")) != -1) {
       switch (option) {
@@ -184,16 +91,14 @@ int main(int argc, char* argv[]) {
          if (!parse_mach_opt(optarg)) return false;
          break;
       case 'I':
-         buf_push(includes, optarg);
+      case 'D':
+      case 'U':
+         cpp_arg.option = option;
+         cpp_arg.arg = optarg;
+         buf_push(cpp_args, cpp_arg);
          break;
       case 'C':
          console_colors = false;
-         break;
-      case 'D':
-         buf_push(predef_macros, optarg);
-         break;
-      case 'U':
-         cpp_remove_macro(optarg);
          break;
       case ':':
          if (optopt == 'd') goto print_usage;

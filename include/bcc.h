@@ -17,6 +17,7 @@
 #define FILE_BCC_H
 #include <stdbool.h>
 #include <stdint.h>
+#include "strint.h"
 
 extern bool enable_warnings;
 extern unsigned optim_level;
@@ -24,6 +25,11 @@ extern bool console_colors;
 
 unsigned popcnt(uintmax_t);
 #define is_pow2(n) (popcnt(n) == 1)
+
+istr_t replace_ending(const char* s, const char* end);
+bool ends_with(const char* s, const char* end);
+int get_mach_opt_vtype(const char*);
+bool parse_mach_opt(char*);
 
 #endif /* FILE_BCC_H */
 
