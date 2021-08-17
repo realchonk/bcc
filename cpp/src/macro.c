@@ -137,11 +137,19 @@ bool dir_define(size_t linenum, const char* line, struct token* tokens, size_t n
                return false;
             }
             while (isspace(*s)) ++s;
-            m.text = expand2(linenum, s, NULL, m.name);
+            m.text = expand(linenum, s, NULL, m.name, true);
+            if (!m.text) {
+               warn(linenum, "failed to expand macro function");
+               return false;
+            }
          }
       } else {
          while (isspace(*s)) ++s;
-         m.text = expand2(linenum, s, NULL, m.name);
+         m.text = expand(linenum, s, NULL, m.name, false);
+         if (!m.text) {
+            warn(linenum, "failed to expand macro");
+            return false;
+         }
       }
    }
    add_macro(&m);

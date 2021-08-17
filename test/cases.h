@@ -782,15 +782,13 @@
       "int main(void) {"
       "  puts(str(42));"
       "}",
-   .output = "42",
+   .output = "42\n",
 },
 {
    .name = "nested macro functions",
-   .compiles = true,
+   .compiles = false,
    .source =
       "#define f(x) x\n"
       "#define f(x) f(x)\n"
-      "#define f(x) f(x)\n"
       "int main(void) { return f(42); }",
-   .ret_val = 42,
 },

@@ -268,7 +268,7 @@ static int do_eval(size_t linenum, const char** str) {
 }
 
 int eval(size_t linenum, const char* str) {
-   char* e = expand2(linenum, str, NULL, NULL);
+   char* e = expand(linenum, str, NULL, NULL, false);
    const char* s = e;
    const int v = do_eval(linenum, &s);
    free(e);

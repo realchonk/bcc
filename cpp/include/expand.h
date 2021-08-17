@@ -22,9 +22,8 @@ struct var {
    const char* text;
 };
 
-char* expand(size_t linenum, const char* begin, const char* end);
-char* expand2(size_t linenum, const char* s, struct var* vars, const char* macro_name);
-char* expand_macro(size_t linenum, const struct macro*);
-char* expand_macro_func(const struct macro*, char** params);
+char* expand(size_t linenum, const char* s, struct var* vars, const char* macro_name, bool pre_expand);
+char* expand_macro(size_t linenum, const struct macro*, bool pre_expand);
+char* expand_macro_func(const struct macro*, char** params, bool pre_expand);
 
 #endif /* FILE_EXPAND_H */

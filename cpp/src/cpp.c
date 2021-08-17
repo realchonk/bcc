@@ -81,7 +81,7 @@ int run_cpp(FILE* in, FILE* out) {
       buf_free(tokens);
       if (suppress_code) continue;
 
-      char* e = expand2(lines[i].linenum, lines[i].line, NULL, NULL);
+      char* e = expand(lines[i].linenum, lines[i].line, NULL, NULL, false);
       if (!e) {
          warn(i, "failed to expand");
          failed = true;

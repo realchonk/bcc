@@ -35,6 +35,13 @@ static char* buf_putsr_impl(char* buf, const char* begin, const char* end) {
 #define buf_puts(buf, s) ((buf) = (buf_puts_impl((buf), (s))))
 
 // other helper functions
+static const struct var* find_var(const struct var* vars, istr_t name) {
+   for (size_t i = 0; i < buf_len(vars); ++i) {
+      if (name == vars[i].name)
+         return &vars[i];
+   }
+   return NULL;
+}
 
 static const char* parse_param(const size_t linenum, const char* s) {
    size_t depth = 0;
@@ -75,8 +82,7 @@ static const char* parse_param(const size_t linenum, const char* s) {
 
 // actual expansion
 
-char* expand2(size_t linenum, const char* s, struct var* vars, const char* macro_name) {
-   const size_t nv = buf_len(vars);
+char* expand(size_t linenum, const char* s, struct var* vars, const char* macro_name, bool pre) {
    char* buf = NULL;
    while (*s) {
       if (*s == '"') {
@@ -105,21 +111,44 @@ char* expand2(size_t linenum, const char* s, struct var* vars, const char* macro
          }
          ++s;
          buf_push(buf, '\'');
+      } else if (*s == '#' && !pre) {
+         ++s;
+         if (*s == '#') {
+            warn(linenum, "'##' cannot appear at either end of a macro expansion");
+            return buf_free(buf), NULL;
+         }
+         const char* begin = s;
+         while (isname(*s)) ++s;
+         const istr_t name = strrint(begin, s);
+         const struct var* v = find_var(vars, name);
+         if (!v) {
+            warn(linenum, "'#' is not followed by a macro parameter");
+            return buf_free(buf), NULL;
+         }
+         char* e = expand(linenum, v->text, NULL, NULL, pre);
+         if (!e) {
+            warn(linenum, "failed to expand macro parameter");
+            return buf_free(buf), NULL;
+         }
+         buf_insert(e, 0, '"');
+         buf_last(e) = '"';
+         buf_push(e, '\0');
+         buf_puts(buf, e);
+         buf_free(e);
       } else if (isname1(*s)) {
          const char* begin = s;
          while (isname(*s)) ++s;
          const istr_t name = strrint(begin, s);
-         for (size_t i = 0; i < nv; ++i) {
-            if (vars[i].name == name) {
-               char* e = expand2(linenum, vars[i].text, NULL, macro_name);
-               if (!e) {
-                  warn(linenum, "failed to expand");
-                  return buf_free(buf), NULL;
-               }
-               buf_puts(buf, e);
-               buf_free(e);
-               goto end_loop;
+         const struct var* v = find_var(vars, name);
+         if (v) {
+            char* e = expand(linenum, v->text, NULL, NULL, pre);
+            if (!e) {
+               warn(linenum, "failed to expand macro parameter");
+               return buf_free(buf), NULL;
             }
+            buf_puts(buf, e);
+            buf_free(e);
+            goto end_loop;
          }
          if (name == macro_name) {
             buf_puts(buf, name);
@@ -143,7 +172,7 @@ char* expand2(size_t linenum, const char* s, struct var* vars, const char* macro
                   const char* begin = s;
                   s = parse_param(linenum, s);
                   char* tmp = strndup(begin, s - begin);
-                  char* e = expand2(linenum, tmp, NULL, NULL);
+                  char* e = expand(linenum, tmp, NULL, NULL, pre);
                   free(tmp);
                   if (!e) {
                      warn(linenum, "failed to expand");
@@ -164,7 +193,7 @@ char* expand2(size_t linenum, const char* s, struct var* vars, const char* macro
                      buf_len(m->params), buf_len(params));
                return buf_free(buf), NULL;
             }
-            char* e = expand_macro_func(m, params);
+            char* e = expand_macro_func(m, params, pre);
             if (!e) return buf_free(buf), NULL;
             buf_puts(buf, e);
             for (size_t i = 0; i < buf_len(params); ++i)
@@ -172,7 +201,7 @@ char* expand2(size_t linenum, const char* s, struct var* vars, const char* macro
             buf_free(params);
             buf_free(e);
          } else {
-            char* e = expand_macro(linenum, m);
+            char* e = expand_macro(linenum, m, pre);
             if (!e) return buf_free(buf), NULL;
             buf_puts(buf, e);
             buf_free(e);
@@ -180,22 +209,27 @@ char* expand2(size_t linenum, const char* s, struct var* vars, const char* macro
       } else {
          buf_push(buf, *s++);
       }
+      
+      if (*s == '#' && s[1] == '#') {
+         s += 2;
+      }
+
    end_loop:;
    }
 
    buf_push(buf, '\0');
    return buf;
 }
-char* expand_macro(size_t linenum, const struct macro* m) {
+char* expand_macro(size_t linenum, const struct macro* m, bool pre) {
    if (m->type == MACRO_SPEC) {
       char* s = m->handler(linenum);
       char* buf = NULL;
       buf_puts(buf, s);
       free(s);
       return buf;
-   } else return expand2(m->linenum, m->text, NULL, m->name);
+   } else return expand(m->linenum, m->text, NULL, m->name, pre);
 }
-char* expand_macro_func(const struct macro* m, char** params) {
+char* expand_macro_func(const struct macro* m, char** params, bool pre) {
    struct var* vars = NULL;
    for (size_t i = 0; i < buf_len(m->params); ++i) {
       struct var v;
@@ -203,13 +237,7 @@ char* expand_macro_func(const struct macro* m, char** params) {
       v.text = params[i];
       buf_push(vars, v);
    }
-   char* e = expand2(m->linenum, m->text, vars, m->name);
+   char* e = expand(m->linenum, m->text, vars, m->name, pre);
    buf_free(vars);
-   return e;
-}
-char* expand(size_t linenum, const char* begin, const char* end) {
-   char* s = strndup(begin, end - begin);
-   char* e = expand2(linenum, s, NULL, NULL);
-   free(s);
    return e;
 }
