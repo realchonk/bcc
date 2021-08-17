@@ -61,6 +61,9 @@ static bool do_cpp_stuff(size_t linenum, const char* line, struct token* tokens,
 int run_cpp(FILE* in, FILE* out) {
    struct line_pair* lines = read_lines(in);
 
+   if (failed)
+      return 1;
+
    char* buf;
    size_t len_buf;
    FILE* tmp = open_memstream(&buf, &len_buf);

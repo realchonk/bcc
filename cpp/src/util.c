@@ -13,6 +13,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <string.h>
+#include <ctype.h>
 #include "cpp.h"
 
 const char* source_name = NULL;
@@ -28,13 +30,12 @@ static int read_char2(FILE* file, size_t* linenum) {
 static int read_char(FILE* file, size_t* linenum) {
    int ch = read_char2(file, linenum);
    if (ch == '/') {
-      ch = fgetc(file);
+      ch = read_char2(file, linenum);
       if (ch == '/') {
          while (!feof(file) && read_char2(file, linenum) != '\n');
          return read_char(file, linenum);
       } else if (ch == '*') {
          while (!feof(file)) {
-            ch = read_char2(file, linenum);
             if (read_char2(file, linenum) == '*' && read_char2(file, linenum) == '/')
                return read_char(file, linenum);
          }
@@ -71,6 +72,25 @@ static char* read_line(FILE* file, bool* eof, size_t* linenum) {
    return line;
 }
 
+// check if #line
+static bool check_hline(const char* s, size_t* linenum) {
+   while (isspace(*s)) ++s;
+   if (*s != '#') return false;
+   ++s;
+   while (isspace(*s)) ++s;
+   if (strncmp("line", s, 4) != 0)
+      return false;
+   s += 4;
+   while (isspace(*s)) ++s;
+   size_t nl = 0;
+   while (isdigit(*s))
+      nl = nl * 10 + (*s++ - '0');
+   if (!nl)
+      fail(*linenum, "expected valid line number, not '%c'", *s);
+   *linenum = nl - 1;
+   return true;
+}
+
 struct line_pair* read_lines(FILE* file) {
    struct line_pair* pairs = NULL;
    bool eof = false;
@@ -79,8 +99,11 @@ struct line_pair* read_lines(FILE* file) {
       struct line_pair pair;
       pair.linenum = linenum;
       pair.line = read_line(file, &eof, &linenum);
-      if (pair.line)
+      if (pair.line) {
+         if (check_hline(pair.line, &linenum))
+            continue;
          buf_push(pairs, pair);
+      }
    } while (!eof);
    return pairs;
 }

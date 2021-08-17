@@ -14,6 +14,7 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <string.h>
+#include <stdio.h>
 #include <time.h>
 #include "macro.h"
 #include "cpp.h"
@@ -49,6 +50,12 @@ static char* spec_TIME(size_t linenum) {
    return date;
 }
 
+static char* spec_LINE(size_t linenum) {
+   char* buf = malloc(64);
+   snprintf(buf, 64, "%zu", linenum + 1);
+   return buf;
+}
+
 #define add(n) \
    m.name = strint("__"#n"__"); \
    m.type = MACRO_SPEC; \
@@ -62,4 +69,5 @@ void init_macros(void) {
    add(FILE);
    add(DATE);
    add(TIME);
+   add(LINE);
 }
