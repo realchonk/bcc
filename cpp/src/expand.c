@@ -130,7 +130,7 @@ char* expand2(size_t linenum, const char* s, struct var* vars, const char* macro
             buf_puts(buf, name);
             continue;
          }
-         if (m->is_func) {
+         if (m->type == MACRO_FUNC) {
             if (*s != '(') {
                warn(linenum, "expected '(' for expansion of '%s'", name);
                return buf_free(buf), NULL;
@@ -172,7 +172,7 @@ char* expand2(size_t linenum, const char* s, struct var* vars, const char* macro
             buf_free(params);
             buf_free(e);
          } else {
-            char* e = expand_macro(m);
+            char* e = expand_macro(linenum, m);
             if (!e) return buf_free(buf), NULL;
             buf_puts(buf, e);
             buf_free(e);
@@ -186,8 +186,14 @@ char* expand2(size_t linenum, const char* s, struct var* vars, const char* macro
    buf_push(buf, '\0');
    return buf;
 }
-char* expand_macro(const struct macro* m) {
-   return expand2(m->linenum, m->text, NULL, m->name);
+char* expand_macro(size_t linenum, const struct macro* m) {
+   if (m->type == MACRO_SPEC) {
+      char* s = m->handler(linenum);
+      char* buf = NULL;
+      buf_puts(buf, s);
+      free(s);
+      return buf;
+   } else return expand2(m->linenum, m->text, NULL, m->name);
 }
 char* expand_macro_func(const struct macro* m, char** params) {
    struct var* vars = NULL;

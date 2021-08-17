@@ -28,7 +28,11 @@ struct macro_entry {
 static struct macro_entry* macros = NULL;
 
 static void free_macro(struct macro* macro) {
-   buf_free(macro->params);
+   switch (macro->type) {
+   case MACRO_FUNC:
+      buf_free(macro->params);
+      break;
+   }
 }
 
 static struct macro_entry* find_me(istr_t name) {
@@ -38,6 +42,7 @@ static struct macro_entry* find_me(istr_t name) {
    }
    return NULL;
 }
+
 
 void add_macro(const struct macro* m) {
    struct macro_entry* e = find_me(m->name);
@@ -81,9 +86,8 @@ void add_cmdline_macro(const char* arg) {
    }
 
    m.name = strrint(begin_name, arg);
-   m.text = *arg ? arg + 1 : NULL;
-   m.is_func = false;
-   m.params = NULL;
+   m.type = MACRO_VAR;
+   m.text = *arg ? arg + 1 : "1";
    add_macro(&m);
 }
 
@@ -103,15 +107,15 @@ bool dir_define(size_t linenum, const char* line, struct token* tokens, size_t n
    }
    struct macro m;
    m.name = strnint(tokens[0].begin, tokens[0].end - tokens[0].begin);
-   m.is_func = false;
+   m.type = MACRO_VAR;
    m.text = "";
-   m.params = NULL;
    m.linenum = linenum;
    size_t tki = 1;
    if (tki < num_tks) {
       const char* s = tokens[tki].begin;
       if (*s == '(') {
-         m.is_func = true;
+         m.type = MACRO_FUNC;
+         m.params = NULL;
          ++s;
          while (isspace(*s)) ++s;
          if (*s != ')') {

@@ -19,17 +19,29 @@
 #include "strint.h"
 #include "buf.h"
 
+enum macro_type {
+   MACRO_VAR,     // just your normal #define X 42
+   MACRO_FUNC,    // macro function (eg. #define f(x) x)
+   MACRO_SPEC,    // macro backed by a C function (__FILE__, __TIME__ etc.)
+};
+
+typedef char*(*special_macro_handler_t)(size_t linenum);
+
 struct macro {
+   enum macro_type type;
    istr_t name;
-   bool is_func;
-   const char* text;
-   istr_t* params;
    size_t linenum;
+   const char* text;
+   union {
+      special_macro_handler_t handler;
+      istr_t* params;
+   };
 };
 
 void add_macro(const struct macro*);
 bool remove_macro(istr_t);
 const struct macro* get_macro(istr_t);
 void add_cmdline_macro(const char* arg);
+void init_macros(void);
 
 #endif /* FILE_MACRO_H */

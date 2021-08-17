@@ -14,6 +14,7 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <ctype.h>
+#include "expand.h"
 #include "token.h"
 #include "macro.h"
 #include "cpp.h"
@@ -80,16 +81,7 @@ static int prim(size_t linenum, const char** str) {
          }
          return get_macro(name) != NULL;
       }
-      if (**str == '(') {
-         ++*str;
-         // TODO: implement macro functions
-         fail(linenum, "macro functions are currently not implemented");
-         return 0;
-      }
-      const struct macro* m = get_macro(name);
-      if (m)
-         return eval(linenum, m->text);
-      else return 0;
+      return 0;
    } else if (**str == '"') {
       fail(linenum, "strings are not valid preprocessor expressions");
       return 0;
@@ -276,5 +268,9 @@ static int do_eval(size_t linenum, const char** str) {
 }
 
 int eval(size_t linenum, const char* str) {
-   return do_eval(linenum, &str);
+   char* e = expand2(linenum, str, NULL, NULL);
+   const char* s = e;
+   const int v = do_eval(linenum, &s);
+   free(e);
+   return v;
 }

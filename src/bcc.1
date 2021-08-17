@@ -1,4 +1,4 @@
-.TH bcc 1 "2021-08-16" "bcc-VERSION"
+.TH bcc 1 "2021-08-17" "bcc-VERSION"
 
 .SH NAME
 bcc - brainlet C compiler
@@ -12,7 +12,8 @@ bcc - brainlet C compiler
 .OP -o \fIoutput\fR
 .OP -m \fImach_opt\fR
 .OP -I \fIinclude_path\fR
-.OP -D \fIname\fR[=\fIvalue\fR]
+.OP -D\fIname\fR[=\fIvalue\fR]
+.OP -U\fIname\fR
 .I source
 .YS
 .SY bcc
@@ -132,10 +133,16 @@ Suppress the color output.
 .RS 5
 Specify an include path for the preprocessor to search.
 .RE
-.B -D \fIname\fR[=\fIvalue\fR]
+.B -D\fIname\fR[=\fIvalue\fR]
 .RE
 .RS 5
 Specify a predefined macro.
+.RE
+.B -U\fIname\fR
+.RE
+.RS 5
+Remove macro
+.I name\fR
 .RE
 
 .SH OPERANDS

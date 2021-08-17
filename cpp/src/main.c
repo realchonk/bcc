@@ -28,6 +28,7 @@ bool console_color = true;
 
 int main(int argc, char* argv[]) {
    const char* output_name = "-";
+   istr_t* undef_macros = NULL;
    int option;
    while ((option = getopt(argc, argv, ":D:VEo:I:ChU:")) != -1) {
       switch (option) {
@@ -62,7 +63,7 @@ int main(int argc, char* argv[]) {
          add_cmdline_macro(optarg);
          break;
       case 'U':
-         remove_macro(strint(optarg));
+         buf_push(undef_macros, strint(optarg));
          break;
       default:
          goto print_usage;
@@ -72,6 +73,9 @@ int main(int argc, char* argv[]) {
    print_usage:
       fputs("Usage: bcpp [options] input\n", stderr);
       return 1;
+   }
+   for (size_t i = 0; i < buf_len(undef_macros); ++i) {
+      remove_macro(undef_macros[i]);
    }
    buf_push(cmdline_includes, NULL);
 
@@ -89,6 +93,7 @@ int main(int argc, char* argv[]) {
       return 1;
    }
 
+   init_macros();
    const int status = run_cpp(source, output);
 
    fclose(source);
