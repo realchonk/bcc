@@ -123,6 +123,10 @@ int main(int argc, char* argv[]) {
          return 1;
       } else return assemble(source_file, replace_ending(source_file, target_info.fend_obj));
    }
+
+   // define macros
+   define_macros();
+
    FILE* source = run_cpp(source_file);
    if (!source) {
       fprintf(stderr, "bcc: failed to open '%s': %s\n", source_file, strerror(errno));

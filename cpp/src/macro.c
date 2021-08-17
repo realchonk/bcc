@@ -47,6 +47,10 @@ static struct macro_entry* find_me(istr_t name) {
 void add_macro(const struct macro* m) {
    struct macro_entry* e = find_me(m->name);
    if (e) {
+      if (e->macro.type == MACRO_SPEC) {
+         fail(m->linenum, "redefining special macro '%s' is not allowed", e->macro.name);
+         return;
+      }
       free_macro(&e->macro);
       e->macro = *m;
    } else {
@@ -65,6 +69,10 @@ bool remove_macro(istr_t name) {
    struct macro_entry* e = find_me(name);
    
    if (e) {
+      if (e->macro.type == MACRO_SPEC) {
+         fail(1, "undefining special macro '%s' is not allowed", e->macro.name);
+         return false;
+      }
       if (e->prev) e->prev->next = e->next;
       else macros = e->next;
       if (e->next) e->next->prev = e->prev;

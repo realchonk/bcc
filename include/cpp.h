@@ -25,5 +25,6 @@ struct cpp_arg {
 extern const char* cpp_path;
 extern struct cpp_arg* cpp_args;
 FILE* run_cpp(const char* source_name);
+void define_macros(void);
 
 #endif /* FILE_CPP_H */

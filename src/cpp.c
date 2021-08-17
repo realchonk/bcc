@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
+#include "target.h"
 #include "error.h"
 #include "cpp.h"
 #include "bcc.h"
@@ -51,7 +52,7 @@ FILE* run_cpp(const char* source_name) {
          s[2] = '\0';
          buf_push(args, s);
          if (cpp_args[i].arg)
-            buf_push(args, cpp_args[i].arg);
+            buf_push(args, strdup(cpp_args[i].arg));
       }
       buf_push(args, strdup("-D__bcc__=1"));
       buf_push(args, strdup("-D__" BCC_FULL_ARCH "__=1"));
@@ -69,4 +70,19 @@ FILE* run_cpp(const char* source_name) {
       else return file;
    }
 
+}
+
+static void define(const char* n) {
+   struct cpp_arg arg;
+   arg.option = 'D';
+   arg.arg = n;
+   buf_push(cpp_args, arg); 
+}
+void define_macros(void) {
+   if (!target_info.has_c99_array) {
+      define("__STDC_NO_VLA__");
+   }
+   define("__STDC_NO_ATOMICS__");
+   define("__STDC_NO_COMPLEX__");
+   define("__STDC_NO_THREADS__");
 }
