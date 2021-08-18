@@ -30,7 +30,7 @@ Common configure options:<br>
 | --with-abi=ABI | select the target ABI |
 <br>
 For Debug build use:<br>
-<code>CFLAGS=-g -Og ./configure</code>
+<code>CFLAGS="-g -Og" ./configure</code>
 
 ### Building
 Just a simple<br>
