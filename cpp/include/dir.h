@@ -42,4 +42,7 @@ define_dir(error);
 define_dir(if);
 define_dir(elif);
 
+// other stuff
+const char* defined(void);
+
 #endif /* FILE_DIR_H */

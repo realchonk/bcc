@@ -13,34 +13,23 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef FILE_MACRO_H
-#define FILE_MACRO_H
-#include <stdbool.h>
-#include "strint.h"
-#include "buf.h"
+#ifndef FILE_IF_H
+#define FILE_IF_H
+#include "dir.h"
 
-enum macro_type {
-   MACRO_VAR,     // just your normal #define X 42
-   MACRO_FUNC,    // macro function (eg. #define f(x) x)
-   MACRO_SPEC,    // macro backed by a C function (__FILE__, __TIME__ etc.)
+enum if_layer_type {
+   LAY_IF,
+   LAY_ELIF,
+   LAY_ELSE,
 };
 
-typedef char*(*special_macro_handler_t)(size_t linenum);
+struct if_layer {
+   enum if_layer_type type;
+   bool value;
 
-struct macro {
-   enum macro_type type;
-   istr_t name;
-   size_t linenum;
-   const char* text;
-   union {
-      special_macro_handler_t handler;
-      istr_t* params;
-   };
+   bool prev; // for elif
 };
 
-void add_macro(const struct macro*);
-bool remove_macro(istr_t);
-const struct macro* get_macro(istr_t);
-void add_cmdline_macro(const char* arg);
+extern struct if_layer* if_layers;
 
-#endif /* FILE_MACRO_H */
+#endif /* FILE_IF_H */

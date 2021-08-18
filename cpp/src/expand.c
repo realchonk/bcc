@@ -16,6 +16,7 @@
 #include <string.h>
 #include "expand.h"
 #include "token.h"
+#include "dir.h"
 #include "cpp.h"
 
 // buf.h helper functions
@@ -139,6 +140,26 @@ char* expand(size_t linenum, const char* s, struct var* vars, const char* macro_
          const char* begin = s;
          while (isname(*s)) ++s;
          const istr_t name = strrint(begin, s);
+         if (name == defined()) {
+            while (isspace(*s)) ++s;
+            const bool has_paren = *s == '(';
+            while (isspace(*s)) ++s;
+            begin = s;
+            while (isname(*s)) ++s;
+            const istr_t name = strrint(begin, s);
+            while (isspace(*s)) ++s;
+            if (has_paren) {
+               if (*s != ')') {
+                  warn(linenum, "missing ')'", *s);
+                  return buf_free(buf), NULL;
+               }
+               ++s;
+            }
+            buf_puts(buf, "defined (");
+            buf_puts(buf, name);
+            buf_push(buf, ')');
+            continue;
+         }
          const struct var* v = find_var(vars, name);
          if (v) {
             char* e = expand(linenum, v->text, NULL, NULL, pre);
@@ -160,6 +181,7 @@ char* expand(size_t linenum, const char* s, struct var* vars, const char* macro_
             continue;
          }
          if (m->type == MACRO_FUNC) {
+            while (isspace(*s)) ++s;
             if (*s != '(') {
                warn(linenum, "expected '(' for expansion of '%s'", name);
                return buf_free(buf), NULL;

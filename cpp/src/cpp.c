@@ -25,6 +25,7 @@
 #include "cpp.h"
 #include "buf.h"
 #include "dir.h"
+#include "if.h"
 
 extern bool suppress_code;
 
@@ -91,9 +92,14 @@ int run_cpp(FILE* in, FILE* out) {
       fputc('\n', tmp);
       buf_free(e);
    }
-   free_lines(lines);
+   if (buf_len(if_layers) != 0) {
+      fail(buf_last(lines).linenum, "unterminated #if somewhere in the code, good luck finding it");
+   }
 
+   buf_free(if_layers);
+   free_lines(lines);
    fclose(tmp);
+
 
    if (!failed) {
       fwrite(buf, 1, len_buf, out);

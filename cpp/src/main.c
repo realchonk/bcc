@@ -94,6 +94,7 @@ int main(int argc, char* argv[]) {
    }
 
    init_macros();
+   init_includes();
    const int status = run_cpp(source, output);
 
    fclose(source);

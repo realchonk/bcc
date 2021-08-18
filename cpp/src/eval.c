@@ -28,9 +28,20 @@ static void skip_ws(const char** str) {
 
 static int do_eval(size_t linenum, const char** str);
 
-static const char* defined(void) {
+const char* defined(void) {
    static const char* str = NULL;
    return str ? str : (str = strint("defined"));
+}
+
+static bool is_int_suffix(char ch) {
+   ch = toupper(ch);
+   switch (ch) {
+   case 'L':
+   case 'U':
+      return true;
+   default:
+      return false;
+   }
 }
 
 static int prim(size_t linenum, const char** str) {
@@ -41,7 +52,7 @@ static int prim(size_t linenum, const char** str) {
       const int i = do_eval(linenum, str);
       skip_ws(str);
       if (**str != ')') {
-         fail(linenum, "missing ')' in expression");
+         fail(linenum, "missing ')' in expression, got '%s'", *str);
          return 0;
       }
       ++*str;
@@ -50,6 +61,8 @@ static int prim(size_t linenum, const char** str) {
       int i = 0;
       while (isdigit(**str))
          i = i * 10 + (*(*str)++ - '0');
+      while (is_int_suffix(**str))
+         ++*str;
       skip_ws(str);
       return i;
    } else if (isname1(**str)) {
@@ -59,13 +72,14 @@ static int prim(size_t linenum, const char** str) {
       istr_t name = strrint(begin, *str);
       skip_ws(str);
       if (name == defined()) {
+         skip_ws(str);
          const bool has_paren = **str == '(';
          if (has_paren) {
             ++*str;
             skip_ws(str);
          }
          if (!isname1(**str)) {
-            fail(linenum, "operator 'defined' expects an identifier");
+            fail(linenum, "operator 'defined' expects an identifier, not '%s'", *str);
             return 0;
          }
          begin = *str;
@@ -86,7 +100,7 @@ static int prim(size_t linenum, const char** str) {
       fail(linenum, "strings are not valid preprocessor expressions");
       return 0;
    } else {
-      fail(linenum, "invalid character: '%c'", *str);
+      fail(linenum, "invalid character: '%c' in '%s'", **str, *str);
       return 0;
    }
 }
@@ -247,6 +261,7 @@ static int ternary(size_t linenum, const char** str) {
          fail(linenum, "expected ':' for ternary");
          return 0;
       }
+      ++*str;
       const int right = ternary(linenum, str);
       skip_ws(str);
       return cond ? left : right;
@@ -269,8 +284,12 @@ static int do_eval(size_t linenum, const char** str) {
 
 int eval(size_t linenum, const char* str) {
    char* e = expand(linenum, str, NULL, NULL, false);
+   if (!e) {
+      fail(linenum, "failed to expand '%s'", str);
+      return 0;
+   }
    const char* s = e;
    const int v = do_eval(linenum, &s);
-   free(e);
+   buf_free(e);
    return v;
 }

@@ -35,6 +35,10 @@ AC_CHECK_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 AC_C_INLINE
 
+# TODO: --with-includes=
+SYS_INCLUDES="/usr/include:/usr/local/include"
+
+AC_DEFINE_UNQUOTED([SYS_INCLUDES], ["$SYS_INCLUDES"], [The default system-wide incldues])
 
 # Patch bcpp.1
 sed "s/VERSION/$VERSION/g" ${srcdir}/src/bcpp.1 >bcpp.1 || AC_MSG_ERROR([failed to patch bcpp.1])

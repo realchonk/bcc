@@ -20,22 +20,32 @@
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
+#include "config.h"
 #include "strint.h"
 #include "dir.h"
 #include "cpp.h"
+#include "if.h"
 
-// TODO: make configurable through something like includes.conf
+static const char** system_includes = NULL;
+void init_includes(void) {
+   if (system_includes) return;
+   char includes[] = SYS_INCLUDES;
+   if (!*includes) return;
+   const char delim[] = ":";
+   char* token;
 
-static const char* system_includes[] = {
-   "/usr/include",
-   "/usr/local/include",
-   NULL,
-};
+   token = strtok(includes, delim);
+   while (token != NULL) {
+      buf_push(system_includes, strdup(token));
+      token = strtok(NULL, delim);
+   }
+   buf_push(system_includes, NULL);
+}
+
 static const char* user_includes[] = {
    ".",
    NULL,
 };
-
 const char** cmdline_includes = NULL;
 
 static char* full_search_include(const char* name, const char** includes);
@@ -78,10 +88,21 @@ bool dir_include(size_t linenum, const char* line, struct token* tokens, size_t 
       warn(linenum, "failed to open '%s': %s", path, strerror(errno));
       return false;
    }
+
+   // save values
    const char* saved_name = source_name;
+   struct if_layer* saved_if_layers = if_layers;
+
+   // set new values
    source_name = path;
+   if_layers = NULL;
+
+   // run cpp on the included file
    const int ec = run_cpp(file, out);
+
+   // restore old values
    source_name = saved_name;
+   if_layers = saved_if_layers;
    fclose(file);
    free(path);
    return ec == 0;

@@ -47,4 +47,9 @@ int eval(size_t linenum, const char* s);
 noreturn void panic_impl(const char*, const char*, ...);
 #define panic(...) panic_impl(__func__, __VA_ARGS__)
 
+// Initialization stuff
+void init_macros(void);
+void init_includes(void);
+
+
 #endif /* FILE_CPP_H */

@@ -16,28 +16,16 @@
 #include "macro.h"
 #include "dir.h"
 #include "cpp.h"
+#include "if.h"
 
 bool suppress_code = false;
 
-enum layer_type {
-   LAY_IF,
-   LAY_ELIF,
-   LAY_ELSE,
-};
-
-struct layer {
-   enum layer_type type;
-   bool value;
-
-   bool prev; // for elif
-};
-
-static struct layer* layers = NULL;
+struct if_layer* if_layers = NULL;
 
 static void update_suppress(void) {
    suppress_code = false;
-   for (size_t i = 0; i < buf_len(layers); ++i) {
-      const struct layer* l = &layers[i];
+   for (size_t i = 0; i < buf_len(if_layers); ++i) {
+      const struct if_layer* l = &if_layers[i];
       if (l->type == LAY_ELIF) {
          if (l->prev || !l->value) {
             suppress_code = true;
@@ -61,10 +49,10 @@ static bool ifdef_impl(size_t linenum, struct token* tokens, size_t num_tks, boo
    }
 
    istr_t name = strrint(tokens[0].begin, tokens[0].end);
-   struct layer layer;
-   layer.type = LAY_IF;
-   layer.value = !negate && (get_macro(name) != NULL);
-   buf_push(layers, layer);
+   struct if_layer if_layer;
+   if_layer.type = LAY_IF;
+   if_layer.value = negate ^ (get_macro(name) != NULL);
+   buf_push(if_layers, if_layer);
    update_suppress();
    return true;
 
@@ -85,11 +73,11 @@ bool dir_endif(size_t linenum, const char* line, struct token* tokens, size_t nu
    (void)tokens;
    (void)num_tks;
    (void)out;
-   if (buf_len(layers) < 1) {
+   if (buf_len(if_layers) < 1) {
       warn(linenum, "invalid #endif");
       return false;
    }
-   buf_pop(layers);
+   buf_pop(if_layers);
    update_suppress();
    return true;
 }
@@ -98,23 +86,23 @@ bool dir_else(size_t linenum, const char* line, struct token* tokens, size_t num
    (void)tokens;
    (void)num_tks;
    (void)out;
-   if (buf_len(layers) < 1) {
+   if (buf_len(if_layers) < 1) {
       warn(linenum, "invalid #else");
       return false;
    }
-   struct layer* layer = &buf_last(layers);
-   switch (layer->type) {
+   struct if_layer* if_layer = &buf_last(if_layers);
+   switch (if_layer->type) {
    case LAY_IF:
-      layer->value = !layer->value;
+      if_layer->value = !if_layer->value;
       break;
    case LAY_ELIF:
-      layer->value = !layer->prev && !layer->value;
+      if_layer->value = !if_layer->prev && !if_layer->value;
       break;
    default:
       warn(linenum, "#else has to come after #if or #elif");
       return false;
    }
-   layer->type = LAY_ELSE;
+   if_layer->type = LAY_ELSE;
    update_suppress();
    return true;
 }
@@ -126,17 +114,17 @@ bool dir_if(size_t linenum, const char* line, struct token* tokens, size_t num_t
       warn(linenum, "expected expression");
       return false;
    }
-   struct layer layer;
-   layer.type = LAY_IF;
-   layer.value = eval(linenum, tokens[0].begin);
-   buf_push(layers, layer);
+   struct if_layer if_layer;
+   if_layer.type = LAY_IF;
+   if_layer.value = eval(linenum, tokens[0].begin);
+   buf_push(if_layers, if_layer);
    update_suppress();
    return true;
 }
 bool dir_elif(size_t linenum, const char* line, struct token* tokens, size_t num_tks, FILE* out) {
    (void)line;
    (void)out;
-   if (buf_len(layers) < 1) {
+   if (buf_len(if_layers) < 1) {
       warn(linenum, "invalid #elif");
       return false;
    }
@@ -144,20 +132,20 @@ bool dir_elif(size_t linenum, const char* line, struct token* tokens, size_t num
       warn(linenum, "expected expression");
       return false;
    }
-   struct layer* layer = &buf_last(layers);
-   switch (layer->type) {
+   struct if_layer* if_layer = &buf_last(if_layers);
+   switch (if_layer->type) {
    case LAY_IF:
-      layer->prev = layer->value;
+      if_layer->prev = if_layer->value;
       break;
    case LAY_ELIF:
-      layer->prev |= layer->value;
+      if_layer->prev |= if_layer->value;
       break;
    default:
       warn(linenum, "#elif has to come after #if or #elif");
       return false;
    }
-   layer->type = LAY_ELIF;
-   layer->value = eval(linenum, tokens[0].begin);
+   if_layer->type = LAY_ELIF;
+   if_layer->value = eval(linenum, tokens[0].begin);
    update_suppress();
    return true;
 }
