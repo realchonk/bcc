@@ -27,7 +27,7 @@ echo "const char* help_options ="
 while read line; do
    [ -z "${line}" ] && break
    if echo "${line}" | grep -q '^\.B '; then
-      option="$(echo "${line}" | awk '{print $2}') "
+      option="$(echo "${line}" | awk '{print $2, $3}') "
       while read line; do
          [ "${line}" = ".RS 5" ] && break
       done
