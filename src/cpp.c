@@ -13,6 +13,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <sys/wait.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -66,6 +67,12 @@ FILE* run_cpp(const char* source_name) {
    } else {
       close(pipes[1]);
       FILE* file = fdopen(pipes[0], "r");
+      
+      int wstatus;
+      waitpid(pid, &wstatus, 0);
+      if (WIFEXITED(pid) || WEXITSTATUS(wstatus) != 0)
+         return fclose(file), NULL;
+
       if (!file) panic("failed to open pipes[0]");
       else return file;
    }

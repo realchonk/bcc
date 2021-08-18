@@ -129,7 +129,6 @@ int main(int argc, char* argv[]) {
 
    FILE* source = run_cpp(source_file);
    if (!source) {
-      fprintf(stderr, "bcc: failed to open '%s': %s\n", source_file, strerror(errno));
       return 1;
    }
    
