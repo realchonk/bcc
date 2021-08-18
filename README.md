@@ -42,6 +42,8 @@ Just install to PREFIX (default: /usr/local)<br>
 Install to a different PREFIX:<br>
 <code>make DESTDIR=... install</code><br>
 
+Note: due to linking not being implemented yet, please use the *bcl* wrapper instead, which performs the linking process for now.
+
 ## Testing
 Testing can be performed with:<br>
 <code>make check</code><br>
