@@ -65,7 +65,13 @@ const struct target_info target_info = {
    .fend_asm = "asm",
    .fend_obj = "o",
 
+#if BITS == 32
    .ptrdiff_type = INT_INT,
+   .size_type = INT_INT,
+#else
+   .ptrdiff_type = INT_LONG,
+   .size_type = INT_LONG,
+#endif
    .has_c99_array = true,
 
    .size_int8 = INT_BYTE,

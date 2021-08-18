@@ -59,7 +59,8 @@ const struct target_info target_info = {
    .fend_asm = "s",
    .fend_obj = "o",
 
-   .ptrdiff_type = INT_INT,
+   .ptrdiff_type  = INT_LONG,
+   .size_type     = INT_LONG,
    .has_c99_array = false,
 
    .size_int8 = INT_BYTE,

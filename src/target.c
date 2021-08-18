@@ -43,6 +43,9 @@ void emit_init(FILE* f) {
    add_builtin_type("__builtin_uint32_t", make_int(target_info.size_int32, true));
    if (target_info.size_int64 != NUM_INTS)
       add_builtin_type("__builtin_uint64_t", make_int(target_info.size_int64, true));
+
+   add_builtin_type("__builtin_ptrdiff_t", make_int(target_info.ptrdiff_type, false));
+   add_builtin_type("__builtin_size_t", make_int(target_info.size_type, true));
 }
 
 void emit_free(void) {

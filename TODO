@@ -17,6 +17,7 @@ Short term:
 - cpp: more tests for macro expansion
 - cpp: support for variadic macros
 - remove _GNU_SOURCE dependency
+- add _Bool built-in type
 
 Missing features required by POSIX standard:
 - options: -g, -L, -l, -s
