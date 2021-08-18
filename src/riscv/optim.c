@@ -20,12 +20,6 @@
 #include "optim.h"
 #include "error.h"
 
-#if BITS == 32
-#define SBITS "32"
-#else
-#define SBITS "64"
-#endif
-
 // Turn IR_MUL to IR_IFCALL (if no M extension)
 static bool mul_to_func(ir_node_t** n) {
    if (riscv_cpu.has_mult)

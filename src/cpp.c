@@ -72,7 +72,19 @@ FILE* run_cpp(const char* source_name) {
 
 }
 
-static void define(const char* n) {
+void define_macro2(const char* n, const char* v) {
+   const size_t len = strlen(n) + strlen(v) + 2;
+   char* str = malloc(len);
+   if (!str)
+      panic("failed to allocate string");
+   snprintf(str, len, "%s=%s", n, v);
+
+   struct cpp_arg arg;
+   arg.option = 'D';
+   arg.arg = str;
+   buf_push(cpp_args, arg); 
+}
+void define_macro(const char* n) {
    struct cpp_arg arg;
    arg.option = 'D';
    arg.arg = n;
@@ -80,9 +92,10 @@ static void define(const char* n) {
 }
 void define_macros(void) {
    if (!target_info.has_c99_array) {
-      define("__STDC_NO_VLA__");
+      define_macro("__STDC_NO_VLA__");
    }
-   define("__STDC_NO_ATOMICS__");
-   define("__STDC_NO_COMPLEX__");
-   define("__STDC_NO_THREADS__");
+   define_macro("__STDC_NO_ATOMICS__");
+   define_macro("__STDC_NO_COMPLEX__");
+   define_macro("__STDC_NO_THREADS__");
+   define_target_macros();
 }

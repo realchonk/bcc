@@ -20,6 +20,7 @@
 #include "target.h"
 #include "config.h"
 #include "error.h"
+#include "cpp.h"
 
 const struct target_info target_info = {
    .name = BCC_FULL_ARCH,
@@ -105,4 +106,16 @@ int assemble(const char* source, const char* output) {
       if (WIFEXITED(wstatus)) return WEXITSTATUS(wstatus);
       panic("failed to wait for nasm");
    }
+}
+
+void define_target_macros(void) {
+#if BITS == 32
+   define_macro("__i386");
+   define_macro("__i386__");
+#else
+   define_macro("__amd64__");
+   define_macro("__amd64");
+   define_macro("__x86_64__");
+   define_macro("__x86_64");
+#endif
 }

@@ -15,6 +15,7 @@
 
 #include "riscv/cpu.h"
 #include "target.h"
+#include "cpp.h"
 
 const struct target_info target_info = {
    .name = "riscv32",
@@ -69,4 +70,9 @@ const struct target_info target_info = {
    .max_immed = 2047,
    .min_immed = -2048,
 };
+
+void define_target_macros(void) {
+   define_macro("__riscv");
+   define_macro2("__riscv_xlen", SBITS);
+}
 

@@ -108,5 +108,6 @@ void add_builtin_type(const char* name, struct value_type*);
 struct builtin_func* get_builtin_func(const char* name);
 bool emit_prepare(void);
 const struct machine_option* get_mach_opt(const char* name);
+void define_target_macros(void);
 
 #endif /* FILE_TARGET_H */

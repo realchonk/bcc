@@ -16,6 +16,7 @@ Short term:
 - more test cases for switch/case
 - cpp: more tests for macro expansion
 - cpp: support for variadic macros
+- remove _GNU_SOURCE dependency
 
 Missing features required by POSIX standard:
 - options: -g, -L, -l, -s

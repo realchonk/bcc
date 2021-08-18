@@ -26,5 +26,7 @@ extern const char* cpp_path;
 extern struct cpp_arg* cpp_args;
 FILE* run_cpp(const char* source_name);
 void define_macros(void);
+void define_macro(const char*);
+void define_macro2(const char*, const char*);
 
 #endif /* FILE_CPP_H */
