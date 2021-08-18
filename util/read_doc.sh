@@ -37,7 +37,7 @@ while read line; do
          info="${info} ${line}"
       done
       len_option=${#option}
-      printf "\t\"  %-20s %s\\\\n\"\n" "${option}" "$(echo "${info}" | sed 's/\.[A-Z]\+\s//g;s/f[IR]//g')"
+      printf "\t\"  %-20s %s\\\\n\"\n" "$(echo "${option}" | sed 's/f[IR]//g')" "$(echo "${info}" | sed 's/\.[A-Z]\+\s//g;s/f[IR]//g')"
    fi
 done
 
