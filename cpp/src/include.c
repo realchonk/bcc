@@ -49,6 +49,7 @@ static const char* user_includes[] = {
 const char** cmdline_includes = NULL;
 
 static char* full_search_include(const char* name, const char** includes);
+static char* search_same_dir(const char* name);
 
 bool dir_include(size_t linenum, const char* line, struct token* tokens, size_t num_tks, FILE* out) {
    (void)line;
@@ -61,7 +62,9 @@ bool dir_include(size_t linenum, const char* line, struct token* tokens, size_t 
    char* path;
    if (tokens->type == TK_STRING) {
       name = strrint(tokens->begin + 1, tokens->end - 1);
-      path = full_search_include(name, user_includes);
+      path = search_same_dir(name);
+      if (!path)
+         path = full_search_include(name, user_includes);
       if (!path) {
          warn(linenum, "failed to find include \"%s\"", name);
          return false;
@@ -108,9 +111,34 @@ bool dir_include(size_t linenum, const char* line, struct token* tokens, size_t 
    return ec == 0;
 }
 
+// searching functions
+
 static bool file_exists(const char* path) {
    struct stat st;
    return stat(path, &st) == 0;
+}
+static char* search_same_dir(const char* name) {
+   const size_t len_name = strlen(name);
+   const char* slash = strrchr(source_name, '/');
+   size_t len_path;
+   char* path;
+   if (slash) {
+      const size_t len_dir = slash - source_name;
+      len_path = len_dir + len_name + 2;
+      path = malloc(len_path);
+      if (!path) panic("failed to allocate path");
+      memcpy(path, source_name, len_dir);
+      path[len_dir] = '/';
+      strncpy(path + len_dir + 1, name, len_name + 1);
+   } else {
+      len_path = len_name + 3;
+      path = malloc(len_path);
+      if (!path) panic("failed to allocate path");
+      snprintf(path, len_path, "./%s", name);
+   }
+   if (file_exists(path))
+      return path;
+   else return free(path), NULL;
 }
 
 static char* search_include(const char* name, const char** includes) {
