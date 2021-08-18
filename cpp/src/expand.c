@@ -143,6 +143,7 @@ char* expand(size_t linenum, const char* s, struct var* vars, const char* macro_
          if (name == defined()) {
             while (isspace(*s)) ++s;
             const bool has_paren = *s == '(';
+            if (has_paren) ++s;
             while (isspace(*s)) ++s;
             begin = s;
             while (isname(*s)) ++s;
@@ -150,7 +151,7 @@ char* expand(size_t linenum, const char* s, struct var* vars, const char* macro_
             while (isspace(*s)) ++s;
             if (has_paren) {
                if (*s != ')') {
-                  warn(linenum, "missing ')'", *s);
+                  warn(linenum, "missing ')', got '%c'", *s);
                   return buf_free(buf), NULL;
                }
                ++s;
