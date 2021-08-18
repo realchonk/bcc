@@ -8,7 +8,6 @@ Long term:
 - improve warnings
 - port to other architectures (like MIPS, ARM)
 - floating-point support
-- create bcc-specific standard includes (eg. <stddef.h>)
 
 Short term:
 - fix stack-alignment for x86
@@ -17,6 +16,10 @@ Short term:
 - more test cases for switch/case
 - cpp: more tests for macro expansion
 - cpp: support for variadic macros
+
+Missing features required by POSIX standard:
+- options: -g, -L, -l, -s
+- linking support
 
 Helpful Websites:
 - https://pubs.opengroup.org/onlinepubs/9699919799/utilities/c99.html
