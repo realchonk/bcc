@@ -41,6 +41,7 @@ define_dir(else);
 define_dir(error);
 define_dir(if);
 define_dir(elif);
+define_dir(warning);
 
 // other stuff
 const char* defined(void);

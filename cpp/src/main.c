@@ -66,20 +66,23 @@ int main(int argc, char* argv[]) {
          buf_push(undef_macros, strint(optarg));
          break;
       default:
-         goto print_usage;
+      print_help:;
+         fputs("Usage: bcpp [options] [file]\n", stderr);
+         return 1;
       }
    }
-   if ((argc - optind) != 1) {
-   print_usage:
-      fputs("Usage: bcpp [options] input\n", stderr);
-      return 1;
-   }
+   // TODO: implement support for multiple files
+   if ((argc - optind) > 1)
+      goto print_help;
+   else if ((argc - optind) == 1)
+      source_name = argv[optind];
+   else source_name = "-";
+
    for (size_t i = 0; i < buf_len(undef_macros); ++i) {
       remove_macro(undef_macros[i]);
    }
    buf_push(cmdline_includes, NULL);
 
-   source_name = argv[optind];
    FILE* source = !strcmp(source_name, "-") ? stdin : fopen(source_name, "r");
    if (!source) {
       fprintf(stderr, "bcpp: failed to open '%s': %s\n", source_name, strerror(errno));

@@ -29,6 +29,7 @@ static struct directive dirs[] = {
    { .name = "error",   .handler = dir_error,   true  },
    { .name = "if",      .handler = dir_if,      false },
    { .name = "elif",    .handler = dir_elif,    false },
+   { .name = "warning", .handler = dir_warning, false },
 };
 
 struct directive* get_dir(const char* name, size_t len) {
@@ -49,4 +50,14 @@ bool dir_error(size_t linenum, const char* line, struct token* tokens, size_t nu
    }
    warn(linenum, "#error: %s", tokens[0].begin);
    return false;
+}
+bool dir_warning(size_t linenum, const char* line, struct token* tokens, size_t num_tks, FILE* out) {
+   (void)line;
+   (void)out;
+   if (num_tks < 1) {
+      warn(linenum, "#warning expects a message");
+      return false;
+   }
+   warn(linenum, "#warning: %s", tokens[0].begin);
+   return true;
 }
