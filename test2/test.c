@@ -1,7 +1,6 @@
-int
-main (void)
-{
+int printf(const char*, ...);
 
-  ;
-  return 0;
+int main(void) {
+   printf("Hello World\n");
+   return 0;
 }

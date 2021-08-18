@@ -13,22 +13,19 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef FILE_CPP_H
-#define FILE_CPP_H
-#include <stdio.h>
+#ifndef __ISO646_H__
+#define __ISO646_H__
 
-struct cpp_arg {
-   char option;
-   const char* arg;
-};
+#define and       &&
+#define and_eq    &=
+#define bitand    &
+#define bitor     |
+#define compl     ~
+#define not       !
+#define not_eq    !=
+#define or        ||
+#define or_eq     |=
+#define xor       ^
+#define xor_eq    ^=
 
-extern const char* cpp_path;
-extern struct cpp_arg* cpp_args;
-FILE* run_cpp(const char* source_name);
-void define_macros(void);
-void define_macro(const char*);
-void define_macro2(const char*, const char*);
-void define_macro2i(const char*, intmax_t);
-void define_macro2u(const char*, uintmax_t);
-
-#endif /* FILE_CPP_H */
+#endif /* __ISO646_H__ */

@@ -792,3 +792,13 @@
       "#define f(x) f(x)\n"
       "int main(void) { return f(42); }",
 },
+{
+   .name = "#include <stdint.h>",
+   .compiles = true,
+   .source =
+      "#include <stdint.h>\n"
+      "int main(void) {"
+      "  return sizeof(uint32_t);"
+      "}",
+   .ret_val = 4,
+},

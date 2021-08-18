@@ -92,6 +92,16 @@ void define_macro2(const char* n, const char* v) {
    arg.arg = str;
    buf_push(cpp_args, arg); 
 }
+void define_macro2i(const char* n, intmax_t x) {
+   char str[100];
+   snprintf(str, sizeof(str), "%jd", x);
+   define_macro2(n, str);
+}
+void define_macro2u(const char* n, uintmax_t x) {
+   char str[100];
+   snprintf(str, sizeof(str), "%ju", x);
+   define_macro2(n, str);
+}
 void define_macro(const char* n) {
    struct cpp_arg arg;
    arg.option = 'D';
@@ -106,4 +116,5 @@ void define_macros(void) {
    define_macro("__STDC_NO_COMPLEX__");
    define_macro("__STDC_NO_THREADS__");
    define_target_macros();
+   define_ctarget_macros();
 }

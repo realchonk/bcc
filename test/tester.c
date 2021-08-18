@@ -39,7 +39,7 @@
 #endif
 
 #define PATH_BCC "../bcc"
-#define BCC PATH_BCC " -C -e ../cpp/bcpp -c -O2 -w " BCC_ADD " -o "
+#define BCC PATH_BCC " -C -e ../cpp/bcpp -I ../bcc-include -c -O2 -w " BCC_ADD " -o "
 #define LINKER "gcc"
 #define TEST_SOURCE "/tmp/test.c"
 #define TEST_OBJECT "/tmp/test.o"

@@ -17,6 +17,7 @@
 #include <string.h>
 #include "target.h"
 #include "error.h"
+#include "cpp.h"
 
 #define ASM_INDENT ' '
 
@@ -150,4 +151,19 @@ const struct machine_option* get_mach_opt(const char* name) {
          return opt;
    }
    return NULL;
+}
+void define_ctarget_macros(void) {
+   define_macro2("__bcc_char_signed", target_info.unsigned_char ? "0" : "1");
+   define_macro2i("__bcc_min_schar", target_info.min_char);
+   define_macro2i("__bcc_max_schar", target_info.max_char);
+   define_macro2i("__bcc_max_uchar", target_info.max_uchar);
+   define_macro2i("__bcc_min_short", target_info.min_short);
+   define_macro2i("__bcc_max_short", target_info.max_short);
+   define_macro2i("__bcc_max_ushort", target_info.max_ushort);
+   define_macro2i("__bcc_min_int", target_info.min_int);
+   define_macro2i("__bcc_max_int", target_info.max_int);
+   define_macro2i("__bcc_max_uint", target_info.max_uint);
+   define_macro2i("__bcc_min_long", target_info.min_long);
+   define_macro2i("__bcc_max_long", target_info.max_long);
+   define_macro2i("__bcc_max_ulong", target_info.max_ulong);
 }
