@@ -67,9 +67,16 @@ transform = @program_transform_name@
 
 install-data-local:
 	install -Dm644 util/bcc.bash $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
+	install -Dm755 $(srcdir)/util/`echo bcl | sed '$(transform)'` $(DESTDIR)/$(bindir)/bcl
+	install -dm755 $(DESTDIR)/$(targetdir)/bin
+	ln -sf $(DESTDIR)/$(bindir)/`echo bcc | sed '$(transform)'` $(DESTDIR)/$(targetdir)/bin/bcc
+	ln -sf $(DESTDIR)/$(bindir)/`echo bcpp | sed '$(transform)'` $(DESTDIR)/$(targetdir)/bin/bcpp
+	ln -sf $(DESTDIR)/$(bindir)/`echo bcl | sed '$(transform)'` $(DESTDIR)/$(targetdir)/bin/bcl
 
 uninstall-local:
 	rm -f $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
+	rm -rf $(DESTDIR)/$(targetdir)
+	rm -f $(DESTDIR)/$(bindir)/bcl
 
 full-clean: clean
 	$(MAKE) -C cpp full-clean
