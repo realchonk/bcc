@@ -64,6 +64,8 @@ uninstall-local:
 
 full-clean: clean
 	$(MAKE) -C cpp full-clean
+	$(MAKE) -C test clean
+	$(MAKE) -C test2 clean
 	rm -f Makefile Makefile.in configure src/.dirstamp src/$(ARCH)/.dirstamp
 	rm -f config.h config.h.in config.h.in~ config.log config.status stamp-h1 aclocal.m4
 	rm -rf autom4te.cache build-aux src/.deps .deps src/$(ARCH)/.deps
