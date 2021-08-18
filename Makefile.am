@@ -25,7 +25,7 @@ bcc_SOURCES = src/bcc.c src/cpp.c src/error.c src/expr.c src/func.c src/ir.c src
 bcc_CPPFLAGS = -DBCC_TARGET=\"$(TARGET)\" -DBCC_ARCH=\"$(ARCH)\" -DBCC_FULL_ARCH=\"$(FULL_ARCH)\" \
 					-I$(top_srcdir)/include -DBCC_$(FULL_ARCH)=1 -DBITS=$(BITS) \
 					-DBCPP_PATH=\"$(bindir)/`echo bcpp | sed '$(transform)'`\" \
-					-D_XOPEN_SOURCE=700 -DSBITS=\"$(BITS)\"
+					-D_XOPEN_SOURCE=700 -DSBITS=\"$(BITS)\" -DTARGET_INCLUDE_DIR=\"$(includedir)\"
 bcc_CFLAGS = -Wextra
 
 if ARCH_x86
@@ -45,7 +45,14 @@ bcc_SOURCES += src/riscv/builtins.c \
 				 	src/riscv/target.c
 endif
 
+include_HEADERS = bcc-include/bcc-config.h	\
+						bcc-include/stdbool.h		\
+						bcc-include/stddef.h			\
+						bcc-include/stdint.h
+
 print-config:
+	@echo targetdir: $(targetdir)
+	@echo includedir: $(includedir)
 	@echo arch: $(ARCH)
 	@echo target: $(TARGET)
 	@echo enable-fp: $(ENABLE_FP)

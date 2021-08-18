@@ -59,6 +59,7 @@ FILE* run_cpp(const char* source_name) {
       buf_push(args, strdup("-D__" BCC_FULL_ARCH "__=1"));
       buf_push(args, strdup("-o"));
       buf_push(args, strdup("-"));
+      buf_push(args, strdup("-I" TARGET_INCLUDE_DIR));
       buf_push(args, strdup(source_name));
       buf_push(args, NULL);
 

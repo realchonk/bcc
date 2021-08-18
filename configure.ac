@@ -24,6 +24,7 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CANONICAL_TARGET 
 AM_INIT_AUTOMAKE([1.16 foreign subdir-objects -Wall])
 
+
 # Search for required programs
 AC_PROG_AWK
 AC_PROG_CC
@@ -62,6 +63,7 @@ riscv64-*)
    ;;
 *)
    AC_MSG_ERROR([invalid target architecture '${TARGET}'])
+   ;;
 esac
 AC_MSG_RESULT([$FULL_ARCH])
 
@@ -74,6 +76,10 @@ AC_SUBST([BITS])
 # Pass the architecture info to Makefile.am
 AM_CONDITIONAL([ARCH_x86], [test x$ARCH = xx86])
 AM_CONDITIONAL([ARCH_riscv], [test x$ARCH = xriscv])
+
+# Additional paths
+AC_SUBST([targetdir], ['${prefix}/${TARGET}'])
+AC_SUBST([includedir], ['${targetdir}/include'])
 
 # Find the assembler (NASM for x86, GNU as for other)
 if test $ARCH = x86; then

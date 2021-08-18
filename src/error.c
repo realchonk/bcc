@@ -46,7 +46,10 @@ noreturn void parse_error(const struct source_pos* pos, const char* fmt, ...) {
    va_start(ap, fmt);
 
    if (console_colors)
-      fputs("\033[31m", stderr);
+      fputs("\033[31;1m", stderr);
+   fputs("bcc:", stderr);
+   if (console_colors)
+      fputs("\033[0m\033[31m", stderr);
    print_source_pos(stderr, pos);
    fputs(": ", stderr);
    if (console_colors)
@@ -65,7 +68,10 @@ void parse_warn(const struct source_pos* pos, const char* fmt, ...) {
    va_start(ap, fmt);
 
    if (console_colors)
-      fputs("\033[33m", stderr);
+      fputs("\033[31;1m", stderr);
+   fputs("bcc:", stderr);
+   if (console_colors)
+      fputs("\033[0m\033[33m", stderr);
    print_source_pos(stderr, pos);
    fputs(": ", stderr);
    if (console_colors)

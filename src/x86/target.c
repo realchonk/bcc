@@ -28,10 +28,10 @@ const struct target_info target_info = {
    .size_char = 1,
    .size_short = 2,
    .size_int = 4,
-   .size_long = BITS * 8,
+   .size_long = BITS / 8,
    .size_float = 4,
    .size_double = 8,
-   .size_pointer = 4,
+   .size_pointer = BITS / 8,
 
    
    .min_byte   = INT8_MIN,
