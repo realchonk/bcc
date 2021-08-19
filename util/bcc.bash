@@ -13,6 +13,8 @@ _bcc() {
       _filedir -d
       return
       ;;
+   -D*|-U*)
+      return
    esac
    $split && return
 
@@ -22,6 +24,12 @@ _bcc() {
          return
       elif [[ $cur == -m* ]]; then
          COMPREPLY=(-mhelp $(compgen -W '$(_parse_help "$1" -mhelp)' -- "$cur"))
+         return
+      elif [[ $cur == -D* ]]; then
+         COMPREPLY=(-D)
+         return
+      elif [[ $cur == -U* ]]; then
+         COMPREPLY=(-U)
          return
       fi
       COMPREPLY=($(compgen -W '$(_parse_help "$1" -h)' -- "$cur"))
