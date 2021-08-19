@@ -71,8 +71,11 @@ FILE* run_cpp(const char* source_name) {
       
       int wstatus;
       waitpid(pid, &wstatus, 0);
-      if (WIFEXITED(pid) || WEXITSTATUS(wstatus) != 0)
+      if (WIFEXITED(pid) || WEXITSTATUS(wstatus) != 0) {
+         if (WEXITSTATUS(wstatus) == 139)
+            fputs("bcc: bcpp crashed.\n", stderr);
          return fclose(file), NULL;
+      }
 
       if (!file) panic("failed to open pipes[0]");
       else return file;
