@@ -96,6 +96,7 @@ struct value_type {
       struct {
          struct value_type* type;
          bool is_array;
+         bool is_restrict;
          struct {
             bool has_const_size;
             union {
@@ -163,5 +164,7 @@ void eval_expr(struct expression*, struct value*);
 bool vt_is_signed(const struct value_type*);
 
 #define is_struct(t) ((t) == VAL_STRUCT || (t) == VAL_UNION)
+#define vt_is_restrict(vt) (((vt)->type == VAL_POINTER) && ((vt)->pointer.is_restrict))
+#define vt_is_volatile(vt) ((vt)->is_volatile)
 
 #endif /* FILE_VALUE_H */

@@ -3,10 +3,10 @@ Planned features:
 Long term:
 - create libbcc and default includes
 - improve test-suite
-- labels & goto
+- array initialization syntax eg. 'int a[] = { 1, 2, 3, 4 }'
 - more optimization techniques
-- improve warnings
 - port to other architectures (like MIPS, ARM)
+- labels & goto
 - floating-point support
 
 Short term:

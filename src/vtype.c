@@ -214,6 +214,7 @@ static struct value_type* parse_ptr(struct value_type* vt) {
       ptr->end = tk2.end;
       while (lexer_match(KW_CONST)) ptr->is_const = true;
       while (lexer_match(KW_VOLATILE)) ptr->is_volatile = true;
+      while (lexer_match(KW_RESTRICT)) ptr->pointer.is_restrict = true;
       vt = ptr;
    }
    return vt;
@@ -228,7 +229,8 @@ struct value_type* parse_value_type(struct scope* scope) {
    vt->is_volatile = false;
    
    while (lexer_matches(KW_CONST) || lexer_matches(KW_VOLATILE)
-         || lexer_matches(KW_SIGNED) || lexer_matches(KW_UNSIGNED)) {
+         || lexer_matches(KW_SIGNED) || lexer_matches(KW_UNSIGNED)
+         || lexer_matches(KW_RESTRICT)) {
       const struct token tk = lexer_next();
       switch (tk.type) {
       case KW_CONST:    vt->is_const = true; break;
@@ -244,6 +246,9 @@ struct value_type* parse_value_type(struct scope* scope) {
          vt->integer.size = INT_INT;
          vt->integer.is_unsigned = true;
          has_signedness = true;
+         break;
+      case KW_RESTRICT:
+         parse_error(&tk.begin, "invalid use of the restrict keyword");
          break;
       default:          panic("invalid token type '%s'", token_type_str[tk.type]);
       }

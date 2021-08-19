@@ -802,3 +802,28 @@
       "}",
    .ret_val = 4,
 },
+{
+   .name = "restrict",
+   .compiles = true,
+   .source =
+      "int inc(int* restrict a) { ++*a; }"
+      "int main(void) {"
+      "  int x = 41;"
+      "  inc(&x);"
+      "  return x;"
+      "}",
+   .ret_val = 42,
+},
+{
+   .name = "invalid use of restrict",
+   .compiles = false,
+   .source =
+      "int f(restrict int x);"
+      "int main() {}"
+},
+{
+   .name = "invalid use of restrict 2",
+   .compiles = false,
+   .source =
+      "int main() { retrict int* x; }"
+},
