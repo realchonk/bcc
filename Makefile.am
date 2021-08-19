@@ -17,7 +17,7 @@ SUBDIRS = cpp
 
 ARCHDIR=$(top_srcdir)/src/$(ARCH)
 
-bin_PROGRAMS = bcc
+tbin_PROGRAMS = bcc
 bcc_SOURCES = src/bcc.c src/cpp.c src/error.c src/expr.c src/func.c src/ir.c src/irgen.c src/lex.c \
 				  src/main.c src/optim_expr.c src/optim_ir.c src/optim_stmt.c src/scope.c src/stmt.c \
 				  src/strdb.c src/strint.c src/target.c src/token.c src/unit.c src/value.c src/vtype.c
@@ -59,6 +59,7 @@ print-config:
 	@echo target: $(TARGET)
 	@echo enable-fp: $(ENABLE_FP)
 	@echo sources: $(bcc_SOURCES)
+	@echo version: $(version)
 
 man1_MANS = bcc.1
 
@@ -67,15 +68,19 @@ transform = @program_transform_name@
 
 install-data-local:
 	install -Dm644 util/bcc.bash $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
-	install -Dm755 $(srcdir)/util/`echo bcl | sed '$(transform)'` $(DESTDIR)/$(bindir)/bcl
-	install -dm755 $(DESTDIR)/$(targetdir)/bin
-	ln -sf $(DESTDIR)/$(bindir)/`echo bcc | sed '$(transform)'` $(DESTDIR)/$(targetdir)/bin/bcc
-	ln -sf $(DESTDIR)/$(bindir)/`echo bcpp | sed '$(transform)'` $(DESTDIR)/$(targetdir)/bin/bcpp
-	ln -sf $(DESTDIR)/$(bindir)/`echo bcl | sed '$(transform)'` $(DESTDIR)/$(targetdir)/bin/bcl
+	install -Dm755 $(srcdir)/util/bcl $(DESTDIR)/$(tbindir)/`echo bcl | sed '$(transform)'`
+	install -dm755 $(DESTDIR)/$(bindir)
+	mv $(DESTDIR)/$(bindir)/`echo bcpp | sed '$(transform)'` $(DESTDIR)/$(tbindir)/
+	ln -sf $(tbindir)/bcc  $(DESTDIR)/$(bindir)/`echo bcc  | sed '$(transform)'`  
+	ln -sf $(tbindir)/bcpp $(DESTDIR)/$(bindir)/`echo bcpp | sed '$(transform)'` 
+	ln -sf $(tbindir)/bcl  $(DESTDIR)/$(bindir)/`echo bcl  | sed '$(transform)'`  
+	ln -sf `echo bcc  | sed '$(transform)'` $(DESTDIR)/$(tbindir)/bcc
+	ln -sf `echo bcpp | sed '$(transform)'` $(DESTDIR)/$(tbindir)/bcpp
+	ln -sf `echo bcl  | sed '$(transform)'` $(DESTDIR)/$(tbindir)/bcl
 
 uninstall-local:
 	rm -f $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
-	rm -rf $(DESTDIR)/$(targetdir)
+	rm -rf $(DESTDIR)/$(tbindir)
 	rm -f $(DESTDIR)/$(bindir)/bcl
 
 full-clean: clean

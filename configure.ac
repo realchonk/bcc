@@ -24,6 +24,7 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CANONICAL_TARGET 
 AM_INIT_AUTOMAKE([1.16 foreign subdir-objects -Wall])
 
+AC_SUBST([version], [m4_defn([bcc_VERSION])])
 
 # Search for required programs
 AC_PROG_AWK
@@ -78,8 +79,10 @@ AM_CONDITIONAL([ARCH_x86], [test x$ARCH = xx86])
 AM_CONDITIONAL([ARCH_riscv], [test x$ARCH = xriscv])
 
 # Additional paths
+AC_SUBST([compilerdir], ['${prefix}/lib/bcc/${TARGET}/${version}'])
+AC_SUBST([includedir], ['${compilerdir}/include'])
 AC_SUBST([targetdir], ['${prefix}/${TARGET}'])
-AC_SUBST([includedir], ['${targetdir}/include'])
+AC_SUBST([tbindir], ['${targetdir}/bcc-bin/${version}'])
 
 # Find the assembler (NASM for x86, GNU as for other)
 if test $ARCH = x86; then
