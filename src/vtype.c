@@ -46,6 +46,7 @@ const char* value_type_str[NUM_VALS] = {
    "struct",
    "union",
    "function",
+   "_Bool",
 };
 
 bool is_func_vt(const struct value_type* vt) {
@@ -69,6 +70,7 @@ static bool ptreq(const struct value_type* a, const struct value_type* b) {
 #endif
    case VAL_POINTER: return ptreq(a->pointer.type, b->pointer.type);
    case VAL_STRUCT:  return a->vstruct->name == b->vstruct->name;
+   case VAL_BOOL:    return true;
    case VAL_FUNC:
    {
       if  ((a->func.variadic != b->func.variadic) || !ptreq(a->func.ret_val, b->func.ret_val)) return false;
@@ -149,6 +151,9 @@ void print_value_type(FILE* file, const struct value_type* val) {
          fputs("...", file);
       fputc(')', file);
       break;
+   case VAL_BOOL:
+      fputs("_Bool", file);
+      break;
    default: panic("invalid value type '%d'", val->type);
    }
    if (val->is_const) fputs(" const", file);
@@ -183,6 +188,7 @@ void free_value_type(struct value_type* val) {
 #endif
    case VAL_VOID:
    case VAL_AUTO:
+   case VAL_BOOL:
    case NUM_VALS:
       break;
    }
@@ -400,6 +406,11 @@ struct value_type* parse_value_type(struct scope* scope) {
       if (vt->type != NUM_VALS) parse_error(&tk.begin, "invalid combination of signed or unsigned and void");
       vt->type = VAL_AUTO;
       break;
+   case KW_BOOL:
+      lexer_skip();
+      if (vt->type != NUM_VALS) parse_error(&tk.begin, "invalid combination of signed or unsigned and _Bool");
+      vt->type = VAL_BOOL;
+      break;
    case TK_NAME:
    {
       if (vt->type != NUM_VALS) return vt;
@@ -476,6 +487,11 @@ struct value_type* common_value_type(const struct value_type* a, const struct va
             c->integer.is_unsigned = true;
          } else c->integer.is_unsigned = a->integer.is_unsigned;
          c->integer.size = my_max(a->integer.size, b->integer.size);
+         break;
+      case VAL_BOOL:
+         c->type = VAL_INT;
+         c->integer.is_unsigned = false;
+         c->integer.size = INT_INT;
          break;
 #if !DISABLE_FP
       case VAL_FLOAT:
@@ -686,6 +702,10 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
          case VAL_INT:
             if (vr->type == VAL_POINTER) return copy_value_type(vr);
             else return common_value_type(vl, vr, true);
+         case VAL_BOOL:
+            if (vr->type != VAL_INT && vr->type != VAL_POINTER && vr->type != VAL_BOOL)
+               parse_error(&e->binary.op.begin, "unsupported value type '%s' for bool addition", value_type_str[vr->type]);
+            return copy_value_type(vr);
 #if !DISABLE_FP
          case VAL_FLOAT:
             if (vr->type == VAL_POINTER)
@@ -852,6 +872,7 @@ struct value_type* copy_value_type(const struct value_type* vt) {
       break;
    case VAL_VOID:
    case VAL_AUTO:
+   case VAL_BOOL:
       break;
    default: panic("unsupported value type '%d'", vt->type);
    }
@@ -863,6 +884,8 @@ struct value_type* copy_value_type(const struct value_type* vt) {
 
 bool is_castable(const struct value_type* old, const struct value_type* type, bool implicit) {
    if (old->type == VAL_VOID || type->type == VAL_VOID) return false;
+   if (type->type == VAL_BOOL)
+      return !is_struct(old->type);
    switch (old->type) {
    case VAL_INT:
       switch (type->type) {
@@ -930,6 +953,14 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
    case VAL_STRUCT:
    case VAL_UNION:
       return old->type == type->type && old->vstruct->name == type->vstruct->name;
+   case VAL_BOOL:
+      if (type->type == VAL_POINTER)
+         return !implicit;
+#if DISABLE_FP
+      return type->type == VAL_INT;
+#else
+      return type->type == VAL_INT || type->type == VAL_FLOAT;
+#endif
    default: panic("invalid value type '%u'", type->type);
    }
 }
@@ -1007,6 +1038,8 @@ size_t sizeof_value(const struct value_type* vt, bool decay) {
       }
       return sz;
    }
+   case VAL_BOOL:
+      return target_info.size_byte;
    default:
       panic("invalid value type %d", vt->type);
    }

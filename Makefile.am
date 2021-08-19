@@ -71,12 +71,14 @@ install-data-local:
 	install -Dm755 $(srcdir)/util/bcl $(DESTDIR)/$(tbindir)/`echo bcl | sed '$(transform)'`
 	install -dm755 $(DESTDIR)/$(bindir)
 	mv $(DESTDIR)/$(bindir)/`echo bcpp | sed '$(transform)'` $(DESTDIR)/$(tbindir)/
-	ln -sf $(tbindir)/bcc  $(DESTDIR)/$(bindir)/`echo bcc  | sed '$(transform)'`  
-	ln -sf $(tbindir)/bcpp $(DESTDIR)/$(bindir)/`echo bcpp | sed '$(transform)'` 
-	ln -sf $(tbindir)/bcl  $(DESTDIR)/$(bindir)/`echo bcl  | sed '$(transform)'`  
-	ln -sf `echo bcc  | sed '$(transform)'` $(DESTDIR)/$(tbindir)/bcc
-	ln -sf `echo bcpp | sed '$(transform)'` $(DESTDIR)/$(tbindir)/bcpp
-	ln -sf `echo bcl  | sed '$(transform)'` $(DESTDIR)/$(tbindir)/bcl
+	ln -sf $(tbindir)/bcc  $(DESTDIR)/$(bindir)/`echo bcc  | sed '$(transform)'`
+	ln -sf $(tbindir)/bcpp $(DESTDIR)/$(bindir)/`echo bcpp | sed '$(transform)'`
+	ln -sf $(tbindir)/bcl  $(DESTDIR)/$(bindir)/`echo bcl  | sed '$(transform)'`
+	if [ `echo file | sed '$(transform)'` != file ]; then \
+		ln -sf `echo bcc  | sed '$(transform)'` $(DESTDIR)/$(tbindir)/bcc;	\
+		ln -sf `echo bcpp | sed '$(transform)'` $(DESTDIR)/$(tbindir)/bcpp;	\
+		ln -sf `echo bcl  | sed '$(transform)'` $(DESTDIR)/$(tbindir)/bcl;	\
+	fi
 
 uninstall-local:
 	rm -f $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`

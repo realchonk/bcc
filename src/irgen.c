@@ -85,6 +85,8 @@ enum ir_value_size vt2irs(const struct value_type* vt) {
    }
 }
 
+#define vt2irsb(vt) ((vt)->type == VAL_BOOL ? IRS_BYTE : (vt2irs(vt)))
+
 static ir_node_t* ir_expr(struct scope* scope, const struct expression* e);
 static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, bool* is_lv) {
    ir_node_t* n;
@@ -168,10 +170,8 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
    }
 }
 static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
-   //puts(expr_type_str[e->type]);
    assert(e->vtype != NULL);
    const struct value_type* vt = e->vtype;
-   const enum ir_value_size irs = vt2irs(vt);
    ir_node_t* n;
    ir_node_t* tmp;
    switch (e->type) {
@@ -181,7 +181,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       n = new_node(IR_LOAD);
       n->load.dest = creg++;
       n->load.value = e->uVal;
-      n->load.size = irs;
+      n->load.size = vt2irs(vt);
       break;
    case EXPR_CHAR:
       n = new_node(IR_LOAD);
@@ -191,6 +191,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       break;
    case EXPR_BINARY:
    {
+      const enum ir_value_size irs = vt2irsb(vt);
       const bool is_unsigned = vt->type == VAL_POINTER || (vt->type == VAL_INT && vt->integer.is_unsigned);
       struct value_type* vl = e->binary.left->vtype;
       struct value_type* vr = e->binary.right->vtype;
@@ -256,20 +257,20 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       }
       
       n = ir_expr(scope, e->binary.left);
-      if (irs != vt2irs(vl) && !is_cmp(e->binary.op.type)) {
+      if (irs != vt2irsb(vl) && !is_cmp(e->binary.op.type)) {
          tmp = new_node(IR_IICAST);
          tmp->iicast.dest = tmp->iicast.src = creg - 1;
          tmp->iicast.ds = irs;
-         tmp->iicast.ss = vt2irs(vl);
+         tmp->iicast.ss = vt2irsb(vl);
          tmp->iicast.sign_extend = !is_unsigned;
          ir_append(n, tmp);
       }
       ir_append(n, ir_expr(scope, e->binary.right));
-      if (irs != vt2irs(vr) && !is_cmp(e->binary.op.type)) {
+      if (irs != vt2irsb(vr) && !is_cmp(e->binary.op.type)) {
          tmp = new_node(IR_IICAST);
          tmp->iicast.dest = tmp->iicast.src = creg - 1;
          tmp->iicast.ds = irs;
-         tmp->iicast.ss = vt2irs(vr);
+         tmp->iicast.ss = vt2irsb(vr);
          tmp->iicast.sign_extend = !is_unsigned;
          ir_append(n, tmp);
       }
@@ -322,6 +323,17 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          ir_append(n, tmp);
       }
 
+      if (vt->type == VAL_BOOL) {
+         tmp = new_node(IR_ISTNE);
+         tmp->binary.dest     = creg - 2;
+         tmp->binary.size     = irs;
+         tmp->binary.a.type   = IRT_REG;
+         tmp->binary.a.reg    = creg - 2;
+         tmp->binary.b.type   = IRT_UINT;
+         tmp->binary.b.uVal   = 0;
+         ir_append(n, tmp);
+      }
+
       --creg;
       break;
    }
@@ -329,7 +341,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       n = ir_expr(scope, e->unary.expr);
       if (e->unary.op.type == TK_PLUS) break;
       tmp = new_node(IR_NOP);
-      tmp->unary.size = irs;
+      tmp->unary.size = vt2irs(vt);
       tmp->unary.reg = creg - 1;
       switch (e->unary.op.type) {
       case TK_MINUS: tmp->type = IR_INEG; break;
@@ -347,7 +359,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       if (is_lv && !is_struct(vt->type)) {
          tmp = new_node(IR_READ);
          tmp->read.dest = tmp->read.src = creg - 1;
-         tmp->read.size = irs;
+         tmp->read.size = vt2irsb(vt);
          tmp->read.sign_extend = vt_is_signed(vt);
          ir_append(n, tmp);
       }
@@ -360,13 +372,15 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       if (!is_lv) parse_error(&e->begin, "expected lvalue");
       tmp = new_node(IR_READ);
       tmp->read.dest = tmp->read.src = creg - 1;
-      tmp->read.size = irs;
+      tmp->read.size = vt2irsb(vt);
       tmp->read.sign_extend = vt_is_signed(vt);
       ir_append(n, tmp);
       break;
    }
    case EXPR_ASSIGN:
    {
+      const struct value_type* vtd = get_value_type(scope, e->assign.left);
+      const struct value_type* vts = get_value_type(scope, e->assign.right);
       bool is_lv;
       n = ir_expr(scope, e->assign.right);
       tmp = ir_lvalue(scope, e->assign.left, &is_lv);
@@ -378,8 +392,18 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          tmp->copy.src = creg - 2;
          tmp->copy.len = sizeof_value(vt, false);
       } else {
+         if (vtd->type == VAL_BOOL && vts->type != VAL_BOOL) {
+            tmp = new_node(IR_ISTNE);
+            tmp->binary.dest     = creg - 2;
+            tmp->binary.size     = vt2irs(vts);
+            tmp->binary.a.type   = IRT_REG;
+            tmp->binary.a.reg    = creg - 2;
+            tmp->binary.b.type   = IRT_UINT;
+            tmp->binary.b.uVal   = 0;
+            ir_append(n, tmp);
+         }
          tmp = new_node(IR_WRITE);
-         tmp->write.size = irs;
+         tmp->write.size = vt2irsb(vt);
          tmp->write.dest = creg - 1;
          tmp->write.src = creg - 2;
          tmp->write.is_volatile = vt_is_volatile(vt);
@@ -406,8 +430,50 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    case EXPR_CAST:
    {
       const struct value_type* svt = get_value_type(scope, e->cast.expr);
+      if (vt->type == VAL_BOOL) {
+         n = ir_expr(scope, e->cast.expr);
+         switch (svt->type) {
+         case VAL_BOOL:
+            break;
+         case VAL_INT:
+         case VAL_POINTER:
+            tmp = new_node(IR_ISTNE);
+            tmp->binary.dest     = creg - 1;
+            tmp->binary.a.type   = IRT_REG;
+            tmp->binary.a.reg    = creg - 1;
+            tmp->binary.b.type   = IRT_UINT;
+            tmp->binary.b.uVal   = 0;
+            tmp->binary.size     = vt2irs(svt);
+            ir_append(n, tmp);
+            break;
+         default:
+            panic("unsupported cast to _Bool");
+         }
+         break;
+      } else if (svt->type == VAL_BOOL) {
+         n = ir_expr(scope, e->cast.expr);
+         switch (vt->type) {
+         case VAL_BOOL:
+            break;
+         case VAL_INT:
+         case VAL_POINTER:
+            tmp = new_node(IR_IICAST);
+            tmp->iicast.dest  = creg - 1;
+            tmp->iicast.src   = creg - 1;
+            tmp->iicast.ds    = vt2irs(vt);
+            tmp->iicast.ss    = IRS_BYTE;
+            tmp->iicast.sign_extend = false;
+            ir_append(n, tmp);
+            break;
+         default:
+            panic("unsupported cast to _Bool");
+         }
+         break;
+      }
+
       if (svt->type != VAL_INT && svt->type != VAL_POINTER)
          parse_error(&e->begin, "unsupported cast");
+      const enum ir_value_size irs = vt2irs(vt);
       n = ir_expr(scope, e->cast.expr);
       tmp = new_node(IR_IICAST);
       tmp->iicast.dest = tmp->iicast.src = creg - 1;
@@ -432,12 +498,12 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          struct expression* p = e->fcall.params[i];
          const struct value_type* vp = get_value_type(scope, p);
          ir_node_t* ir = ir_expr(scope, p);
-         enum ir_value_size irs = i < buf_len(func->func.params) ? vt2irs(func->func.params[i]) : IRS_INT;
-         if (vt2irs(vp) < irs) {
+         enum ir_value_size irs = i < buf_len(func->func.params) ? vt2irsb(func->func.params[i]) : IRS_INT;
+         if (vt2irsb(vp) < irs) {
             tmp = new_node(IR_IICAST);
             tmp->iicast.dest = tmp->iicast.src = creg - 1;
             tmp->iicast.ds = irs;
-            tmp->iicast.ss = vt2irs(vp);
+            tmp->iicast.ss = vt2irsb(vp);
             tmp->iicast.sign_extend = irs == IRS_PTR ? false : !func->func.ret_val->integer.is_unsigned;
             ir_append(ir, tmp);
          }
@@ -459,12 +525,29 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       n = ir_lvalue(scope, e->unary.expr, &is_lv);
       if (!is_lv) parse_error(&e->unary.expr->begin, "expected lvalue");
       --creg;
+      if (vt->type == VAL_BOOL) {
+         tmp = new_node(IR_LOAD);
+         tmp->load.dest = creg - 1;
+         tmp->load.value = e->unary.op.type == TK_PLPL ? 1 : 0;
+         tmp->load.size = IRS_BYTE;
+         ir_append(n, tmp);
+
+         tmp = new_node(IR_WRITE);
+         tmp->write.dest = creg;
+         tmp->write.src = creg - 1;
+         tmp->write.size = IRS_BYTE;
+         tmp->write.is_volatile = vt_is_volatile(vt);
+         ir_append(n, tmp);
+         break;
+      }
+      const enum ir_value_size irs = vt2irs(vt);
 
       tmp = new_node(IR_READ);
       tmp->read.dest = creg - 1;
       tmp->read.src = creg;
       tmp->read.size = irs;
       tmp->read.sign_extend = false;
+      tmp->read.is_volatile = vt_is_volatile(vt);
       ir_append(n, tmp);
 
       tmp = new_node(e->unary.op.type == TK_PLPL ? IR_IADD : IR_ISUB);
@@ -492,12 +575,30 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       if (!is_lv) parse_error(&e->unary.expr->begin, "expected lvalue");
       --creg;
 
+      const enum ir_value_size irs = vt2irsb(vt);
+
       tmp = new_node(IR_READ);
       tmp->read.dest = creg - 1;
       tmp->read.src = creg;
       tmp->read.size = irs;
       tmp->read.sign_extend = false;
       ir_append(n, tmp);
+
+      if (vt->type == VAL_BOOL) {
+         tmp = new_node(IR_LOAD);
+         tmp->load.dest = creg + 1;
+         tmp->load.value = e->unary.op.type == TK_PLPL ? 1 : 0;
+         tmp->load.size = IRS_BYTE;
+         ir_append(n, tmp);
+
+         tmp = new_node(IR_WRITE);
+         tmp->write.dest = creg;
+         tmp->write.src = creg + 1;
+         tmp->write.size = IRS_BYTE;
+         tmp->write.is_volatile = vt_is_volatile(vt);
+         ir_append(n, tmp);
+         break;
+      }
 
       tmp = new_node(e->unary.op.type == TK_PLPL ? IR_IADD : IR_ISUB);
       tmp->binary.dest = creg - 1;
@@ -537,6 +638,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    }
    case EXPR_TERNARY:
    {
+      const enum ir_value_size irs = vt2irsb(vt);
       istr_t l1 = make_label(clbl);
       istr_t l2 = make_label(clbl + 1);
       clbl += 2;
@@ -671,9 +773,20 @@ ir_node_t* irgen_stmt(const struct statement* s) {
          case VAL_INT:
          case VAL_ENUM:
          case VAL_POINTER:
+         case VAL_BOOL:
          {
-            const enum ir_value_size irs = vt2irs(vt);
-            if (vt2irs(s->parent->func->type) != irs) {
+            const enum ir_value_size irs = vt2irsb(vt);
+            if (s->parent->func->type->type == VAL_BOOL && vt->type != VAL_BOOL) {
+               tmp->type = IR_ISTNE;
+               tmp->binary.dest     = creg - 1;
+               tmp->binary.size     = irs;
+               tmp->binary.a.type   = IRT_REG;
+               tmp->binary.a.reg    = creg - 1;
+               tmp->binary.b.type   = IRT_UINT;
+               tmp->binary.b.uVal   = 0;
+               ir_append(n, tmp);
+               tmp = new_node(IR_IRET);
+            } else if (vt->type != VAL_BOOL && vt2irs(s->parent->func->type) != irs) {
                tmp->type = IR_IICAST;
                tmp->iicast.dest = tmp->iicast.src = creg - 1;
                tmp->iicast.ds = vt2irs(s->parent->func->type);
@@ -773,6 +886,7 @@ ir_node_t* irgen_stmt(const struct statement* s) {
             }
          } else if (var->init) {
             struct expression* init = var->init;
+            const struct value_type* it = get_value_type(s->parent, init);
             cur = ir_expr(s->parent, init);
             tmp = new_node(IR_LOOKUP);
             tmp->lookup.reg = creg;
@@ -786,8 +900,18 @@ ir_node_t* irgen_stmt(const struct statement* s) {
                tmp->copy.src = creg - 1;
                tmp->copy.len = sizeof_value(var->type, false);
             } else {
+               if (var->type->type == VAL_BOOL && it->type != VAL_BOOL) {
+                  tmp = new_node(IR_ISTNE);
+                  tmp->binary.dest = creg - 1;
+                  tmp->binary.size = vt2irs(it);
+                  tmp->binary.a.type = IRT_REG;
+                  tmp->binary.a.reg = creg - 1;
+                  tmp->binary.b.type = IRT_UINT;
+                  tmp->binary.b.uVal = 0;
+                  ir_append(cur, tmp);
+               }
                tmp = new_node(IR_WRITE);
-               tmp->write.size = vt2irs(var->type);
+               tmp->write.size = vt2irsb(var->type);
                tmp->write.dest = creg;
                tmp->write.src = creg - 1;
                tmp->write.is_volatile = vt_is_volatile(var->type);

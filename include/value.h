@@ -39,6 +39,7 @@ enum value_base_type {
    VAL_STRUCT,
    VAL_UNION,
    VAL_FUNC,
+   VAL_BOOL,
 
    NUM_VALS,
 };

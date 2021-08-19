@@ -1,6 +1,9 @@
 int printf(const char*, ...);
 
+_Bool toBool(int x) { return x; }
+int toInt(_Bool x) { return x; }
 int main(void) {
-   printf("Hello World\n");
-   return 0;
+   _Bool b = toBool(42);
+   int i = toInt(b);
+   return b + i;
 }
