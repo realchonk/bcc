@@ -12,7 +12,7 @@ fi
 BCC="${target}bcc"
 LD="${target}gcc"
 
-args=$(getopt -o "cAiSEwhCe:I:D:U:O:d:l:L:" -- "$@") || exit 1
+args=$(getopt -o "VcAiSEwhCe:I:D:U:O:d:l:L:o:" -- "$@") || exit 1
 eval set -- "${args}"
 unset args
 
@@ -44,7 +44,7 @@ while true; do
       ld_options="${ld_options} $1$2"
       shift 2
       ;;
-   -h)
+   -h|-V)
       "${target}"bcc -h
       exit
       ;;
