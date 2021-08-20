@@ -43,6 +43,7 @@ riscv:
 - create libbcc (including crtX.o)
 - options: -g, -L, -l, -s
 - <stdarg.h> header
+- command-line interface accepting multiple source-files
 
 
 # Helpful Resources/Websites
