@@ -1,27 +1,51 @@
-Planned features:
 
-Long term:
-- create libbcc, default includes, crtx.o
-- improve test-suite
-- array initialization syntax eg. 'int a[] = { 1, 2, 3, 4 }'
-- more optimization techniques
-- port to other architectures (like MIPS, ARM)
-- labels & goto
+
+
+# Major things
 - floating-point support
-
-Short term:
-- fix stack-alignment for x86
-- fix calling convention for struct/union
-- fix nasm warning for indirect function calls on x86_64
-- more test cases for switch/case
-- cpp: more tests for macro expansion
-- cpp: support for variadic macros
-- remove _GNU_SOURCE dependency from tester
-- fix random crashes
-
-Missing features required by POSIX standard:
-- options: -g, -L, -l, -s
 - linking support
 
-Helpful Websites:
-- https://pubs.opengroup.org/onlinepubs/9699919799/utilities/c99.html
+
+# Language
+- inline keyword
+- array initialization syntax eg. 'int a[] = { 1, 2, 3, 4 }'
+- proper switch/case
+- labels & goto
+
+
+# IR-generation
+- more advanced optimization techniques
+
+# Architecture-specific related
+General:
+- passing/returning structs/unions
+
+x86:
+- fix nasm warning for indirect funcion calls (64bit)
+
+riscv:
+- more simple optimizations
+
+
+# Pre-processor
+- more test cases for macro expansion
+- support for variadic macros
+
+
+# Test suite
+- simplify
+- fix bugs
+- remove _GNU_SOURCE dependency
+
+
+# Other
+- find & fix reason for random crashes
+- create libbcc (including crtX.o)
+- options: -g, -L, -l, -s
+- <stdarg.h> header
+
+
+# Helpful Resources/Websites
+- POSIX C99 compiler    - https://pubs.opengroup.org/onlinepubs/9699919799/utilities/c99.html
+- C reference           - https://en.cppreference.com/w/c
+- System V ABI          - https://wiki.osdev.org/System_V_ABI
