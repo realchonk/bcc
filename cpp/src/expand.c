@@ -44,17 +44,45 @@ static const struct var* find_var(const struct var* vars, istr_t name) {
    return NULL;
 }
 
+static const char* parse_string(const char* s) {
+   char delim;
+   if (*s == '"' || *s == '\'')
+      delim = *s;
+   else return NULL;
+   ++s;
+   while (*s) {
+      if (*s == '\\') {
+         ++s;
+         if (*s == 'x') {
+            ++s;
+            for (int n = 0; n < 2 && isxdigit(*s); ++n, ++s);
+         } else if (isodigit(*s)) {
+            for (int n = 0; n < 3 && isodigit(*s); ++n, ++s);
+         } else if (*s == 'u') {
+            ++s;
+            for (int n = 0; n < 4 && isxdigit(*s); ++n, ++s);
+         } else if (*s == 'U') {
+            ++s;
+            for (int n = 0; n < 8 && isxdigit(*s); ++n, ++s);
+         } else {
+            ++s;
+         }
+      } else if (*s == delim)
+         break;
+      else ++s;
+   }
+   ++s;
+   return s;
+}
+
 static const char* parse_param(const size_t linenum, const char* s) {
    size_t depth = 0;
    while (*s) {
-      if (*s == '"') {
-         ++s;
-         while (*s) {
-            if (*s == '"' && s[-1] != '\\')
-               break;
-            else ++s;
+      if (*s == '"' || *s == '\'') {
+         s = parse_string(s);
+         if (!s) {
+            warn(linenum, "unterminated string");
          }
-         ++s;
       } else if (*s == '\'') {
          ++s;
          while (*s) {
@@ -86,32 +114,17 @@ static const char* parse_param(const size_t linenum, const char* s) {
 char* expand(size_t linenum, const char* s, struct var* vars, const char* macro_name, bool pre) {
    char* buf = NULL;
    while (*s) {
-      if (*s == '"') {
-         ++s;
-         buf_push(buf, '"');
-         while (1) {
-            if (!*s) {
-               warn(linenum, "unterminated string");
-               return buf_free(buf), NULL;
-            }
-            if (*s == '"' && s[-1] != '\\')
-               break;
-            buf_push(buf, *s);
-            ++s;
+      if (*s == '"' || *s == '\'') {
+         const char* begin = s;
+         s = parse_string(s);
+         if (!s) {
+            warn(linenum, "unterminated string");
+            return buf_free(buf), NULL;
          }
-         ++s;
-         buf_push(buf, '"');
-      } else if (*s == '\'') {
-         ++s;
-         buf_push(buf, '\'');
-         while (1) {
-            if (*s == '\'' && s[-1] != '\\')
-               break;
-            buf_push(buf, *s);
-            ++s;
+         while (begin != s) {
+            buf_push(buf, *begin);
+            ++begin;
          }
-         ++s;
-         buf_push(buf, '\'');
       } else if (*s == '#' && !pre) {
          ++s;
          if (*s == '#') {

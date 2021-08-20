@@ -42,4 +42,6 @@ bool is_directive(const char* line);
 #define isname1(ch) (isalpha(ch) || (ch) == '_')
 #define isname(ch) (isname1(ch) || isdigit(ch))
 
+int isodigit(int);
+
 #endif /* FILE_CPP_TOKEN_H */

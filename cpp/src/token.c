@@ -31,7 +31,7 @@ const char* token_type_str[] = {
 static int iscpunct(int ch) {
    return ch != '"' && ch != '\'' && ispunct(ch);
 }
-static int isodigit(int ch) {
+int isodigit(int ch) {
    return ch >= '0' && ch <= '7';
 }
 

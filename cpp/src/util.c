@@ -15,6 +15,7 @@
 
 #include <string.h>
 #include <ctype.h>
+#include "token.h"
 #include "cpp.h"
 
 const char* source_name = NULL;
@@ -27,8 +28,64 @@ static int read_char2(FILE* file, size_t* linenum) {
    return ch;
 }
 
+static char str_delim = 0;
+static bool escaping = false;
+static int escape = 0;
+static int escape_n = 0;
 static int read_char(FILE* file, size_t* linenum) {
    int ch = read_char2(file, linenum);
+
+   if (str_delim) {
+      if (escaping) {
+         switch (escape) {
+         case 0:
+            escape = ch;
+            escape_n = 0;
+            break;
+         case '0':
+         case '1':
+         case '2':
+         case '3':
+         case '4':
+         case '5':
+         case '6':
+         case '7':
+            if (escape_n == 3 || !isodigit(ch))
+               escape = escape_n = 0;
+            else ++escape_n;
+            break;
+         case 'x':
+            if (escape_n == 2 || !isxdigit(ch))
+               escape = escape_n = 0;
+            else ++escape_n;
+            break;
+         case 'u':
+            if (escape_n == 4 || !isxdigit(ch))
+               escape = escape_n = 0;
+            else ++escape_n;
+            break;
+         case 'U':
+            if (escape_n == 8 || !isxdigit(ch))
+               escape = escape_n = 0;
+            else ++escape_n;
+            break;
+         default:
+            escaping = false;
+            escape = 0;
+            break;
+         }
+      } else if (ch == '\\') {
+         escaping = true;
+         escape = 0;
+      } else if (ch == str_delim) {
+         str_delim = 0;
+      }
+      return ch;
+   } else if (ch == '"' || ch == '\'') {
+      str_delim = ch;
+      return ch;
+   }
+
    if (ch == '/') {
       ch = read_char2(file, linenum);
       if (ch == '/') {
