@@ -335,6 +335,32 @@ struct statement* parse_stmt(struct scope* scope) {
       stmt->end = lexer_next().end;
       break;
    }
+   case KW_STATIC_ASSERT:
+   {
+      stmt->type = STMT_NOP;
+      lexer_skip();
+      lexer_expect(TK_LPAREN);
+      struct value val = parse_const_expr();
+      const char* msg = NULL;
+      if (lexer_match(TK_COMMA)) {
+         msg = lexer_expect(TK_STRING).str;
+      }
+      lexer_expect(TK_RPAREN);
+      stmt->end = lexer_expect(TK_SEMICOLON).end;
+
+      if (val.type->type != VAL_INT) {
+         parse_error(&val.begin, "expression in static assertion must be integral type");
+      }
+
+      if (!val.uVal) {
+         if (msg) {
+            parse_error(&val.begin, "static assertion failed: \"%s\"", msg);
+         } else {
+            parse_error(&val.begin, "static assertion failed");
+         }
+      }
+      break;
+   }
    default: {
       struct value_type* base_type = parse_value_type(scope);
       if (base_type) {

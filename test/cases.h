@@ -851,3 +851,21 @@
       "}",
    .ret_val = 42,
 },
+{
+   .name = "true static assert",
+   .compiles = true,
+   .source =
+      "int main(void) {"
+      "  _Static_assert(42 == 42);"
+      "  return 0;"
+      "}",
+},
+{
+   .name = "false static assert",
+   .compiles = false,
+   .source =
+      "int main(void) {"
+      "  _Static_assert(42 != 42);"
+      "  return 0;"
+      "}",
+},
