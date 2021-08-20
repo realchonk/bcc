@@ -1,9 +1,13 @@
 int printf(const char*, ...);
+int putchar(int);
 
-_Bool toBool(int x) { return x; }
-int toInt(_Bool x) { return x; }
 int main(void) {
-   _Bool b = toBool(42);
-   int i = toInt(b);
-   return b + i;
+   int arr[8];
+   for (unsigned i = 0; i < arraylen(arr); ++i) {
+      arr[i] = i;
+   }
+   for (unsigned i = 0; i < arraylen(arr); ++i) {
+      printf("arr[%u]=%u\n", i, arr[i]);
+   }
+   return 0;
 }

@@ -45,25 +45,25 @@
    .compiles = true,
    .source =
       "int printf(const char*, ...);"
-      "int main(void) {\n"
+      "int main(void) {"
       "  int arr[8];"
       "  for (unsigned i = 0; i < arraylen(arr); ++i) {"
       "     arr[i] = i;"
       "  }"
       "  for (unsigned i = 0; i < arraylen(arr); ++i) {"
-      "     printf(\"arr[%u]=%u\\n\", i, arr[i]);"
+      "     printf(\"arr[%u]=%u\", i, arr[i]);"
       "  }"
       "  return 42;"
       "}",
    .output =
-      "arr[0]=0\n"
-      "arr[1]=1\n"
-      "arr[2]=2\n"
-      "arr[3]=3\n"
-      "arr[4]=4\n"
-      "arr[5]=5\n"
-      "arr[6]=6\n"
-      "arr[7]=7\n",
+      "arr[0]=0"
+      "arr[1]=1"
+      "arr[2]=2"
+      "arr[3]=3"
+      "arr[4]=4"
+      "arr[5]=5"
+      "arr[6]=6"
+      "arr[7]=7",
    .ret_val = 42,
 },
 {
@@ -101,13 +101,13 @@
       "     for (int b = 0; b < 5; ++b) {"
       "        putchar('.');"
       "     }"
-      "     putchar('\\n');"
+      "     putchar(' ');"
       "  }"
       "}",
    .output =
-      ".....\n"
-      ".....\n"
-      ".....\n",
+      "..... "
+      "..... "
+      "..... ",
 },
 {
    .name = "modulo",

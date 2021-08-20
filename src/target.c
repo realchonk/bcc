@@ -89,6 +89,7 @@ uintmax_t target_get_umax(enum ir_value_size sz) {
 }
 
 bool is_builtin_func(const char* name) {
+   if (!name) return false;
    for (size_t i = 0; i < num_builtin_funcs; ++i) {
       if (!strcmp(name, builtin_funcs[i].name))
          return true;

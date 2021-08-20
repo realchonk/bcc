@@ -15,6 +15,7 @@
 
 
 BCC_ARCH ?= $(shell ../bcc -dumparch)
+BCC_MACH ?= $(shell ../bcc -dumpmachine)
 
 BCCFLAGS+=-O2 -e ../cpp/bcpp # -I ../bcc-include
 
@@ -27,19 +28,19 @@ ARCH=x86
 else ifeq ($(BCC_ARCH),riscv32)
 BITS=32
 ARCH=riscv
-QLP=/opt/riscv/riscv32-buildroot-linux-gnu/sysroot/
+QLP=/usr/$(BCC_MACH)/
 BCCFLAGS+=-mabi=ilp32d
 else ifeq ($(BCC_ARCH),riscv64)
 BITS=64
 ARCH=riscv
-QLP=/opt/riscv64/riscv64-buildroot-linux-musl/sysroot/
+QLP=/usr/$(BCC_MACH)/
 BCCFLAGS+=-mabi=lp64
 endif
 
 ifeq ($(BCC_ARCH),$(shell uname -m))
 GCC=gcc
 else
-GCC=$(BCC_ARCH)-linux-gcc
+GCC=$(BCC_MACH)-gcc
 endif
 
 all: test
