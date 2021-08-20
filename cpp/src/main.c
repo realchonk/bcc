@@ -67,28 +67,46 @@ int main(int argc, char* argv[]) {
          break;
       default:
       print_help:;
-         fputs("Usage: bcpp [options] [file]\n", stderr);
+         fputs("Usage: bcpp [options] [source [output]]\n", stderr);
          return 1;
       }
    }
-   // TODO: implement support for multiple files
-   if ((argc - optind) > 1)
-      goto print_help;
-   else if ((argc - optind) == 1)
-      source_name = argv[optind];
-   else source_name = "-";
 
+   // check the additional arguments
+   const int argn = argc - optind;
+   if (argn == 0) {
+      source_name = "-";
+   } else if (argn == 1) {
+      source_name = argv[optind];
+   } else if (argn == 2) {
+      source_name = argv[optind];
+      if (output_name) {
+         fputs("bcpp: output filename specfied multiple times\n", stderr);
+         return 1;
+      } else output_name = argv[optind + 1];
+   } else {
+      fputs("bcpp: too many input files\n", stderr);
+      return 1;
+   }
+
+   // remove the macros specified by -U
    for (size_t i = 0; i < buf_len(undef_macros); ++i) {
       remove_macro(undef_macros[i]);
    }
    buf_push(cmdline_includes, NULL);
 
+   // initialization stuff
+   init_macros();
+   init_includes();
+
+   // open the source file
    FILE* source = !strcmp(source_name, "-") ? stdin : fopen(source_name, "r");
    if (!source) {
       fprintf(stderr, "bcpp: failed to open '%s': %s\n", source_name, strerror(errno));
       return 1;
    }
 
+   // open the output file
    FILE* output = !strcmp(output_name, "-") ? stdout : fopen(output_name, "w");
    if (!output) {
       fprintf(stderr, "bcpp: failed to open '%s': %s\n", output_name, strerror(errno));
@@ -96,10 +114,10 @@ int main(int argc, char* argv[]) {
       return 1;
    }
 
-   init_macros();
-   init_includes();
+   // run the pre-processor
    const int status = run_cpp(source, output);
 
+   // close the files
    fclose(source);
    fclose(output);
    return status;
