@@ -211,6 +211,9 @@ struct statement* parse_stmt(struct scope* scope) {
       stmt->type = STMT_RETURN;
       stmt->expr = lexer_matches(TK_SEMICOLON) ? NULL : parse_expr(scope);
       struct function* f = stmt->parent->func;
+      if (f->attrs & ATTR_NORETURN) {
+         parse_warn(&stmt->begin, "function declared with 'noreturn' has a 'return' statement");
+      }
       if (stmt->expr) {
          if (f->type->type == VAL_VOID) parse_error(&stmt->expr->begin, "return a value in a void-function");
          const struct value_type* old = get_value_type(stmt->parent, stmt->expr);

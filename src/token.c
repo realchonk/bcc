@@ -111,6 +111,7 @@ const char* token_type_str[NUM_TOKENS] = {
    [KW_VOLATILE]  = "volatile",
    [KW_RESTRICT]  = "restrict",
    [KW_BOOL]      = "_Bool",
+   [KW_NORETURN]  = "_Noreturn",
 };
 
 void token_init(void) {

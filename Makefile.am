@@ -50,7 +50,8 @@ include_HEADERS = bcc-include/bcc-config.h	\
 						bcc-include/stddef.h			\
 						bcc-include/stdint.h			\
 						bcc-include/iso646.h			\
-						bcc-include/limits.h
+						bcc-include/limits.h			\
+						bcc-include/stdnoreturn.h
 
 print-config:
 	@echo targetdir: $(targetdir)

@@ -86,7 +86,8 @@ void parse_unit(bool gen_ir) {
       unsigned attrs = 0;
       struct source_pos begin;
 
-      while (lexer_matches(KW_EXTERN) || lexer_matches(KW_STATIC)) {
+      while (lexer_matches(KW_EXTERN) || lexer_matches(KW_STATIC)
+            || lexer_matches(KW_NORETURN)) {
          const struct token tk = lexer_next();
          switch (tk.type) {
          case KW_EXTERN:
@@ -94,6 +95,9 @@ void parse_unit(bool gen_ir) {
             break;
          case KW_STATIC:
             attrs |= ATTR_STATIC;
+            break;
+         case KW_NORETURN:
+            attrs |= ATTR_NORETURN;
             break;
          default: parse_error(&tk.begin, "invalid storage specifier");
          }
@@ -110,6 +114,10 @@ void parse_unit(bool gen_ir) {
       if (!has_begin) begin = lexer_peek().begin;
       if (!type)
          parse_error(&begin, "failed to parse type");
+
+      if ((attrs & ATTR_NORETURN) && type->type != VAL_VOID) {
+         parse_warn(&begin, "'noreturn' function has return type");
+      }
 
       if (type->type == VAL_ENUM) {
          unit_add_enum(type);

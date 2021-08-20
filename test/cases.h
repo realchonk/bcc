@@ -840,3 +840,14 @@
       "}",
    .ret_val = 2,
 },
+{
+   .name = "noreturn",
+   .compiles = true,
+   .source =
+      "#include <stdnoreturn.h>\n"
+      "noreturn void exit(int s);"
+      "int main(void) {"
+      "  exit(42);"
+      "}",
+   .ret_val = 42,
+},
