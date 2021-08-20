@@ -15,8 +15,6 @@
 
 SUBDIRS = cpp
 
-ARCHDIR=$(top_srcdir)/src/$(ARCH)
-
 tbin_PROGRAMS = bcc
 bcc_SOURCES = src/bcc.c src/cpp.c src/error.c src/expr.c src/func.c src/ir.c src/irgen.c src/lex.c \
 				  src/main.c src/optim_expr.c src/optim_ir.c src/optim_stmt.c src/scope.c src/stmt.c \
@@ -28,23 +26,6 @@ bcc_CPPFLAGS = -DBCC_TARGET=\"$(TARGET)\" -DBCC_ARCH=\"$(ARCH)\" -DBCC_FULL_ARCH
 					-D_XOPEN_SOURCE=700 -DSBITS=\"$(BITS)\" -DTARGET_INCLUDE_DIR=\"$(includedir)\"
 bcc_CFLAGS = -Wextra
 
-if ARCH_x86
-bcc_SOURCES += src/x86/builtins.c \
-					src/x86/gen.c \
-					src/x86/optim.c \
-					src/x86/target.c
-endif
-if ARCH_riscv
-bcc_SOURCES += src/riscv/builtins.c \
-				 	src/riscv/common.c \
-				 	src/riscv/cpu.c \
-				 	src/riscv/emit_ir.c \
-				 	src/riscv/gen.c \
-				 	src/riscv/optim.c \
-				 	src/riscv/regs.c \
-				 	src/riscv/target.c
-endif
-
 include_HEADERS = bcc-include/bcc-config.h	\
 						bcc-include/stdbool.h		\
 						bcc-include/stddef.h			\
@@ -52,6 +33,15 @@ include_HEADERS = bcc-include/bcc-config.h	\
 						bcc-include/iso646.h			\
 						bcc-include/limits.h			\
 						bcc-include/stdnoreturn.h
+
+if ARCH_x86
+include $(srcdir)/src/x86/Makefile.am
+endif
+
+if ARCH_riscv
+include $(srcdir)/src/riscv/Makefile.am
+endif
+
 
 print-config:
 	@echo targetdir: $(targetdir)
