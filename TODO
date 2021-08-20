@@ -1,7 +1,7 @@
 Planned features:
 
 Long term:
-- create libbcc and default includes
+- create libbcc, default includes, crtx.o
 - improve test-suite
 - array initialization syntax eg. 'int a[] = { 1, 2, 3, 4 }'
 - more optimization techniques
@@ -16,8 +16,7 @@ Short term:
 - more test cases for switch/case
 - cpp: more tests for macro expansion
 - cpp: support for variadic macros
-- remove _GNU_SOURCE dependency
-- add _Bool built-in type
+- remove _GNU_SOURCE dependency from tester
 - fix random crashes
 
 Missing features required by POSIX standard:
