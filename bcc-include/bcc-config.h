@@ -22,7 +22,7 @@
 #define __BCC_BITS 32
 #elif defined(__x86_64__)
 #define __BCC_BITS 64
-#elif defined(__riscv__)
+#elif defined(__riscv)
 
 #define __BCC_BITS __riscv_xlen
 

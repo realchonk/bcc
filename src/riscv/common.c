@@ -13,7 +13,6 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#define _GNU_SOURCE 1
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -38,11 +37,12 @@ int assemble(const char* source, const char* output) {
    const pid_t pid = fork();
    if (pid < 0) panic("failed to fork()");
    if (pid == 0) {
-      char* mabi = NULL;
-      if (asprintf(&mabi, "-mabi=%s", get_mach_opt("abi")->sVal) < 0) {
-         perror("bcc: failed to invoke asprintf");
+      char* mabi = malloc(100);
+      if (!mabi) {
+         perror("bcc: failed to allocate memory");
          _exit(1);
       }
+      snprintf(mabi, 100, "-mabi=%s", get_mach_opt("abi")->sVal);
       execlp(GNU_AS, GNU_AS, mabi, "-o", output, source, NULL);
       perror("bcc: failed to invoke assembler");
       _exit(1);
