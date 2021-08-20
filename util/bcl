@@ -49,7 +49,7 @@ while true; do
       shift
       ;;
    -h|-V)
-      "${target}"bcc -h
+      "${target}bcc" -h
       exit
       ;;
    --)
@@ -67,11 +67,11 @@ file="$1"
 
 if [ "${linking}" = "yes" ]; then
    [ -z "${output_file}" ] && output_file="a.out"
-   ${BCC} ${bcc_options} -o tmp.o "${file}" || exit 1
-   ${LD} -o "${output_file}" tmp.o ${ld_options}
+   "${BCC}" ${bcc_options} -o tmp.o "${file}" || exit 1
+   "${LD}" -o "${output_file}" tmp.o ${ld_options}
    [ $? -ne 0 ] && rm -f tmp.o && exit 1
    rm -f tmp.o
 else
    [ -n "${output_file}" ] && bcc_options="${bcc_options} -o ${output_file}"
-   ${BCC} "${bcc_options}" "${file}" || exit 1
+   "${BCC}" ${bcc_options} "${file}" || exit 1
 fi
