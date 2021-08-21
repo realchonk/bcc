@@ -14,6 +14,7 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <stdlib.h>
+#include "config.h"
 #include "optim.h"
 #include "error.h"
 #include "bcc.h"
@@ -46,7 +47,7 @@ struct statement* optim_stmt(struct statement* s) {
          bool cond;
          switch (val.type->type) {
          case VAL_INT:     cond = val.iVal != 0; break;
-#if !DISABLE_FP
+#if ENABLE_FP
          case VAL_FLOAT:   cond = val.fVal != 0.0; break;
 #endif
          default:          goto end_if;

@@ -30,7 +30,7 @@ enum attribute {
 
 enum value_base_type {
    VAL_INT,
-#if !DISABLE_FP
+#if ENABLE_FP
    VAL_FLOAT,
 #endif
    VAL_POINTER,
@@ -53,12 +53,14 @@ enum integer_size {
 
    NUM_INTS,
 };
+#if ENABLE_FP 
 enum fp_size {
    FP_FLOAT,
    FP_DOUBLE,
 
    NUM_FPS,
 };
+#endif
 
 struct enum_entry {
    istr_t name;
@@ -90,7 +92,7 @@ struct value_type {
          enum integer_size size;
          bool is_unsigned;
       } integer;
-#if !DISABLE_FP
+#if ENABLE_FP
       struct {
          enum fp_size size;
       } fp;
@@ -125,7 +127,7 @@ struct value {
       istr_t sVal;
       intmax_t iVal;
       uintmax_t uVal;
-#if !DISABLE_FP
+#if ENABLE_FP
       fpmax_t fVal;
 #endif
    };

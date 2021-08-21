@@ -28,7 +28,7 @@ const char* integer_size_str[NUM_INTS] = {
    "int",
    "long",
 };
-#if !DISABLE_FP
+#if ENABLE_FP
 const char* fp_size_str[NUM_FPS] = {
    "float",
    "double",
@@ -36,7 +36,7 @@ const char* fp_size_str[NUM_FPS] = {
 #endif
 const char* value_type_str[NUM_VALS] = {
    "integer",
-#if !DISABLE_FP
+#if ENABLE_FP
    "floating-point number",
 #endif
    "pointer",
@@ -65,7 +65,7 @@ static bool ptreq(const struct value_type* a, const struct value_type* b) {
    if (a->type != b->type) return false;
    switch (a->type) {
    case VAL_INT:     return (a->integer.is_unsigned == b->integer.is_unsigned) && (a->integer.size == b->integer.size);
-#if !DISABLE_FP
+#if ENABLE_FP
    case VAL_FLOAT:   return a->fp.size == b->fp.size;
 #endif
    case VAL_POINTER: return ptreq(a->pointer.type, b->pointer.type);
@@ -94,7 +94,7 @@ void print_value_type(FILE* file, const struct value_type* val) {
       if (val->integer.is_unsigned) fputs("unsigned ", file);
       fputs(integer_size_str[val->integer.size], file);
       break;
-#if !DISABLE_FP
+#if ENABLE_FP
    case VAL_FLOAT:
       fputs(fp_size_str[val->fp.size], file);
       break;
@@ -183,7 +183,7 @@ void free_value_type(struct value_type* val) {
       buf_free(val->func.params);
       break;
    case VAL_INT:
-#if !DISABLE_FP
+#if ENABLE_FP
    case VAL_FLOAT:
 #endif
    case VAL_VOID:
@@ -382,7 +382,7 @@ struct value_type* parse_value_type(struct scope* scope) {
       vt->type = VAL_INT;
       vt->integer.size = INT_INT;
       break;
-#if !DISABLE_FP
+#if ENABLE_FP
    case KW_FLOAT:
       lexer_skip();
       if (vt->type != NUM_VALS) parse_error(&tk.begin, "invalid combination of signed or unsigned and float");
@@ -493,7 +493,7 @@ struct value_type* common_value_type(const struct value_type* a, const struct va
          c->integer.is_unsigned = false;
          c->integer.size = INT_INT;
          break;
-#if !DISABLE_FP
+#if ENABLE_FP
       case VAL_FLOAT:
          c->fp.size = my_max(a->fp.size, b->fp.size);
          break;
@@ -502,7 +502,7 @@ struct value_type* common_value_type(const struct value_type* a, const struct va
       default:          panic("unsupported value type '%d'", a->type);
       }
    } else {
-#if !DISABLE_FP
+#if ENABLE_FP
       if (a->type == VAL_INT && b->type == VAL_FLOAT) {
          c->type = VAL_FLOAT;
          c->fp.size = b->fp.size;
@@ -585,7 +585,7 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
       type->integer.is_unsigned = true;
       type->integer.size = INT_INT;
       return type;
-#if !DISABLE_FP
+#if ENABLE_FP
    case EXPR_FLOAT:
       type = new_vt();
       type->type = VAL_FLOAT;
@@ -679,7 +679,7 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
       case TK_GREQ:
       case TK_LE:
       case TK_LEEQ:
-#if !DISABLE_FP
+#if ENABLE_FP
          if (vl->type != vr->type) {
             if (check2(vl, vr, VAL_POINTER, VAL_FLOAT))
                parse_error(&e->binary.op.begin, "comparisson between pointer and floating-point");
@@ -706,7 +706,7 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
             if (vr->type != VAL_INT && vr->type != VAL_POINTER && vr->type != VAL_BOOL)
                parse_error(&e->binary.op.begin, "unsupported value type '%s' for bool addition", value_type_str[vr->type]);
             return copy_value_type(vr);
-#if !DISABLE_FP
+#if ENABLE_FP
          case VAL_FLOAT:
             if (vr->type == VAL_POINTER)
                parse_error(&e->binary.op.begin, "addition of pointer and floating-point number");
@@ -714,7 +714,7 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
 #endif
          case VAL_POINTER:
             if (vr->type == VAL_INT) return decay(copy_value_type(vl));
-#if !DISABLE_FP
+#if ENABLE_FP
             else if (vr->type == VAL_FLOAT)
                parse_error(&e->binary.op.begin, "addition of pointer and floating-point number");
 #endif
@@ -728,14 +728,14 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
             if (vr->type == VAL_POINTER)
                parse_error(&e->binary.op.begin, "invalid types");
             else return common_value_type(vl, vr, true);
-#if !DISABLE_FP
+#if ENABLE_FP
          case VAL_FLOAT:
             if (vr->type == VAL_POINTER)
                parse_error(&e->binary.op.begin, "invalid types");
             else return common_value_type(vl, vr, true);
 #endif
          case VAL_POINTER:
-#if !DISABLE_FP
+#if ENABLE_FP
             if (vr->type == VAL_FLOAT)
                parse_error(&e->binary.op.begin, "invalid types");
             else
@@ -759,7 +759,7 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
       case TK_AMP:
       case TK_PIPE:
       case TK_XOR:
-#if !DISABLE_FP
+#if ENABLE_FP
          if (check1or(vl, vr, VAL_FLOAT))
             parse_error(&e->binary.op.begin, "bitwise operation on floating-point number");
          else
@@ -840,7 +840,7 @@ struct value_type* copy_value_type(const struct value_type* vt) {
       copy->integer.size = vt->integer.size;
       copy->integer.is_unsigned = vt->integer.is_unsigned;
       break;
-#if !DISABLE_FP
+#if ENABLE_FP
    case VAL_FLOAT:
       copy->fp.size = vt->fp.size;
       break;
@@ -890,7 +890,7 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
    case VAL_INT:
       switch (type->type) {
       case VAL_INT:
-#if !DISABLE_FP
+#if ENABLE_FP
       case VAL_FLOAT:
 #endif
       case VAL_ENUM:
@@ -899,7 +899,7 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
          return !implicit;
       default: panic("invalid value type '%u'", type->type);
       }
-#if !DISABLE_FP
+#if ENABLE_FP
    case VAL_FLOAT:
       switch (type->type) {
       case VAL_INT:
@@ -936,7 +936,7 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
       switch (type->type) {
       case VAL_ENUM:
       case VAL_INT:
-#if !DISABLE_FP
+#if ENABLE_FP
       case VAL_FLOAT:
 #endif
          return true;
@@ -956,10 +956,10 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
    case VAL_BOOL:
       if (type->type == VAL_POINTER)
          return !implicit;
-#if DISABLE_FP
-      return type->type == VAL_INT;
-#else
+#if ENABLE_FP
       return type->type == VAL_INT || type->type == VAL_FLOAT;
+#else
+      return type->type == VAL_INT;
 #endif
    default: panic("invalid value type '%u'", type->type);
    }
@@ -981,7 +981,7 @@ size_t sizeof_value(const struct value_type* vt, bool decay) {
       if (vt->pointer.is_array && vt->pointer.array.has_const_size && !decay)
          return sizeof_value(vt->pointer.type, false) * vt->pointer.array.size;
       else return target_info.size_pointer;
-#if !DISABLE_FP
+#if ENABLE_FP
    case VAL_FLOAT:
       switch (vt->fp.size) {
       case FP_FLOAT:

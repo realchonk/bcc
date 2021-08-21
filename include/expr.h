@@ -23,7 +23,7 @@ enum expression_type {
    EXPR_PAREN,       // .expr       | sub-expression
    EXPR_INT,         // .iVal       | signed integer literal
    EXPR_UINT,        // .uVal       | unsigned integer literal
-#if !DISABLE_FP
+#if ENABLE_FP
    EXPR_FLOAT,       // .fVal       | floating-point literal
 #endif
    EXPR_CHAR,        // .ch         | character literal
@@ -60,7 +60,7 @@ struct expression {
       struct expression** comma;
       uintmax_t uVal;
       intmax_t iVal;
-#if !DISABLE_FP
+#if ENABLE_FP
       fpmax_t fVal;
 #endif
       istr_t str;

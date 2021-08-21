@@ -80,10 +80,10 @@ int main(int argc, char* argv[]) {
       case 'V':
          printf("bcc %s\nCopyleft Benjamin Stürz.\n"
                "This software is distributed under the terms of the GPLv3\n", VERSION);
-#if DISABLE_FP
-         puts("Has floating-point: no");
-#else
+#if ENABLE_FP
          puts("Has floating-point: yes");
+#else
+         puts("Has floating-point: no");
 #endif
          printf("Compiled on %s for %s\n", __DATE__, BCC_TARGET);
          return 0;
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
    if (!source) {
       return 1;
    }
-   
+
    if (!output_file) {
       if (source == stdin) output_file = "-";
       else switch (level) {

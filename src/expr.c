@@ -25,7 +25,7 @@ const char* expr_type_str[NUM_EXPRS] = {
    [EXPR_PAREN]      = "sub",
    [EXPR_INT]        = "signed integer",
    [EXPR_UINT]       = "unsigned integer",
-#if !DISABLE_FP
+#if ENABLE_FP
    [EXPR_FLOAT]      = "floating-point",
 #endif
    [EXPR_CHAR]       = "character-literal",
@@ -562,7 +562,7 @@ void free_expr(struct expression* e) {
    case EXPR_UINT:
    case EXPR_STRING:
    case EXPR_CHAR:
-#if !DISABLE_FP
+#if ENABLE_FP
    case EXPR_FLOAT:
 #endif
    case EXPR_NAME:
@@ -585,7 +585,7 @@ void print_expr(FILE* file, const struct expression* e) {
    case EXPR_UINT:
       fprintf(file, "%jd", e->uVal);
       break;
-#if !DISABLE_FP
+#if ENABLE_FP
    case EXPR_FLOAT:
       fprintf(file, "%Lf", e->fVal);
       break;
@@ -712,7 +712,7 @@ bool expr_is_pure(const struct expression* e) {
    case EXPR_UINT:
    case EXPR_STRING:
    case EXPR_CHAR:
-#if !DISABLE_FP
+#if ENABLE_FP
    case EXPR_FLOAT:
 #endif
    case EXPR_NAME:

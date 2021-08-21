@@ -15,6 +15,7 @@
 
 #include <ctype.h>
 #include "riscv/cpu.h"
+#include "config.h"
 #include "target.h"
 #include "error.h"
 #include "strdb.h"
@@ -80,7 +81,7 @@ static void emit_end(void) {
                else emit("%jd", var->const_init.iVal);
             } else emit("0");
             break;
-#if !DISABLE_FP
+#if ENABLE_FP
          case VAL_FLOAT:
             switch (vt->fp.size) {
             case FP_FLOAT: {

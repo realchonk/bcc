@@ -20,7 +20,7 @@
 const char* token_type_str[NUM_TOKENS] = {
    [TK_DUMMY]     = "dummy",
    [TK_INTEGER]   = "integer",
-#if !DISABLE_FP
+#if ENABLE_FP
    [TK_FLOAT]     = "floating-point number",
 #endif
    [TK_STRING]    = "string literal",
@@ -127,7 +127,7 @@ void token_init(void) {
 void print_token(FILE* file, const struct token* tk) {
    switch (tk->type) {
    case TK_INTEGER:     fprintf(file, "%ju", tk->iVal); break;
-#if !DISABLE_FP
+#if ENABLE_FP
    case TK_FLOAT:       fprintf(file, "%Lf", tk->fVal); break;
 #endif
    case TK_STRING:      fprintf(file, "\"%s\"", tk->str); break;
@@ -144,7 +144,7 @@ void print_token_info(FILE* file, const struct token* tk) {
    fputc(')', file);
    switch (tk->type) {
    case TK_INTEGER:     fprintf(file, ", value: %ju", tk->iVal); break;
-#if !DISABLE_FP
+#if ENABLE_FP
    case TK_FLOAT:       fprintf(file, ", value: %Lf", tk->fVal); break;
 #endif
    case TK_STRING:      fprintf(file, ", value: \"%s\"", tk->str); break;

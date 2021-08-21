@@ -170,7 +170,7 @@ static struct token lexer_impl(void) {
          return (struct token){ .type = TK_INTEGER, start, pos, .iVal = iVal };
       }
       while (isdigit(input_peek())) iVal = iVal * 10 + (input_next() - '0');
-#if !DISABLE_FP
+#if ENABLE_FP
       if (input_match('.')) {
          fpmax_t fVal = 0.0;
          int exp = 0;

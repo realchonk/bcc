@@ -19,15 +19,16 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "strint.h"
+#include "config.h"
 
-#if !DISABLE_FP
+#if ENABLE_FP
 typedef long double fpmax_t;
 #endif
 
 enum token_type {
    TK_DUMMY,
    TK_INTEGER,
-#if !DISABLE_FP
+#if ENABLE_FP
    TK_FLOAT,
 #endif
    TK_STRING, TK_CHARACTER, TK_NAME,
@@ -79,7 +80,7 @@ struct token {
    union {
       istr_t str;
       uintmax_t iVal;
-#if !DISABLE_FP
+#if ENABLE_FP
       fpmax_t fVal;
 #endif
       int ch;

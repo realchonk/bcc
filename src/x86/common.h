@@ -13,6 +13,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include "config.h"
+
 struct stack_alloc_entry {
    bool is_const;
    size_t sz; // if !is_const it is [ebp - sz]
@@ -163,7 +165,7 @@ static void emit_end(void) {
                panic("unreachable reached");
             }
             break;
-#if !DISABLE_FP
+#if ENABLE_FP
          case VAL_FLOAT:
             switch (type->fp.size) {
             case FP_FLOAT:

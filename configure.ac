@@ -132,8 +132,10 @@ AC_TYPE_UINT64_T
 # Option to disable preliminary floating-point support
 AC_ARG_ENABLE(fp,
               [AS_HELP_STRING([--disable-fp], [disable preliminary floating-point support])],
-              ENABLE_FP=$enableval,
-              ENABLE_FP=yes)
+              [if test x$enableval = xyes; then ENABLE_FP=1; else ENABLE_FP=0; fi],
+              ENABLE_FP=1)
+AC_DEFINE_UNQUOTED([ENABLE_FP], [$ENABLE_FP], [Enable/Disable floating-point support])
+AC_SUBST([ENABLE_FP])
 
 # --with-cpu=
 AC_ARG_WITH([cpu],
@@ -144,9 +146,6 @@ AC_ARG_WITH([cpu],
 AC_ARG_WITH([abi],
             [AS_HELP_STRING([--with-abi=ABI], [select the default target ABI])],
             [AC_DEFINE_UNQUOTED([DEF_ABI], ["$withval"], [Default application binary interface])])
-
-# Make it visible to Makefile.am
-AC_SUBST([ENABLE_FP])
 
 # Patch bcc.1
 sed "s/VERSION/$VERSION/g" ${srcdir}/src/bcc.1 >bcc.1 || AC_MSG_ERROR([failed to patch bcc.1])

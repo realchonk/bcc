@@ -21,20 +21,7 @@
 #include "expr.h"
 #include "unit.h"
 
-#if DISABLE_FP
-#define do_binary(t, op) \
-   switch ((t)->type) { \
-   case VAL_INT: \
-      if ((t)->integer.is_unsigned) \
-         result.uVal = left.uVal op right.uVal; \
-      else result.iVal = left.iVal op right.iVal; \
-      break; \
-   default: \
-      free_value_type(result.type); \
-      return false; \
-   }
-
-#else
+#if ENABLE_FP
 #define do_binary(t, op) \
    switch ((t)->type) { \
    case VAL_INT: \
@@ -49,6 +36,19 @@
       free_value_type(result.type); \
       return false; \
    }
+#else
+#define do_binary(t, op) \
+   switch ((t)->type) { \
+   case VAL_INT: \
+      if ((t)->integer.is_unsigned) \
+         result.uVal = left.uVal op right.uVal; \
+      else result.iVal = left.iVal op right.iVal; \
+      break; \
+   default: \
+      free_value_type(result.type); \
+      return false; \
+   }
+
 #endif
 
 #define do_binary_int(t, op) \
@@ -79,7 +79,7 @@ bool try_eval_expr(struct expression* e, struct value* val) {
       val->type = copy_value_type(get_value_type(NULL, e));
       val->uVal = e->uVal;
       return true;
-#if !DISABLE_FP
+#if ENABLE_FP
    case EXPR_FLOAT:
       val->type = copy_value_type(get_value_type(NULL, e));
       val->fVal = e->fVal;
@@ -161,7 +161,7 @@ bool try_eval_expr(struct expression* e, struct value* val) {
                parse_error(&e->unary.op.begin, "negation of an unsigned value");
             result.iVal = -right.iVal;
             break;
-#if !DISABLE_FP
+#if ENABLE_FP
          case VAL_FLOAT:
             result.fVal = -right.fVal;
             break;
