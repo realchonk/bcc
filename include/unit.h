@@ -67,5 +67,7 @@ void unit_add_union(const struct value_type*);
 void unit_add_struct(const struct value_type*);
 bool unit_func_is_extern(istr_t);
 bool func_is_global(const struct function*);
+struct function* unit_get_func_def(const char*);
+struct function* find_func_with_attr(istr_t, enum attribute);
 
 #endif /* FILE_UNIT_H */

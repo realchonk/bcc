@@ -1109,3 +1109,13 @@ struct value_type* func2vt(const struct function* f) {
 bool vt_is_signed(const struct value_type* vt) {
    return vt->type == VAL_INT && !vt->integer.is_unsigned;
 }
+const char* attr_to_string(enum attribute a) {
+   switch (a) {
+   case ATTR_EXTERN:    return "extern";
+   case ATTR_STATIC:    return "static";
+   case ATTR_NORETURN:  return "noreturn";
+   case ATTR_INLINE:    return "inline";
+   default:             return "none";
+
+   }
+}

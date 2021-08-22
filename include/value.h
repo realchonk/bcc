@@ -167,6 +167,7 @@ bool is_func_vt(const struct value_type*);
 const struct value_type* actual_func_vt(const struct value_type*);
 void eval_expr(struct expression*, struct value*);
 bool vt_is_signed(const struct value_type*);
+const char* attr_to_string(enum attribute);
 
 #define is_struct(t) ((t) == VAL_STRUCT || (t) == VAL_UNION)
 #define vt_is_restrict(vt) (((vt)->type == VAL_POINTER) && ((vt)->pointer.is_restrict))
