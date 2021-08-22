@@ -16,6 +16,11 @@
 #ifndef __BCC_CONFIG_H__
 #define __BCC_CONFIG_H__
 
+
+#ifndef __bcc__
+#error Unsupported compiler
+#endif
+
 #undef __BCC_BITS
 
 #if defined(__i386__)

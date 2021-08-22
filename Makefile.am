@@ -20,10 +20,9 @@ bcc_SOURCES = src/bcc.c src/cpp.c src/error.c src/expr.c src/func.c src/ir.c src
 				  src/main.c src/optim_expr.c src/optim_ir.c src/optim_stmt.c src/scope.c src/stmt.c \
 				  src/strdb.c src/strint.c src/target.c src/token.c src/unit.c src/value.c src/vtype.c
 
-bcc_CPPFLAGS = -DBCC_TARGET=\"$(TARGET)\" -DBCC_ARCH=\"$(ARCH)\" -DBCC_FULL_ARCH=\"$(FULL_ARCH)\" \
-					-I$(top_srcdir)/include -DBCC_$(FULL_ARCH)=1 -DBITS=$(BITS) \
-					-DBCPP_PATH=\"$(bindir)/`echo bcpp | sed '$(transform)'`\" \
-					-D_XOPEN_SOURCE=700 -DSBITS=\"$(BITS)\" -DTARGET_INCLUDE_DIR=\"$(includedir)\"
+bcc_CPPFLAGS = -DBCPP_PATH=\"$(bindir)/`echo bcpp | sed '$(transform)'`\" \
+					-D_XOPEN_SOURCE=700 -DTARGET_INCLUDE_DIR=\"$(includedir)\" \
+					-I$(top_srcdir)/include
 bcc_CFLAGS = -Wextra
 
 include_HEADERS = bcc-include/bcc-config.h	\

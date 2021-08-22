@@ -32,6 +32,7 @@ riscv:
 # Pre-processor
 - more test cases for macro expansion
 - support for variadic macros
+- add -dumpmacros option
 
 
 # Test suite

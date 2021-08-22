@@ -23,6 +23,7 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CANONICAL_TARGET 
 AM_INIT_AUTOMAKE([1.16 foreign subdir-objects -Wall])
+AC_CONFIG_MACRO_DIRS([util/m4])
 
 AC_SUBST([version], [m4_defn([bcc_VERSION])])
 
@@ -30,53 +31,9 @@ AC_SUBST([version], [m4_defn([bcc_VERSION])])
 AC_PROG_AWK
 AC_PROG_CC
 
-# set TARGET to the according value
-if test "x${target_alias}" != "x"; then
-   TARGET="${target_alias}"
-elif test "x${target}" != "x"; then
-   TARGET="${target}"
-else
-   TARGET="${host}"
-fi
-
 # Determine the architecture
-AC_MSG_CHECKING([for target architecture])
-case ${TARGET} in
-i386-*|i486-*|i586-*|i686-*)
-   FULL_ARCH=i386
-   ARCH=x86
-   BITS=32
-   ;;
-x86_64-*)
-   FULL_ARCH=x86_64
-   ARCH=x86
-   BITS=64
-   ;;
-riscv32-*)
-   FULL_ARCH=riscv32
-   ARCH=riscv
-   BITS=32
-   ;;
-riscv64-*)
-   FULL_ARCH=riscv64
-   ARCH=riscv
-   BITS=64
-   ;;
-*)
-   AC_MSG_ERROR([invalid target architecture '${TARGET}'])
-   ;;
-esac
-AC_MSG_RESULT([$FULL_ARCH])
-
-# Set the target architecture
-AC_SUBST([TARGET])
-AC_SUBST([FULL_ARCH])
-AC_SUBST([ARCH])
-AC_SUBST([BITS])
-
-# Pass the architecture info to Makefile.am
-AM_CONDITIONAL([ARCH_x86], [test x$ARCH = xx86])
-AM_CONDITIONAL([ARCH_riscv], [test x$ARCH = xriscv])
+AX_CHECK_TARGET
+AX_SET_PREDEF_MACROS
 
 # Additional paths
 AC_SUBST([compilerdir], ['${prefix}/lib/bcc/${TARGET}/${version}'])
@@ -86,28 +43,9 @@ AC_SUBST([tbindir], ['${targetdir}/bcc-bin/${version}'])
 
 # Find the assembler (NASM for x86, GNU as for other)
 if test $ARCH = x86; then
-   AC_PATH_PROG(NASM, [nasm], [no])
-   if test "x$nasm" = "xno"; then
-      AC_MSG_ERROR([NASM assembler not found])
-   else
-      AC_DEFINE_UNQUOTED([NASM], ["$NASM"], [Path to the NASM assembler])
-   fi
+   AX_FIND_NASM
 else
-   if test "x${target_alias}" = "x"; then
-      if test "x${host}" = "x${target}"; then
-         PRE_AS=as
-      else
-         AC_MSG_ERROR([failed to determine target for assembler. Please specify --target=])
-      fi
-   else
-      PRE_AS="${target_alias}-as"
-   fi
-   AC_PATH_PROG(GNU_AS, [${PRE_AS}], [no])
-   if test "x$GNU_AS" = "xno"; then
-      AC_MSG_ERROR([GNU assembler not found])
-   else
-      AC_DEFINE_UNQUOTED([GNU_AS], ["$GNU_AS"], [Path to the GNU assembler])
-   fi
+   AX_FIND_AS
 fi
 
 # Suggested by autoscan
@@ -152,6 +90,7 @@ sed "s/VERSION/$VERSION/g" ${srcdir}/src/bcc.1 >bcc.1 || AC_MSG_ERROR([failed to
 
 # Generate include/help_options.h
 ${srcdir}/util/read_doc.sh <bcc.1 >help_options.h || AC_MSG_ERROR([failed to generate help options])
+
 
 # Generate a Makefile
 AC_CONFIG_FILES([Makefile])
