@@ -101,7 +101,7 @@ bool dir_include(size_t linenum, const char* line, struct token* tokens, size_t 
    if_layers = NULL;
 
    // run cpp on the included file
-   const int ec = run_cpp(file, out);
+   const int ec = run_cpp(file, out, false);
 
    // restore old values
    source_name = saved_name;

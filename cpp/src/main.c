@@ -27,12 +27,14 @@ extern const char** cmdline_includes;
 bool console_color = true;
 
 int main(int argc, char* argv[]) {
+   bool dumpmacros = false;
    const char* output_name = "-";
    istr_t* undef_macros = NULL;
    int option;
-   while ((option = getopt(argc, argv, ":D:VEo:I:ChU:")) != -1) {
+   while ((option = getopt(argc, argv, ":D:VEo:I:ChU:d:")) != -1) {
       switch (option) {
       case 'h':
+      print_usage:;
          printf("Usage: bcpp [options] file\nOptions:\n%s", help_options);
          return 0;
       case 'V':
@@ -45,8 +47,11 @@ int main(int argc, char* argv[]) {
          // skip since this is the pre-processor
          break;
       case ':':
-         fprintf(stderr, "bcpp: missing argument for '-%c'\n", optopt);
-         return 1;
+         if (optopt != 'd') {
+            fprintf(stderr, "bcpp: missing argument for '-%c'\n", optopt);
+            return 1;
+         }
+         fallthrough;
       case '?':
          fprintf(stderr, "bcpp: invalid option '-%c'\n", optopt);
          return 1;
@@ -65,6 +70,14 @@ int main(int argc, char* argv[]) {
       case 'U':
          buf_push(undef_macros, strint(optarg));
          break;
+      case 'd':
+         if (!strcmp(optarg, "umpmacros") || !strcmp(optarg, "M")) {
+            dumpmacros = true;
+            break;
+         } else {
+            fprintf(stderr, "bcpp: invalid option '-d%s'\n", optarg);
+            return 1;
+         }
       default:
       print_help:;
          fputs("Usage: bcpp [options] [source [output]]\n", stderr);
@@ -115,7 +128,7 @@ int main(int argc, char* argv[]) {
    }
 
    // run the pre-processor
-   const int status = run_cpp(source, output);
+   const int status = run_cpp(source, output, dumpmacros);
 
    // close the files
    fclose(source);

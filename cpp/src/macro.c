@@ -176,3 +176,23 @@ bool dir_undef(size_t linenum, const char* line, struct token* tokens, size_t nu
    remove_macro(strnint(tokens[0].begin, tokens[0].end - tokens[0].begin));
    return true;
 }
+void dump_macros(FILE* out) {
+   for (const struct macro_entry* e = macros; e; e = e->next) {
+      const struct macro* m = &e->macro;
+      switch (m->type) {
+      case MACRO_VAR:
+         fprintf(out, "#define %s %s\n", m->name, m->text ? m->text : "");
+         break;
+      case MACRO_FUNC:
+         fprintf(out, "#define %s(", m->name);
+         if (buf_len(m->params)) {
+            fputs(m->params[0], out);
+            for (size_t i = 1; i < buf_len(m->params); ++i) {
+               fprintf(out, ",%s", m->params[i]);
+            }
+         }
+         fprintf(out, ") %s\n", m->text);
+         break;
+      }
+   }
+}

@@ -33,6 +33,7 @@ static void remove_asm_file(void) {
 }
 
 int main(int argc, char* argv[]) {
+   bool dumpmacros = false;
    struct cpp_arg cpp_arg;
    const char* output_file = NULL;
    int level = 'c';
@@ -56,14 +57,18 @@ int main(int argc, char* argv[]) {
       case 'd':
          if (!strcmp(optarg, "umpversion")) {
             puts(VERSION);
-            return 0;
          } else if (!strcmp(optarg, "umpmachine")) {
             puts(BCC_TARGET);
-            return 0;
          } else if (!strcmp(optarg, "umparch")) {
             puts(BCC_FULL_ARCH);
-            return 0;
-         } else goto print_usage;
+         } else if (!strcmp(optarg, "umpmacros") || !strcmp(optarg, "M")) {
+            dumpmacros = true;
+            break;
+         } else {
+            fprintf(stderr, "bcc: invalid option '-d%s'\n", optarg);
+            return 1;
+         }
+         return 0;
       case 'O':
       {
          char* endp;
@@ -101,9 +106,11 @@ int main(int argc, char* argv[]) {
          console_colors = false;
          break;
       case ':':
-         if (optopt == 'd') goto print_usage;
-         fprintf(stderr, "bcc: missing argument for '-%c'\n", optopt);
-         return 1;
+         if (optopt != 'd') {
+            fprintf(stderr, "bcc: missing argument for '-%c'\n", optopt);
+            return 1;
+         }
+         fallthrough;
       case '?':
          fprintf(stderr, "bcc: invalid option '-%c'\n", optopt);
          return 1;
@@ -115,6 +122,12 @@ int main(int argc, char* argv[]) {
    print_usage:
       fputs("Usage: bcc [options] input\n", stderr);
       return 1;
+   } else if (dumpmacros) {
+      if (level == 'E') {
+         cpp_arg.option = 'd';
+         cpp_arg.arg = "M";
+         buf_push(cpp_args, cpp_arg);
+      }
    }
    const char* source_file = argv[optind];
    if (ends_with(source_file, target_info.fend_asm)) {

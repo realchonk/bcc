@@ -16,6 +16,7 @@
 #ifndef FILE_MACRO_H
 #define FILE_MACRO_H
 #include <stdbool.h>
+#include <stdio.h>
 #include "strint.h"
 #include "buf.h"
 
@@ -42,5 +43,6 @@ void add_macro(const struct macro*);
 bool remove_macro(istr_t);
 const struct macro* get_macro(istr_t);
 void add_cmdline_macro(const char* arg);
+void dump_macros(FILE*);
 
 #endif /* FILE_MACRO_H */

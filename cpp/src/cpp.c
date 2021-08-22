@@ -59,7 +59,7 @@ static bool do_cpp_stuff(size_t linenum, const char* line, struct token* tokens,
    return dir->handler(linenum, line, tokens + tki, num_tks - tki, out);
 }
 
-int run_cpp(FILE* in, FILE* out) {
+int run_cpp(FILE* in, FILE* out, bool dumpmacros) {
    struct line_pair* lines = read_lines(in);
 
    if (failed)
@@ -102,7 +102,9 @@ int run_cpp(FILE* in, FILE* out) {
 
 
    if (!failed) {
-      fwrite(buf, 1, len_buf, out);
+      if (dumpmacros) {
+         dump_macros(out);
+      } else fwrite(buf, 1, len_buf, out);
    }
    free(buf);
 

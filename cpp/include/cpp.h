@@ -18,12 +18,20 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "config.h"
+
 #if HAVE_STDNORETURN_H
 #include <stdnoreturn.h>
 #else
 #define noreturn
 #endif
 #include "buf.h"
+
+#if defined(__GNUC__)
+#define fallthrough __attribute__((fallthrough))
+#else
+#define fallthough
+#endif
+
 
 extern const char* source_name;
 extern bool console_color;
@@ -34,7 +42,7 @@ struct line_pair {
    size_t linenum;
 };
 
-int run_cpp(FILE* in, FILE* out);
+int run_cpp(FILE* in, FILE* out, bool dumpmacros);
 struct line_pair* read_lines(FILE* file);
 void print_lines(FILE* out, const struct line_pair*);
 void free_lines(struct line_pair*);
@@ -50,6 +58,5 @@ noreturn void panic_impl(const char*, const char*, ...);
 // Initialization stuff
 void init_macros(void);
 void init_includes(void);
-
 
 #endif /* FILE_CPP_H */
