@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-m4_define([bcc_VERSION], [0.14])
+m4_define([bcc_VERSION], m4_esyscmd([./util/version.sh]))
 AC_INIT([bcc], m4_defn([bcc_VERSION]), [benni@stuerz.xyz], [bcc-]m4_defn([bcc_VERSION]), [https://github.com/Benni3D/bcc])
 
 # Initialization stuff
@@ -25,7 +25,7 @@ AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([1.16 foreign subdir-objects -Wall])
 AC_CONFIG_MACRO_DIRS([util/m4])
 
-AC_SUBST([version], [m4_defn([bcc_VERSION])])
+AC_SUBST([version], m4_defn([bcc_VERSION]))
 
 # Search for required programs
 AC_PROG_AWK

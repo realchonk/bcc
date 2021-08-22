@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-AC_INIT([bcpp], [0.14], [benni@stuerz.xyz])
+AC_INIT([bcpp], m4_esyscmd([../util/version.sh]), [benni@stuerz.xyz])
 
 AC_PREREQ([2.69])
 AC_CONFIG_SRCDIR([src/main.c])
