@@ -114,13 +114,15 @@ int main(int argc, char* argv[]) {
       case '?':
          fprintf(stderr, "bcc: invalid option '-%c'\n", optopt);
          return 1;
-      default: goto print_usage;
+      default:
+      print_usage:;
+         fputs("Usage: bcc [options] input\n", stderr);
+         return 1;
       }
    }
    if (!emit_prepare()) return 1;
    if ((argc - optind) != 1) {
-   print_usage:
-      fputs("Usage: bcc [options] input\n", stderr);
+      fputs("bcc: no input file\n", stderr);
       return 1;
    } else if (dumpmacros) {
       if (level == 'E') {
