@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-m4_define([bcc_VERSION], [0.13])
+m4_define([bcc_VERSION], [0.14])
 AC_INIT([bcc], m4_defn([bcc_VERSION]), [benni@stuerz.xyz], [bcc-]m4_defn([bcc_VERSION]), [https://github.com/Benni3D/bcc])
 
 # Initialization stuff
