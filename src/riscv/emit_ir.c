@@ -163,7 +163,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    case IR_PROLOGUE:
    {
-      if (!(n->func->attrs & ATTR_STATIC))
+      if (func_is_global(n->func))
          emit(".global %s", n->func->name);
       emit("%s:", n->func->name);
 

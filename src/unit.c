@@ -87,7 +87,7 @@ void parse_unit(bool gen_ir) {
       struct source_pos begin;
 
       while (lexer_matches(KW_EXTERN) || lexer_matches(KW_STATIC)
-            || lexer_matches(KW_NORETURN)) {
+            || lexer_matches(KW_NORETURN) || lexer_matches(KW_INLINE)) {
          const struct token tk = lexer_next();
          switch (tk.type) {
          case KW_EXTERN:
@@ -98,6 +98,9 @@ void parse_unit(bool gen_ir) {
             break;
          case KW_NORETURN:
             attrs |= ATTR_NORETURN;
+            break;
+         case KW_INLINE:
+            attrs |= ATTR_INLINE;
             break;
          default: parse_error(&tk.begin, "invalid storage specifier");
          }
@@ -336,4 +339,19 @@ bool unit_find(istr_t name, struct symbol* sym) {
       return true;
    }
    return false;
+}
+bool unit_func_is_extern(istr_t n) {
+   for (size_t i = 0; i < buf_len(cunit.funcs); ++i) {
+      const struct function* f = cunit.funcs[i];
+      if (n == f->name && f->attrs & ATTR_EXTERN)
+         return true;
+   }
+   return false;
+}
+bool func_is_global(const struct function* f) {
+   if (f->attrs & ATTR_STATIC)
+      return false;
+   else if (f->attrs & ATTR_INLINE) {
+      return unit_func_is_extern(f->name);
+   } else return true;
 }

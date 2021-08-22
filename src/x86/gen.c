@@ -175,7 +175,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
    case IR_PROLOGUE:
    {
       buf_push(defined, n->func->name);
-      if (!(n->func->attrs & ATTR_STATIC))
+      if (func_is_global(n->func))
          emit("global %s", n->func->name);
       emit("%s:", n->func->name);
       if (has_mach_opt("stack-check")) {

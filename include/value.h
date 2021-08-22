@@ -26,6 +26,7 @@ enum attribute {
    ATTR_EXTERN    = 0x0001,
    ATTR_STATIC    = 0x0002,
    ATTR_NORETURN  = 0x0004,
+   ATTR_INLINE    = 0x0008,
 };
 
 enum value_base_type {

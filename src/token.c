@@ -113,6 +113,7 @@ const char* token_type_str[NUM_TOKENS] = {
    [KW_BOOL]      = "_Bool",
    [KW_NORETURN]  = "_Noreturn",
    [KW_STATIC_ASSERT] = "_Static_assert",
+   [KW_INLINE]    = "inline",
 };
 
 void token_init(void) {
