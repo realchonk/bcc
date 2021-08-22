@@ -1,0 +1,112 @@
+.TH bcpp 1 "2021-08-22" "bcpp-0.13"
+
+.SH NAME
+bcpp - brainlet C preprocessor
+
+.SH SYNOPSIS
+.SY bcpp
+.OP -E
+.OP -C
+.OP -I \fIinclude_path\fR
+.OP -D\fIname\fR[=\fIvalue\fR]
+.OP -U\fIname\fR
+[\fIsource\fR [[\fB-o\fR]\fI output\fR]]
+.YS
+.SY bcpp
+.OP -V
+.YS
+.SY bcpp
+.OP -h
+.YS
+
+.SH DESCRIPTION
+.I bcpp
+is the preprocessor for the
+.I bcc
+compiler.
+
+.SH OPTIONS
+.B -o \fIoutput\fR
+.RE
+.RS 5
+Specify the
+.I output
+file (or '-' for standard output).
+By default the
+.I output
+file is '-'.
+.RE
+.RE
+.B -I \fIinclude_dir\fR
+.RE
+.RS 5
+Specify an include path for the preprocessor to search.
+.RE
+.B -E
+.RE
+.RS 5
+Ignored, since this is the preprocessor.
+.RE
+.B -C
+.RE
+.RS 5
+Suppress the color output.
+.RE
+.B -V
+.RE
+.RS 5
+Print the version information.
+.RE
+.B -h
+.RE
+.RS 5
+Print a simple help message.
+.RE
+.B -D\fIname\fR[=\fIvalue\fR]
+.RE
+.RS 5
+Specify a predefined macro.
+.RE
+.B -U\fIname\fR
+.RE
+.RS 5
+Remove macro
+.I name\fR.
+.RE
+.B -dumpmacros, -dM
+.RE
+.RS 5
+Dump all predefined macros.
+.RE
+
+.SH OPERANDS
+.I output
+.RE
+.RS 5
+The output file, to which to write the resulting output.
+
+.RE
+.I source
+.RE
+.RS 5
+The source file, which to preprocess.
+
+.RE
+.I include_dir
+.RE
+.RS 5
+A directory path which will be searched for #include's.
+
+.SH SEE ALSO
+.BR bcc (1)
+
+.PP
+.SH COPYRIGHT
+.br
+Copyright \(co 2021 Benjamin Stürz
+.br
+License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
+.br
+This is free software; you are free to change and redistribute it.
+.br
+There is NO WARRANTY, to the extent permitted by law.
