@@ -869,3 +869,38 @@
       "  return 0;"
       "}",
 },
+{
+   .name = "inline",
+   .compiles = true,
+   .source =
+      "inline int add(int x, int y) {"
+      "  return x + y;"
+      "}"
+      "int main(void) {"
+      "  return add(3, 2);"
+      "}",
+   .ret_val = 5,
+},
+{
+   .name = "extern inline",
+   .compiles = true,
+   .source =
+      "inline int add(int x, int y) {"
+      "  return x + y;"
+      "}"
+      "extern inline int add(int, int);"
+      "int main(void) {"
+      "  return add(3, 2);"
+      "}",
+   .ret_val = 5,
+},
+{
+   .name = "extern static",
+   .compiles = false,
+   .source =
+      "static int add(int, int);"
+      "extern int add(int a, int b) {"
+      "  return a + b;"
+      "}"
+      "int main() {}",
+},

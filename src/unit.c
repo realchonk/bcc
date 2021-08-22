@@ -143,10 +143,16 @@ void parse_unit(bool gen_ir) {
          if (!func) panic("failed to allocate function");
          func->name = name;
          func->type = type;
-         {
-            struct function* f = unit_get_func(name);
+         if (func->scope) {
+            struct function* f = unit_get_func_def(name);
             if (f && f->scope)
                parse_error(&begin, "function '%s' already defined", name);
+         }
+         if (attrs & ATTR_EXTERN || attrs & ATTR_STATIC) {
+            const enum attribute a = attrs & ATTR_EXTERN ? ATTR_STATIC : ATTR_EXTERN;
+            if (find_func_with_attr(func->name, a)) {
+               parse_error(&begin, "function '%s' already declared as %s\n", func->name, attr_to_string(a));
+            }
          }
          
          buf_push(cunit.funcs, func);
@@ -354,4 +360,20 @@ bool func_is_global(const struct function* f) {
    else if (f->attrs & ATTR_INLINE) {
       return unit_func_is_extern(f->name);
    } else return true;
+}
+struct function* unit_get_func_def(istr_t name) {
+   for (size_t i = 0; i < buf_len(cunit.funcs); ++i) {
+      struct function* f = cunit.funcs[i];
+      if (name == f->name && f->scope)
+         return f;
+   }
+   return NULL;
+}
+struct function* find_func_with_attr(istr_t name, enum attribute a) {
+   for (size_t i = 0; i < buf_len(cunit.funcs); ++i) {
+      struct function* f = cunit.funcs[i];
+      if (name == f->name && (f->attrs & a) == a)
+         return f;
+   }
+   return NULL;
 }
