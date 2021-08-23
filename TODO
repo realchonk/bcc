@@ -23,7 +23,7 @@ General:
 - passing/returning structs/unions
 
 x86:
-- fix nasm warning for indirect funcion calls (64bit)
+- fix nasm warning for indirect function calls (64bit)
 
 riscv:
 - more simple optimizations

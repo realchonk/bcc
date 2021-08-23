@@ -47,7 +47,7 @@ struct expression* optim_expr(struct expression* e) {
          break;
 #endif
       default:
-         panic("invaid value type '%d'", result.type->type);
+         panic("invalid value type '%d'", result.type->type);
       }
       free_value_type(result.type);
    }

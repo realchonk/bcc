@@ -825,7 +825,7 @@
    .name = "invalid use of restrict 2",
    .compiles = false,
    .source =
-      "int main() { retrict int* x; }"
+      "int main() { restrict int* x; }"
 },
 {
    .name = "_Bool",

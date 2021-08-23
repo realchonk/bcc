@@ -71,7 +71,7 @@ static bool direct_val(ir_node_t** n) {
    return success;
 }
 
-// evaluate constant expresions not evaluated by the optim_expr() function.
+// evaluate constant expressions not evaluated by the optim_expr() function.
 static bool fold(ir_node_t** n) {
    bool success = false;
    for (ir_node_t* cur = *n; cur; cur = cur->next) {

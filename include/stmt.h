@@ -28,7 +28,7 @@ enum statement_type {
    STMT_WHILE,       // .whileloop  | while-loop (also for-loop)
    STMT_DO_WHILE,    // .whileloop  | do-while loop
    STMT_VARDECL,     // .var_decl   | variable declaration
-   STMT_SCOPE,       // .scope      | compount statement
+   STMT_SCOPE,       // .scope      | compound statement
    STMT_BREAK,       //             | exit a loop
    STMT_CONTINUE,    //             | skip the current iteration in a loop
    STMT_SWITCH,      // .sw         | switch/case

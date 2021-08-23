@@ -27,7 +27,7 @@ static istr_t* defined = NULL;
 static struct stack_alloc_entry** stack_alloc;
 static struct stack_alloc_entry* stack_cur_alloc;
 struct machine_option mach_opts[] = {
-   { "stack-check", "Perform stack aligment checking on every function entry", 0, .bVal = false },
+   { "stack-check", "Perform stack alignment checking on every function entry", 0, .bVal = false },
 };
 const size_t num_mach_opts = arraylen(mach_opts);
 bool emit_prepare(void) { return true; }

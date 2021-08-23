@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
    } else if (argn == 2) {
       source_name = argv[optind];
       if (output_name) {
-         fputs("bcpp: output filename specfied multiple times\n", stderr);
+         fputs("bcpp: output filename specified multiple times\n", stderr);
          return 1;
       } else output_name = argv[optind + 1];
    } else {

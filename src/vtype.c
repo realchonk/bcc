@@ -682,14 +682,14 @@ struct value_type* get_value_type_impl(struct scope* scope, struct expression* e
 #if ENABLE_FP
          if (vl->type != vr->type) {
             if (check2(vl, vr, VAL_POINTER, VAL_FLOAT))
-               parse_error(&e->binary.op.begin, "comparisson between pointer and floating-point");
+               parse_error(&e->binary.op.begin, "comparison between pointer and floating-point");
             else if (check2(vl, vr, VAL_POINTER, VAL_INT))
-               parse_warn(&e->binary.op.begin, "comparisson between pointer and integer");
+               parse_warn(&e->binary.op.begin, "comparison between pointer and integer");
          } else
 #endif
          if (check1and(vl, vr, VAL_POINTER)) {
             if (!ptreq(vl, vr))
-               parse_error(&e->binary.op.begin, "comparisson between pointer of different types");
+               parse_error(&e->binary.op.begin, "comparison between pointer of different types");
          }
          return make_int(INT_INT, false);
       case TK_AMPAMP:

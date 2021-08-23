@@ -38,7 +38,7 @@ AC_C_INLINE
 # TODO: --with-includes=
 SYS_INCLUDES="/usr/include:/usr/local/include"
 
-AC_DEFINE_UNQUOTED([SYS_INCLUDES], ["$SYS_INCLUDES"], [The default system-wide incldues])
+AC_DEFINE_UNQUOTED([SYS_INCLUDES], ["$SYS_INCLUDES"], [The default system-wide includes])
 
 # Patch bcpp.1
 sed "s/VERSION/$VERSION/g" ${srcdir}/src/bcpp.1 >bcpp.1 || AC_MSG_ERROR([failed to patch bcpp.1])
