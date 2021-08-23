@@ -7,11 +7,10 @@
 
 
 # Language
-- inline keyword
 - array initialization syntax eg. 'int a[] = { 1, 2, 3, 4 }'
 - proper switch/case
 - labels & goto
-- added configure option to disable extensions
+- add configure option to disable extensions
 
 
 # IR-generation
