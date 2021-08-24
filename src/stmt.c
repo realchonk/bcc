@@ -415,27 +415,36 @@ struct statement* parse_stmt(struct scope* scope) {
             }
          skip_asize:
     
-            var.init = lexer_match(TK_EQ) ? parse_expr_no_comma(scope) : NULL;
+            if (lexer_match(TK_EQ)) {
+               if (lexer_matches(TK_CLPAREN) && vtype->type == VAL_POINTER && vtype->pointer.is_array) {
+                  var.init = parse_expr_list(scope, vtype->pointer.type);
+                  if (!vtype->pointer.array.has_const_size) {
+                     vtype->pointer.array.has_const_size = true;
+                     vtype->pointer.array.size = buf_len(var.init->comma);
+                  } else {
+                     if (vtype->pointer.array.size < buf_len(var.init->comma))
+                        parse_error(&var.init->begin, "array too short");
+                  }
+               } else var.init = parse_expr_no_comma(scope);
+            } else var.init = NULL;
             var.end = var.init ? var.init->end : name_tk.end;
             var.type = vtype;
     
             if (vtype->type == VAL_POINTER && vtype->pointer.is_array && var.init) {
                if (!vtype->pointer.array.has_const_size && vtype->pointer.array.dsize)
                   parse_error(&var.init->begin, "initializing a variable-length array is not supported");
-               if (vtype->pointer.type->type == VAL_INT && vtype->pointer.type->integer.size == INT_CHAR) {
-                  if (var.init->type == EXPR_STRING) {
-                     const char* str = var.init->str;
-                     const size_t len = strlen(str) + 1;
-                     if (vtype->pointer.array.has_const_size) {
-                        if (len < vtype->pointer.array.size)
-                           parse_warn(&var.init->begin, "array is too small to fit string, cutting off");
-                     } else {
-                        vtype->pointer.array.has_const_size = true;
-                        vtype->pointer.array.size = len;
-                     }
-                  } else parse_error(&var.init->begin, "only string literal initialization supported");
+               if (vtype->pointer.type->type == VAL_INT && vtype->pointer.type->integer.size == INT_CHAR
+                  && var.init->type == EXPR_STRING) {
+                  const char* str = var.init->str;
+                  const size_t len = strlen(str) + 1;
+                  if (vtype->pointer.array.has_const_size) {
+                     if (len > vtype->pointer.array.size)
+                        parse_warn(&var.init->begin, "array is too small to fit string, cutting off");
+                  } else {
+                     vtype->pointer.array.has_const_size = true;
+                     vtype->pointer.array.size = len;
+                  }
                }
-               else parse_error(&var.init->begin, "array initialization is only supported for char []");
             }
     
             if (vtype->type == VAL_AUTO) {
@@ -447,9 +456,11 @@ struct statement* parse_stmt(struct scope* scope) {
             }
     
             if (var.init) {
-               const struct value_type* old = get_value_type(scope, var.init);
-               if (!is_castable(old, var.type, true))
-                  parse_error(&var.init->begin, "incompatible init value type");
+               if (!(var.init->type == EXPR_COMMA && vtype->type == VAL_POINTER && vtype->pointer.is_array)) {
+                  const struct value_type* old = get_value_type(scope, var.init);
+                  if (!is_castable(old, var.type, true))
+                     parse_error(&var.init->begin, "incompatible init value type");
+               }
             } else if (vtype->is_const && (vtype->type != VAL_POINTER || !vtype->pointer.is_array))
                parse_error(&var.end, "expected init value for const variable");
             

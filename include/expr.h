@@ -123,4 +123,7 @@ bool expr_is_pure(const struct expression*);
 
 struct value parse_const_expr(void);
 
+struct scope;
+struct expression* parse_expr_list(struct scope*, const struct value_type*);
+
 #endif /* FILE_EXPR_H */

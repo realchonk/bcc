@@ -873,16 +873,69 @@ ir_node_t* irgen_stmt(const struct statement* s) {
             }
 
             if (var->init) {
-               tmp = new_node(IR_LSTR);
-               tmp->lstr.str = var->init->str;
-               tmp->lstr.reg = creg + 1;
-               ir_append(cur, tmp);
+               if (var->init->type == EXPR_STRING) {
+                  tmp = new_node(IR_LSTR);
+                  tmp->lstr.str = var->init->str;
+                  tmp->lstr.reg = creg + 1;
+                  ir_append(cur, tmp);
 
-               tmp = new_node(IR_COPY);
-               tmp->copy.dest = creg;
-               tmp->copy.src = creg + 1;
-               tmp->copy.len = my_min(type->pointer.array.size, strlen(var->init->str) + 1);
-               ir_append(cur, tmp);
+                  tmp = new_node(IR_COPY);
+                  tmp->copy.dest = creg;
+                  tmp->copy.src = creg + 1;
+                  tmp->copy.len = my_min(type->pointer.array.size, strlen(var->init->str) + 1);
+                  ir_append(cur, tmp);
+               } else if (var->init->type == EXPR_COMMA) {
+                  const struct value_type* evt = var->type->pointer.type;
+                  struct expression** list = var->init->comma;
+                  ++creg;
+                  const size_t sz_evt = sizeof_value(evt, false);
+                  const size_t len = my_min(buf_len(list), var->type->pointer.array.size);
+                  const enum ir_value_size eirs = vt2irs(evt);
+                  size_t i;
+                  for (i = 0; i < len; ++i) {
+                     tmp = ir_expr(s->parent, list[i]);
+                     ir_append(cur, tmp);
+                     tmp = new_node(IR_WRITE);
+                     tmp->write.dest = creg - 2;
+                     tmp->write.src = creg  - 1;
+                     tmp->write.size = eirs;
+                     tmp->write.is_volatile = vt_is_volatile(evt);
+                     ir_append(cur, tmp);
+                     tmp = new_node(IR_IADD);
+                     tmp->binary.dest = creg - 2;
+                     tmp->binary.size = IRS_PTR;
+                     tmp->binary.a.type = IRT_REG;
+                     tmp->binary.a.reg = creg - 2;
+                     tmp->binary.b.type = IRT_UINT;
+                     tmp->binary.b.uVal = sz_evt;
+                     ir_append(cur, tmp);
+                     --creg;
+                  }
+                  if (i < var->type->pointer.array.size) {
+                     tmp = new_node(IR_LOAD);
+                     tmp->load.dest = creg;
+                     tmp->load.value = 0;
+                     tmp->load.size = sz_evt;
+                     ir_append(cur, tmp);
+                     for (; i < var->type->pointer.array.size; ++i) {
+                        tmp = new_node(IR_WRITE);
+                        tmp->write.dest = creg - 1;
+                        tmp->write.src = creg;
+                        tmp->write.size = eirs;
+                        tmp->write.is_volatile = false;
+                        ir_append(cur, tmp);
+                        tmp = new_node(IR_IADD);
+                        tmp->binary.dest = creg - 1;
+                        tmp->binary.size = IRS_PTR;
+                        tmp->binary.a.type = IRT_REG;
+                        tmp->binary.a.reg = creg - 1;
+                        tmp->binary.b.type = IRT_UINT;
+                        tmp->binary.b.uVal = sz_evt;
+                        ir_append(cur, tmp);
+                     }
+                  }
+                  --creg;
+               } else panic("failed to initialize array");
             }
          } else if (var->init) {
             struct expression* init = var->init;

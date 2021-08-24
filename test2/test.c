@@ -1,11 +1,8 @@
 int printf(const char*, ...);
 int putchar(int);
 
-inline int add(int x, int y) {
-   return x + y;
-}
-extern inline int add(int, int);
-
 int main(void) {
-   return add(3, 2);
+   int a[5] = { 1, 2, 3, 4, 5 };
+   char s[] = { 'H', 'e', 'l', 'l', 'o', 0 };
+   printf("%s\n", s);
 }

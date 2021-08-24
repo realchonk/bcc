@@ -755,3 +755,19 @@ bool expr_is_pure(const struct expression* e) {
    }
    panic("unreachable reached");
 }
+struct expression* parse_expr_list(struct scope* scope, const struct value_type* vt) {
+   struct expression* expr = new_expr();
+   expr->type = EXPR_COMMA;
+   expr->begin = lexer_expect(TK_CLPAREN).begin;
+   expr->comma = NULL;
+   if (!lexer_matches(TK_CRPAREN)) {
+      do {
+         struct expression* sub = parse_expr_no_comma(scope);
+         if (!is_castable(get_value_type(scope, sub), vt, true))
+            parse_error(&sub->begin, "invalid value type");
+         buf_push(expr->comma, sub);
+      } while (lexer_match(TK_COMMA));
+   }
+   expr->end = lexer_expect(TK_CRPAREN).end;
+   return expr;
+}

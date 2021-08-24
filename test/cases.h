@@ -904,3 +904,24 @@
       "}"
       "int main() {}",
 },
+{
+   .name = "local array initialization",
+   .compiles = true,
+   .source =
+      "int main(void) {"
+      "  int a[] = { 1, 2, 3, 4, 5 };"
+      "  return (sizeof(a) / sizeof(int)) + a[0] + a[1] + a[2] + a[3] + a[4];"
+      "}",
+   .ret_val = 20,
+},
+{
+   .name = "local array initialization (char[])",
+   .compiles = true,
+   .source =
+      "int puts(const char*);"
+      "int main(void) {"
+      "  char str[] = { 'H', 'e', 'l', 'l', 'o', 0 };"
+      "  puts(str);"
+      "}",
+   .output = "Hello\n",
+},
