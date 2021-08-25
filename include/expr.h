@@ -125,5 +125,6 @@ struct value parse_const_expr(void);
 
 struct scope;
 struct expression* parse_expr_list(struct scope*, const struct value_type*);
+struct expression* parse_var_init(struct scope*, struct value_type**);
 
 #endif /* FILE_EXPR_H */

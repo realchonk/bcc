@@ -414,23 +414,14 @@ struct statement* parse_stmt(struct scope* scope) {
                vtype->end = lexer_expect(TK_RBRACK).end;
             }
          skip_asize:
-    
-            if (lexer_match(TK_EQ)) {
-               if (lexer_matches(TK_CLPAREN) && vtype->type == VAL_POINTER && vtype->pointer.is_array) {
-                  var.init = parse_expr_list(scope, vtype->pointer.type);
-                  if (!vtype->pointer.array.has_const_size) {
-                     vtype->pointer.array.has_const_size = true;
-                     vtype->pointer.array.size = buf_len(var.init->comma);
-                  } else {
-                     if (vtype->pointer.array.size < buf_len(var.init->comma))
-                        parse_error(&var.init->begin, "array too short");
-                  }
-               } else var.init = parse_expr_no_comma(scope);
-            } else var.init = NULL;
+            var.init = lexer_match(TK_EQ) ? parse_var_init(scope, &vtype) : NULL;
             var.end = var.init ? var.init->end : name_tk.end;
             var.type = vtype;
+
+            if (var.type->type == VAL_AUTO)
+               panic("unreachable reached");
     
-            if (vtype->type == VAL_POINTER && vtype->pointer.is_array && var.init) {
+            if (var.init && vt_is_array(vtype)) {
                if (!vtype->pointer.array.has_const_size && vtype->pointer.array.dsize)
                   parse_error(&var.init->begin, "initializing a variable-length array is not supported");
                if (vtype->pointer.type->type == VAL_INT && vtype->pointer.type->integer.size == INT_CHAR
@@ -447,21 +438,7 @@ struct statement* parse_stmt(struct scope* scope) {
                }
             }
     
-            if (vtype->type == VAL_AUTO) {
-               if (!var.init) parse_error(&var.end, "auto variable expects initializer");
-               var.type = decay(copy_value_type(get_value_type(scope, var.init)));
-               var.type->is_const = vtype->is_const;
-               free_value_type(vtype);
-               vtype = var.type;
-            }
-    
-            if (var.init) {
-               if (!(var.init->type == EXPR_COMMA && vtype->type == VAL_POINTER && vtype->pointer.is_array)) {
-                  const struct value_type* old = get_value_type(scope, var.init);
-                  if (!is_castable(old, var.type, true))
-                     parse_error(&var.init->begin, "incompatible init value type");
-               }
-            } else if (vtype->is_const && (vtype->type != VAL_POINTER || !vtype->pointer.is_array))
+            if (!var.init && vtype->is_const && !vt_is_array(vtype))
                parse_error(&var.end, "expected init value for const variable");
             
             if (scope_add_var(scope, &var) == SIZE_MAX)

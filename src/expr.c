@@ -771,3 +771,40 @@ struct expression* parse_expr_list(struct scope* scope, const struct value_type*
    expr->end = lexer_expect(TK_CRPAREN).end;
    return expr;
 }
+struct expression* parse_var_init(struct scope* scope, struct value_type** pvt) {
+   struct value_type* vt = *pvt;
+   if (lexer_matches(TK_CLPAREN)) {
+      const struct source_pos pos = lexer_peek().begin;
+      if (vt_is_array(vt)) {
+         struct expression* list = parse_expr_list(scope, vt->pointer.type);
+         if (vt->pointer.array.has_const_size) {
+            if (vt->pointer.array.size < buf_len(list->comma))
+               parse_error(&pos, "array too short");
+         } else {
+            if (vt->pointer.array.dsize)
+               parse_error(&pos, "initializing a variable-length array is not supported");
+            vt->pointer.array.has_const_size = true;
+            vt->pointer.array.size = buf_len(list->comma);
+         }
+         return list;
+      } else if (vt_is_struct(vt)) {
+         parse_error(&pos, "compound literals are not supported");
+      } else {
+         parse_error(&pos, "compound initialization is not applicable to %s", value_type_str[vt->type]);
+      }
+   } else {
+      struct expression* expr = parse_expr_no_comma(scope);
+      const struct value_type* vte = get_value_type(scope, expr);
+      if (vt->type == VAL_AUTO) {
+         const bool is_const = vt->is_const;
+         const bool is_volatile = vt->is_volatile;
+         free_value_type(vt);
+         *pvt = decay(copy_value_type(vte));
+         vt = *pvt;
+         vt->is_const = is_const;
+         vt->is_volatile = is_volatile;
+      } else if (!is_castable(vte, vt, true))
+         parse_error(&expr->begin, "invalid initialization type");
+      return expr;
+   }
+}

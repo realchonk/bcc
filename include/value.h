@@ -170,7 +170,11 @@ bool vt_is_signed(const struct value_type*);
 const char* attr_to_string(enum attribute);
 
 #define is_struct(t) ((t) == VAL_STRUCT || (t) == VAL_UNION)
+#define vt_is_struct(vt) (is_struct((vt)->type))
+#define vt_is_array(vt) (((vt)->type == VAL_POINTER) && ((vt)->pointer.is_array))
 #define vt_is_restrict(vt) (((vt)->type == VAL_POINTER) && ((vt)->pointer.is_restrict))
 #define vt_is_volatile(vt) ((vt)->is_volatile)
+#define vt_is_string(vt)   (((vt)->type == VAL_POINTER) && ((vt)->pointer.type->type == VAL_INT) \
+                           && ((vt)->pointer.type->integer.size = INT_CHAR))
 
 #endif /* FILE_VALUE_H */
