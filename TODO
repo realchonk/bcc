@@ -7,7 +7,6 @@
 
 
 # Language
-- array initialization syntax eg. 'int a[] = { 1, 2, 3, 4 }' (for global variables)
 - proper switch/case
 - labels & goto
 - add configure option to disable extensions
@@ -26,6 +25,7 @@ x86:
 
 riscv:
 - more simple optimizations
+- add VLAs
 
 
 # Pre-processor

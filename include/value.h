@@ -131,6 +131,7 @@ struct value {
 #if ENABLE_FP
       fpmax_t fVal;
 #endif
+      struct value* array;
    };
 };
 
@@ -168,6 +169,7 @@ const struct value_type* actual_func_vt(const struct value_type*);
 void eval_expr(struct expression*, struct value*);
 bool vt_is_signed(const struct value_type*);
 const char* attr_to_string(enum attribute);
+bool try_eval_array(struct expression*, struct value*, const struct value_type*);
 
 #define is_struct(t) ((t) == VAL_STRUCT || (t) == VAL_UNION)
 #define vt_is_struct(vt) (is_struct((vt)->type))

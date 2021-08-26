@@ -87,6 +87,7 @@ static void emit_begin(void) {
       else buf_push(unresolved, v->name);
    }
 }
+static void emit_global_init(const struct value_type* vt, const struct value* val);
 static void emit_end(void) {
    for (size_t i = 0; i < buf_len(unresolved); ++i) {
       bool is_defined = false;
@@ -145,64 +146,88 @@ static void emit_end(void) {
          if (!(var->attrs & ATTR_STATIC))
             emit("global %s", var->name);
          emit("%s:", var->name);
-         switch (type->type) {
-         case VAL_INT:
-            switch (type->integer.size) {
-            case INT_BYTE:
-            case INT_CHAR:
-               emitraw("db ");
-               break;
-            case INT_SHORT:
-               emitraw("dw ");
-               break;
-            case INT_INT:
-               emitraw("dd ");
-               break;
-            case INT_LONG:
-               emitraw("dq ");
-               break;
-            default:
-               panic("unreachable reached");
-            }
-            break;
-#if ENABLE_FP
-         case VAL_FLOAT:
-            switch (type->fp.size) {
-            case FP_FLOAT:
-               emitraw("dd ");
-               break;
-            case FP_DOUBLE:
-               emitraw("dq ");
-               break;
-            default:
-               panic("unreachable reached");
-            }
-            break;
-#endif
-         case VAL_POINTER:
+         emit_global_init(var->type, var->has_const_value ? &var->const_init : NULL);
+      }
+   }
+}
+
+static void emit_global_init(const struct value_type* vt, const struct value* val) {
+   switch (vt->type) {
+   case VAL_INT:
+      switch (vt->integer.size) {
+      case INT_BYTE:
+      case INT_CHAR:
+         emitraw("db ");
+         break;
+      case INT_SHORT:
+         emitraw("dw ");
+         break;
+      case INT_LONG:
 #if BITS == 64
-            emitraw("dq ");
-#else
-            emitraw("dd ");
+         emitraw("dq ");
+         break;
 #endif
-            if (type->pointer.is_array) {
-               emit("$ + %zu", target_info.size_pointer);
-               emit("resb %zu", sizeof_value(type, false));
-               continue;
-            }
+      case INT_INT:
+         emitraw("dd ");
+         break;
+      default:
+         panic("invalid IR integer size");
+      }
+      if (val) {
+         if (vt->integer.is_unsigned)
+            emit("%ju", val->uVal);
+         else emit("%jd", val->iVal);
+      } else emit("0");
+      break;
+#if ENABLE_FP
+      case VAL_FLOAT:
+         switch (vt->fp.size) {
+         case FP_FLOAT:
+            emitraw("dd ");
+            break;
+         case FP_DOUBLE:
+            emitraw("dq ");
             break;
          default:
-            panic("invalid variable type '%s'", value_type_str[type->type]);
+            panic("invalid IR fp size");
          }
-         if (var->init) {
-            if (type->type != VAL_INT)
-               parse_error(&var->init->begin, "only initialization of integer global variables is supported.");
-            if (var->type->integer.is_unsigned)
-               emit("%ju", var->const_init.uVal);
-            else emit("%jd", var->const_init.iVal);
+         if (val) {
+            panic("initialization fo global floating-point variables is not supported");
          } else emit("0");
-      }
-
+         break;
+#endif
+      case VAL_POINTER:
+         if (vt->pointer.is_array) {
+            if (val) {
+               print_value_type(stderr, vt->pointer.type);
+               if (!vt_is_array(val->type))
+                  panic("val is not an array, val is %s", value_type_str[val->type->type]);
+               for (size_t i = 0; i < buf_len(val->array); ++i) {
+                  emit_global_init(vt->pointer.type, &val->array[i]);
+               }
+            } else {
+               emit("resb %zu", sizeof_value(vt, false));
+            }
+            break;
+         } else {
+#if BITS == 32
+            emitraw("dd ");
+#else
+            emitraw("dq ");
+#endif
+            if (val) {
+               emit("%ju", val->uVal);
+            } else emit("0");
+         }
+         break;
+      case VAL_BOOL:
+         emitraw("db ");
+         if (val) {
+            emit("%u", val->uVal ? 1 : 0);
+         } else emit("0");
+         break;
+      default:
+         panic("invalid variable type '%s'", value_type_str[vt->type]);
    }
 }
 static void emit_func(const struct function* func, const ir_node_t* n) {

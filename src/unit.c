@@ -195,27 +195,44 @@ void parse_unit(bool gen_ir) {
             if (unit_get_func(name))
                parse_error(&begin, "function with name '%s' already exists", name);
             if (lexer_match(TK_LBRACK)) {
-               struct expression* expr = parse_expr(NULL);
-               struct value val;
-               if (!try_eval_expr(expr, &val))
-                  parse_error(&expr->begin, "gloal VLAs are not allowed.");
-               else if (val.type->type != VAL_INT)
-                  parse_error(&expr->begin, "size of array must be an integer.");
-               else if (!val.type->integer.is_unsigned && val.iVal < 0)
-                  parse_error(&expr->begin, "size of array must be positive.");
-               var.type = make_array_vt(val.type);
-               var.type->pointer.array.has_const_size = true;
-               var.type->pointer.array.size = val.uVal;
-               lexer_expect(TK_RBRACK);
+               var.type = make_array_vt(vt);
+               if (lexer_match(TK_RBRACK)) {
+                  var.type->pointer.array.has_const_size = false;
+                  var.type->pointer.array.dsize = NULL;
+               } else {
+                  struct expression* expr = parse_expr(NULL);
+                  struct value val;
+                  if (!try_eval_expr(expr, &val))
+                     parse_error(&expr->begin, "global VLAs are not allowed.");
+                  else if (val.type->type != VAL_INT)
+                     parse_error(&expr->begin, "size of array must be an integer.");
+                  else if (!val.type->integer.is_unsigned && val.iVal < 0)
+                     parse_error(&expr->begin, "size of array must be positive.");
+                  var.type->pointer.array.has_const_size = true;
+                  var.type->pointer.array.size = val.uVal;
+                  lexer_expect(TK_RBRACK);
+               }
+               vt = var.type;
             }
-            if (lexer_match(TK_EQ)) {
-               var.init = parse_expr_no_comma(NULL);
+            var.has_const_value = lexer_match(TK_EQ);
+            if (var.has_const_value) {
+               var.init = parse_var_init(NULL, &var.type);
                if (var.attrs & ATTR_EXTERN)
                   parse_error(&var.init->begin, "cannot initialize extern variable");
-               if (!try_eval_expr(var.init, &var.const_init))
+               bool s;
+               if (vt_is_array(var.type))
+                  s = try_eval_array(var.init, &var.const_init, var.type);
+               else s = try_eval_expr(var.init, &var.const_init);
+               if (!s)
                   parse_error(&var.init->begin, "global variables may only be initialized with a constant value");
-               var.has_const_value = true;
-            } else var.init = NULL;
+               if (!is_castable(var.type, var.type, true))
+                  parse_error(&var.init->begin, "incompatible initialization type");
+                   
+            } else {
+               if (var.type->type == VAL_AUTO)
+                  parse_error(&var.begin, "auto variable expects initializer");
+               var.init = NULL;
+            }
             var.end = var.init ? var.init->end : name_end;
             buf_push(cunit.vars, var);
          } while (lexer_match(TK_COMMA));

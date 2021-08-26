@@ -104,10 +104,14 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
             if (unit_find(e->str, &sym)) {
                switch (sym.type) {
                case SYM_VAR:
+               {
+                  const struct value_type* vt = cunit.vars[sym.idx].type;
                   n->type = IR_GLOOKUP;
                   n->lstr.str = e->str;
                   n->lstr.reg = creg++;
+                  *is_lv = !(vt_is_array(vt) && vt->pointer.array.has_const_size);
                   break;
+               }
                case SYM_CONST:
                   n->type = IR_LOAD;
                   n->load.dest = creg++;
@@ -140,7 +144,7 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
          n->lookup.reg = creg++;
          n->lookup.var_idx = idx;
          const struct value_type* vt = n->lookup.scope->vars[n->lookup.var_idx].type;
-         *is_lv = vt->type != VAL_POINTER || !vt->pointer.is_array || !vt->pointer.array.has_const_size;
+         *is_lv = !(vt_is_array(vt) && vt->pointer.array.has_const_size);
       }
       return n;
    case EXPR_INDIRECT:

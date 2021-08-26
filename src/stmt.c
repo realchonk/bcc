@@ -418,8 +418,9 @@ struct statement* parse_stmt(struct scope* scope) {
             var.end = var.init ? var.init->end : name_tk.end;
             var.type = vtype;
 
-            if (var.type->type == VAL_AUTO)
-               panic("unreachable reached");
+            if (var.type->type == VAL_AUTO) {
+               parse_error(&var.begin, "auto variable expects initializer");
+            }
     
             if (var.init && vt_is_array(vtype)) {
                if (!vtype->pointer.array.has_const_size && vtype->pointer.array.dsize)

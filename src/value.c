@@ -208,6 +208,22 @@ bool try_eval_expr(struct expression* e, struct value* val) {
       return false;
    }
 }
+bool try_eval_array(struct expression* e, struct value* v, const struct value_type* vt) {
+   if (e->type != EXPR_COMMA)
+      panic("invalid type of e");
+   v->type = copy_value_type(vt);
+   print_value_type(stderr, v->type);
+   v->array = NULL;
+   v->begin = e->begin;
+   v->end = e->end;
+   for (size_t i = 0; i < buf_len(e->comma); ++i) {
+      struct value sub;
+      if (!try_eval_expr(e->comma[i], &sub))
+         return false;
+      buf_push(v->array, sub);
+   }
+   return true;
+}
 bool var_is_declared(istr_t name, struct scope* scope) {
    return (scope && scope_find_var(scope, name)) || unit_get_var(name) || unit_get_func(name);
 }

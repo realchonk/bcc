@@ -1,8 +1,9 @@
+int puts(const char* restrict);
 int printf(const char*, ...);
 int putchar(int);
 
-const char s[10] = "Hello World";
+int a[] = { 1, 2, 3 };
 
 int main() {
-
+   return a[0];
 }

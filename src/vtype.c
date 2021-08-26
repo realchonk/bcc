@@ -903,7 +903,8 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
    case VAL_FLOAT:
       switch (type->type) {
       case VAL_INT:
-         if (implicit) warn_implicit(fp_size_str[old->fp.size], integer_size_str[type->integer.size]);
+         if (implicit)
+            warn_implicit(fp_size_str[old->fp.size], integer_size_str[type->integer.size]);
          fallthrough;
       case VAL_FLOAT:
          return true;
@@ -924,7 +925,8 @@ bool is_castable(const struct value_type* old, const struct value_type* type, bo
             warn_implicit("const pointer", "non-const pointer");
          if (old->pointer.type->is_volatile && !type->pointer.type->is_volatile && implicit)
             warn_implicit("volatile pointer", "non-volatile pointer");
-         if (old->pointer.type->type == VAL_VOID || type->pointer.type->type == VAL_VOID) return true;
+         if (old->pointer.type->type == VAL_VOID || type->pointer.type->type == VAL_VOID)
+            return true;
          if (!ptreq(old->pointer.type, type->pointer.type) && implicit)
             parse_warn(&old->begin, "implicit pointer conversion");
          return true;

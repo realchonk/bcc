@@ -925,3 +925,16 @@
       "}",
    .output = "Hello\n",
 },
+{
+   .name = "global initialized integer array",
+   .compiles = true,
+   .source =
+      "int printf(const char*, ...);"
+      "const int a[] = { 1, 2, 3, 4, 5 };"
+      "int main(void) {"
+      "  for (unsigned i = 0; i < arraylen(a); ++i)"
+      "     printf(\"%d\", a[i]);"
+      "  return 0;"
+      "}",
+   .output = "12345",
+},
