@@ -13,11 +13,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+BCC = $(shell env PATH="..:$$PATH" which bcc)
+BCPP = $(patsubst %/bcc,%/bcpp,$(BCC))
 
-BCC_ARCH ?= $(shell ../bcc -dumparch)
-BCC_MACH ?= $(shell ../bcc -dumpmachine)
+BCC_ARCH ?= $(shell $(BCC) -dumparch)
+BCC_MACH ?= $(shell $(BCC) -dumpmachine)
 
-BCCFLAGS+=-O2 -e ../cpp/bcpp # -I ../bcc-include
+BCCFLAGS+=-O2 -e $(BCPP) -I ../bcc-include
 
 ifeq ($(BCC_ARCH),x86_64)
 BITS=64
@@ -45,15 +47,15 @@ endif
 
 all: test
 
-test.ir: test.c ../bcc
-	../bcc -i -o $@ $< $(BCCFLAGS)
+test.ir: test.c $(BCC)
+	$(BCC) -i -o $@ $< $(BCCFLAGS)
 
 ifeq ($(ARCH),x86)
-test.asm: test.c ../bcc
-	../bcc -S -o $@ $< $(BCCFLAGS)
+test.asm: test.c $(BCC)
+	$(BCC) -S -o $@ $< $(BCCFLAGS)
 
 test.o: test.asm
-	../bcc -c -o $@ $<
+	$(BCC) -c -o $@ $<
 
 test: test.o
 	$(GCC) -m$(BITS) -o $@ $<
@@ -64,10 +66,10 @@ test: test.o
 	$(GCC) -o $@ $<
 
 test.o: test.s
-	../bcc -c -o $@ $< $(BCCFLAGS)
+	$(BCC) -c -o $@ $< $(BCCFLAGS)
 
-test.s: test.c ../bcc
-	../bcc -S -o $@ $< $(BCCFLAGS)
+test.s: test.c $(BCC)
+	$(BCC) -S -o $@ $< $(BCCFLAGS)
 endif
 
 clean:
