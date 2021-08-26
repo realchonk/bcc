@@ -3,7 +3,8 @@ int printf(const char*, ...);
 int putchar(int);
 
 char str[] = "Hello World";
+int a[10];
 
-int main() {
+int main(void) {
    puts(str);
 }

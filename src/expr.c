@@ -795,7 +795,18 @@ struct expression* parse_var_init(struct scope* scope, struct value_type** pvt) 
    } else {
       struct expression* expr = parse_expr_no_comma(scope);
       const struct value_type* vte = get_value_type(scope, expr);
-      if (vt->type == VAL_AUTO) {
+      if (expr->type == EXPR_STRING && vt_is_array(vt)) {
+         const size_t len = strlen(expr->str) + 1; // TODO
+         if (vt->pointer.array.has_const_size) {
+            if (vt->pointer.array.size < len + 1)
+               parse_error(&expr->begin, "array too short");
+         } else {
+            if (vt->pointer.array.dsize)
+               parse_error(&expr->begin, "initializing a variable-length array is not supported");
+            vt->pointer.array.has_const_size = true;
+            vt->pointer.array.size = len;
+         }
+      } else if (vt->type == VAL_AUTO) {
          const bool is_const = vt->is_const;
          const bool is_volatile = vt->is_volatile;
          free_value_type(vt);

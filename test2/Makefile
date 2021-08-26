@@ -13,8 +13,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-BCC = $(shell env PATH="..:$$PATH" which bcc)
+ifeq ($(shell test -e ../bcc && echo y),y)
+BCC = ../bcc
+BCPP = ../cpp/bcpp
+else
+BCC = $(shell which bcc)
 BCPP = $(patsubst %/bcc,%/bcpp,$(BCC))
+endif
 
 BCC_ARCH ?= $(shell $(BCC) -dumparch)
 BCC_MACH ?= $(shell $(BCC) -dumpmachine)

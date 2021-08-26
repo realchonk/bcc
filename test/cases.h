@@ -938,3 +938,27 @@
       "}",
    .output = "12345",
 },
+{
+   .name = "global char array from string literal",
+   .compiles = true,
+   .source =
+      "int puts(const char*);"
+      "char str[] = \"Hello World\";"
+      "int main(void) {"
+      "  puts(str);"
+      "  return 0;"
+      "}",
+   .output = "Hello World\n",
+},
+{
+   .name = "local char array from string literal",
+   .compiles = true,
+   .source =
+      "int puts(const char*);"
+      "int main(void) {"
+      "  char str[] = \"Hello World\";"
+      "  puts(str);"
+      "  return 0;"
+      "}",
+   .output = "Hello World\n",
+},

@@ -209,19 +209,31 @@ bool try_eval_expr(struct expression* e, struct value* val) {
    }
 }
 bool try_eval_array(struct expression* e, struct value* v, const struct value_type* vt) {
-   if (e->type != EXPR_COMMA)
-      panic("invalid type of e");
    v->type = copy_value_type(vt);
-   print_value_type(stderr, v->type);
-   v->array = NULL;
    v->begin = e->begin;
    v->end = e->end;
-   for (size_t i = 0; i < buf_len(e->comma); ++i) {
-      struct value sub;
-      if (!try_eval_expr(e->comma[i], &sub))
-         return false;
-      buf_push(v->array, sub);
-   }
+   v->array = NULL;
+   if (e->type == EXPR_STRING) {
+      if (!vt_is_string(vt))
+         parse_error(&e->begin, "string literals can only be assigned to char arrays");
+      const char* s = e->str;
+      struct value val;
+      do {
+         val.begin = e->begin;
+         val.end = e->end;
+         val.type = copy_value_type(vt->pointer.type);
+         val.uVal = *s;
+         buf_push(v->array, val);
+         ++s;
+      } while (*s);
+   } else if (e->type == EXPR_COMMA) {
+      for (size_t i = 0; i < buf_len(e->comma); ++i) {
+         struct value sub;
+         if (!try_eval_expr(e->comma[i], &sub))
+            return false;
+         buf_push(v->array, sub);
+      }
+   } else parse_error(&e->begin, "expected '{', or '\"' as an initializer");
    return true;
 }
 bool var_is_declared(istr_t name, struct scope* scope) {
