@@ -3,7 +3,8 @@
 
 # Major things
 - floating-point support
-- linking support
+- linking support (depends on libbcc)
+- libbcc
 
 
 # Language
@@ -42,9 +43,8 @@ riscv:
 
 # Other
 - find & fix reason for random crashes
-- create libbcc (including crtX.o)
 - options: -g, -L, -l, -s
-- <stdarg.h> header
+- <stdarg.h> header (depends on libbcc)
 - command-line interface accepting multiple source-files
 
 

@@ -13,6 +13,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#ifndef FILE_X86_REGS_H
+#define FILE_X86_REGS_H
 #include "error.h"
 
 #define reg8(i) ((i) < arraylen(regs8) ? regs8[i] : (panic("register out of range"), NULL))
@@ -80,6 +82,4 @@ static size_t param_regs[] = { 1, 2, 3, 4, 5, 6 };
 
 #endif
 
-
-
-
+#endif /* FILE_X86_REGS_H */

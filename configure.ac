@@ -14,7 +14,8 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 m4_define([bcc_VERSION], m4_esyscmd_s([./util/version.sh]))
-AC_INIT([bcc], m4_defn([bcc_VERSION]), [benni@stuerz.xyz], [bcc-]m4_defn([bcc_VERSION]), [https://github.com/Benni3D/bcc])
+AC_INIT([bcc], m4_defn([bcc_VERSION]), [benni@stuerz.xyz], [bcc-]m4_defn([bcc_VERSION]),
+        [https://github.com/Benni3D/bcc])
 
 # Initialization stuff
 AC_PREREQ([2.69])

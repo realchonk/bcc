@@ -13,6 +13,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#ifndef FILE_EMIT_IR_H
+#define FILE_EMIT_IR_H
 #include "target.h"
 #include "regs.h"
 
@@ -38,3 +40,4 @@ static void assign_scope(struct scope* scope, uintreg_t* sp) {
       assign_scope(scope->children[i], sp);
    }
 }
+#endif /* FILE_EMIT_IR_H */

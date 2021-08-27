@@ -13,7 +13,20 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#ifndef FILE_X86_GEN_H
+#define FILE_X86_GEN_H
+#include <stdbool.h>
+#include <stddef.h>
+#include <string.h>
+#include "strint.h"
+#include "target.h"
 #include "config.h"
+#include "ctype.h"
+#include "strdb.h"
+#include "math.h"
+#include "regs.h"
+#include "bcc.h"
+#include "ir.h"
 
 struct stack_alloc_entry {
    bool is_const;
@@ -315,3 +328,4 @@ static bool is_defined(istr_t s) {
    return get_builtin_func(s) != NULL;
 }
 #define has_struct_return() (is_struct(cur_func->type->type))
+#endif /* FILE_X86_GEN_H */

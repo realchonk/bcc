@@ -16,12 +16,12 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include "x86/regs.h"
+#include "x86/gen.h"
 #include "target.h"
 #include "error.h"
 #include "strdb.h"
-#include "regs.h"
 #include "bcc.h"
-#include "common.h"
 
 
 static ir_node_t* emit_ir(const ir_node_t* n) {
