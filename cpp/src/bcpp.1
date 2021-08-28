@@ -1,4 +1,4 @@
-.TH bcpp 1 "2021-08-22" "bcpp-VERSION"
+.TH bcpp 1 "2021-08-28" "bcpp-VERSION"
 
 .SH NAME
 bcpp - brainlet C preprocessor
@@ -8,8 +8,8 @@ bcpp - brainlet C preprocessor
 .OP -E
 .OP -C
 .OP -I \fIinclude_path\fR
-.OP -D\fIname\fR[=\fIvalue\fR]
-.OP -U\fIname\fR
+.OP -D \fIname\fR[=\fIvalue\fR]
+.OP -U \fIname\fR
 [\fIsource\fR [[\fB-o\fR]\fI output\fR]]
 .YS
 .SY bcpp
@@ -62,12 +62,12 @@ Print the version information.
 .RS 5
 Print a simple help message.
 .RE
-.B -D\fIname\fR[=\fIvalue\fR]
+.B -D \fIname\fR[=\fIvalue\fR]
 .RE
 .RS 5
 Specify a predefined macro.
 .RE
-.B -U\fIname\fR
+.B -U \fIname\fR
 .RE
 .RS 5
 Remove macro
