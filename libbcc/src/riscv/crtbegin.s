@@ -14,8 +14,3 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-crtbegin.o: src/x86/crtbegin.asm
-	$(BCC) -c -o $@ $<
-
-crtend.o: src/x86/crtend.asm
-	$(BCC) -c -o $@ $<
