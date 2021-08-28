@@ -21,9 +21,25 @@
 const char* linker_path = GNU_LD;
 struct cmdline_arg* linker_args = NULL;
 
+
+// path: ${compilerdir}/lib/crtX.o
+#define bcc_crt(c)   COMPILERDIR "/lib/crt" c ".o"
+#define libc_crt(c)  TARGETDIR   "/lib/crt" c ".o"
+
+// crt1.o      : libc
+// crti.o      : libc
+// crtbegin.o  : libbcc
+// ...
+// libbcc.a    : libbcc
+// libc.a      : libc
+// crtend.o    : libbcc
+// crtn.o      : libc
+
 int run_linker(const char* output_name, const char** objects) {
    if (!output_name)
       output_name = "a.out";
+
+   // DEBUG OUTPUT
    fputs("bcc: linking is currently not supported!\n\n", stderr);
    printf("output file: %s\nobject files:", output_name);
    for (size_t i = 0; i < buf_len(objects); ++i) {
@@ -36,6 +52,16 @@ int run_linker(const char* output_name, const char** objects) {
       printf(" -%c%s", arg.option, arg.arg ? arg.arg : "");
    }
    putchar('\n');
+
+   // ACTUAL LINKING PART
+   char** args = NULL;
+   buf_push(args, libc_crt("1"));
+   buf_push(args, libc_crt("i"));
+   buf_push(args, bcc_crt("begin"));
+   // objects
+   buf_push(args, bcc_crt("end"));
+   buf_push(args, libc_crt("n"));
+
 
    return 1;
 }

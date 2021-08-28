@@ -22,8 +22,9 @@ bcc_SOURCES = src/bcc.c src/cpp.c src/error.c src/expr.c src/func.c src/ir.c src
 				  src/vtype.c
 
 bcc_CPPFLAGS = -DBCPP_PATH=\"$(bindir)/`echo bcpp | sed '$(transform)'`\" \
-					-D_XOPEN_SOURCE=700 -DTARGET_INCLUDE_DIR=\"$(includedir)\" \
+					-D_XOPEN_SOURCE=700 -DPREFIX=\"${PREFIX}\" \
 					-I$(top_srcdir)/include
+
 bcc_CFLAGS = -Wextra
 
 include_HEADERS = bcc-include/bcc-config.h	\

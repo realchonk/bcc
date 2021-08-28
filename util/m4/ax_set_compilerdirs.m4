@@ -23,4 +23,8 @@ AC_SUBST([targetdir],   ['${prefix}/${TARGET}'])
 AC_SUBST([tbindir],     ['${targetdir}/bcc-bin/${version}'])
 AC_SUBST([clibdir],     ['${compilerdir}'])
 
+AC_DEFINE_UNQUOTED([TARGETDIR], [PREFIX "/lib/bcc/${TARGET}/${version}"],
+                   [Path to the target directory])
+AC_DEFINE_UNQUOTED([COMPILERDIR], [PREFIX "/lib/bcc/${TARGET}/${version}"],
+                   [Path to the compiler directory])
 ])

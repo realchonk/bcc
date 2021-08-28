@@ -28,10 +28,12 @@
 const char* cpp_path = BCPP_PATH;
 struct cmdline_arg* cpp_args = NULL;
 
+#define TARGET_INCLUDE_DIR COMPILERDIR "/include"
+
 FILE* run_cpp(const char* source_name) {
    int pipes[2];
    if (pipe(pipes) != 0)
-      panic("failed to create pipe");
+      panic("failed to create pipes");
 
    const pid_t pid = fork();
    if (pid < 0) panic("failed to fork()");
