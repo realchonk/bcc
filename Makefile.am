@@ -58,6 +58,13 @@ man1_MANS = bcc.1
 completionsdir = $(datadir)/bash-completion/completions
 transform = @program_transform_name@
 
+all-target-libbcc: bcc
+	cd $(srcdir)/libbcc && ./configure --with-bcc=$(PWD)/bcc
+	$(MAKE) -C libbcc
+
+install-target-libbcc:
+	$(MAKE) -C libbcc DESTDIR=$(DESTDIR) install
+
 install-data-local:
 	install -Dm644 util/bcc.bash $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
 	install -Dm755 $(srcdir)/util/bcl $(DESTDIR)/$(tbindir)/`echo bcl | sed '$(transform)'`
@@ -81,6 +88,7 @@ full-clean: clean
 	$(MAKE) -C cpp full-clean
 	$(MAKE) -C test clean
 	$(MAKE) -C test2 clean
+	$(MAKE) -C libbcc full-clean
 	rm -f Makefile Makefile.in configure src/.dirstamp src/$(ARCH)/.dirstamp
 	rm -f config.h config.h.in config.h.in~ config.log config.status stamp-h1 aclocal.m4
 	rm -rf autom4te.cache build-aux src/.deps .deps src/$(ARCH)/.deps

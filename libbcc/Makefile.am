@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-clib_LIBRARIES = libbcc.a
+clib_DATA = crtbegin.o crtend.o
 
 if ARCH_x86
 include $(srcdir)/src/x86/Makefile.am
@@ -27,3 +27,6 @@ full-clean: clean
 	rm -f Makefile Makefile.in configure src/.dirstamp src/$(ARCH)/.dirstamp
 	rm -f config.h config.h.in config.h.in~ config.log config.status stamp-h1 aclocal.m4
 	rm -rf autom4te.cache build-aux src/.deps .deps src/$(ARCH)/.deps configure~
+
+clean-local:
+	rm -f crtbegin.o crtend.o

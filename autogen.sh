@@ -1,3 +1,9 @@
 #!/bin/sh
-autoreconf -i
-./cpp/autogen.sh
+autoreconf -i || exit 1
+
+# cpp is auto-initialized by autoconf
+
+# Initialize libbcc
+cd libbcc
+./autogen.sh
+cd ..

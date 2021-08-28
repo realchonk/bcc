@@ -24,6 +24,8 @@ AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([1.16 foreign subdir-objects])
 AC_CONFIG_MACRO_DIRS([../util/m4])
 
+AC_SUBST([version], m4_defn([bcc_VERSION]))
+
 AC_PROG_CC
 AC_PROG_RANLIB
 
@@ -35,6 +37,14 @@ if test $ARCH = x86; then
 else
    AX_FIND_AS
 fi
+
+# --with-bcc=
+AC_ARG_WITH([bcc],
+            [AS_HELP_STRING([--with-bcc=PATH], [path to bcc])],
+            BCC=$withval,
+            BCC=../bcc)
+
+AC_SUBST([BCC])
 
 AM_CONDITIONAL([BITS_32], [test $BITS = 32 ])
 

@@ -1,6 +1,24 @@
+#  Copyright (C) 2021 Benjamin Stürz
+#  
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#  
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#  
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-if BITS_32
-include $(srcdir)/src/x86/32/Makefile.am
-else
-include $(srcdir)/src/x86/64/Makefile.am
-endif
+
+crtbegin.o: src/x86/crtbegin.asm
+	$(BCC) -c -o $@ $<
+
+crtend.o: src/x86/crtend.asm
+	$(BCC) -c -o $@ $<
+
+#clean-arch:
+#	rm -f crtbegin.o crtend.o
