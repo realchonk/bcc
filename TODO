@@ -52,9 +52,7 @@ riscv:
 # Other
 - find & fix reason for random crashes
 - options: -g
-- <stdarg.h> header (depends on libbcc)
-- command-line interface accepting multiple source-files
-- move bcc-include to libbcc
+- <stdarg.h> header
 
 
 # Helpful Resources/Websites
