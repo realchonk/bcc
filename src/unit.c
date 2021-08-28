@@ -266,11 +266,44 @@ struct function* unit_get_func(istr_t name) {
    const size_t idx = unit_get_func_idx(name);
    return idx == SIZE_MAX ? NULL : cunit.funcs[idx];
 }
+
+#define free_structs(structs) \
+   for (size_t i = 0; i < buf_len(structs); ++i) { \
+      for (size_t j = 0; j < buf_len(structs[i]->entries); ++j) \
+         free_value_type(structs[i]->entries[j].type); \
+      buf_free(structs[i]->entries); \
+   } \
+   buf_free(structs)
 void free_unit(void) {
+   // free functions
    for (size_t i = 0; i < buf_len(cunit.funcs); ++i) {
       free_func(cunit.funcs[i]);
    }
    buf_free(cunit.funcs);
+
+   // free variables
+   for (size_t i = 0; i < buf_len(cunit.vars); ++i) {
+      struct variable* var = &cunit.vars[i];
+      free_value_type(var->type);
+      if (var->init)
+         free_expr(var->init);
+   }
+   buf_free(cunit.vars);
+
+   // free typedes
+   for (size_t i = 0; i < buf_len(cunit.aliases); ++i)
+      free_value_type(cunit.aliases[i].type);
+   buf_free(cunit.aliases);
+
+   // free enums
+   for (size_t i = 0; i < buf_len(cunit.enums); ++i)
+      buf_free(cunit.enums[i]->entries);
+   buf_free(cunit.enums);
+   buf_free(cunit.constants);
+
+   // free structs & unions
+   free_structs(cunit.structs);
+   free_structs(cunit.unions);
 }
 size_t unit_get_var_idx(istr_t name) {
    for (size_t i = 0; i < buf_len(cunit.vars); ++i) {

@@ -13,27 +13,27 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-#  Searches for the GNU assembler for the target
+#  Searches for the GNU linker for the target
+AC_DEFUN([AX_FIND_LD], [
 
-AC_DEFUN([AX_FIND_AS], [
 if test x${target_alias} = x; then
    if test x${host} = x${target}; then
-      ac_pre_as=as
+      ac_pre_ld=ld
    else
       echo host: ${host}
       echo target: ${target}
-      AC_MSG_ERROR([failed to determine the target for the assembler. Please specify --target=])
+      AC_MSG_ERROR([failed to determine the target for the linker. Please specify --target=])
    fi
 else
-   ac_pre_as=${target_alias}-as
+   ac_pre_ld=${target_alias}-ld
 fi
 
-AC_PATH_PROG([ac_path_as], [${ac_pre_as}], [no])
+AC_PATH_PROG([ac_path_ld], [${ac_pre_ld}], [no])
 
-if test x$ac_path_as = xno; then
-   AC_MSG_ERROR([GNU assembler not found])
+if test x${ac_path_ld} = xno; then
+   AC_MSG_ERROR([Linker not found])
 else
-   AC_DEFINE_UNQUOTED([GNU_AS], ["${ac_path_as}"], [Path to the GNU assembler])
+   AC_DEFINE_UNQUOTED([GNU_LD], ["${ac_path_ld}"], [Path to the GNU linker])
    AC_SUBST([GNU_LD], [${ac_path_ld}])
 fi
 

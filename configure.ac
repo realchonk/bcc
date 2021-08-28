@@ -44,6 +44,8 @@ else
    AX_FIND_AS
 fi
 
+AX_FIND_LD
+
 # Suggested by autoscan
 AC_FUNC_STRNLEN
 AC_FUNC_MALLOC

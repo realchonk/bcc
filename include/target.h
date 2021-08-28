@@ -110,5 +110,6 @@ struct builtin_func* get_builtin_func(const char* name);
 bool emit_prepare(void);
 const struct machine_option* get_mach_opt(const char* name);
 void define_ctarget_macros(void);
+void target_init(void);
 
 #endif /* FILE_TARGET_H */

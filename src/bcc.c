@@ -16,7 +16,11 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <errno.h>
 #include "target.h"
+#include "error.h"
+#include "cpp.h"
+#include "lex.h"
 #include "bcc.h"
 
 bool enable_warnings = true;
@@ -116,4 +120,82 @@ bool parse_mach_opt(char* arg) {
    if (value) *value = '\0';
    fprintf(stderr, "bcc: invalid option '-m%s'\n", arg);
    return false;
+}
+
+const char* create_output_name(const char* source, enum compilation_level level) {
+   switch (level) {
+   case LEVEL_PREPROCESS:  return "-";
+   case LEVEL_PARSE:       return "-";
+   case LEVEL_IRGEN:       return replace_ending(source, "ir");
+   case LEVEL_GEN:         return replace_ending(source, target_info.fend_asm);
+   case LEVEL_ASSEMBLE:    return replace_ending(source, target_info.fend_obj);
+   case LEVEL_LINK:        return "a.out";
+   default:                panic("unreachable reached");
+   }
+}
+static FILE* open_file_write(const char* name) {
+   FILE* file = !strcmp(name, "-") ? stdout : fopen(name, "w");
+   if (!file) {
+      fprintf(stderr, "bcc: failed to open file '%s': %s", name, strerror(errno));
+   }
+   return file;
+}
+static void close_file(FILE* file) {
+   if (file == stdout || file == stdin)
+      return;
+   fclose(file);
+}
+
+int process_file(const char* source_name, const char* output_name, enum compilation_level level) {
+   if (ends_with(source_name, target_info.fend_asm)) {
+      return level >= LEVEL_ASSEMBLE ? assemble(source_name, output_name) : 0;
+   }
+   FILE* source = run_cpp(source_name);
+   if (!source)
+      return 1;
+   if (level == LEVEL_PREPROCESS) {
+      FILE* output = open_file_write(output_name);
+      if (!output)
+         return 1;
+      int ch;
+      while ((ch = fgetc(source)) != EOF)
+         fputc(ch, output);
+      close_file(output);
+      close_file(source);
+      return 0;
+   }
+   lexer_init(source, source_name);
+
+   target_init();
+
+   parse_unit(level >= LEVEL_IRGEN);
+   lexer_free();
+
+   if (level == LEVEL_PARSE || level == LEVEL_IRGEN) {
+      FILE* output = open_file_write(output_name);
+      if (!output)
+         return 1;
+      if (level == LEVEL_PARSE)
+         print_unit(output);
+      else print_ir_unit(output);
+      free_unit();
+      close_file(output);
+      return 0;
+   }
+
+   const char* asm_name;
+   if (level >= LEVEL_ASSEMBLE) {
+      asm_name = create_output_name(source_name, LEVEL_GEN);
+   } else asm_name = output_name;
+   FILE* asm_file = open_file_write(asm_name);
+   if (level >= LEVEL_GEN)
+      emit_init(asm_file);
+   emit_unit();
+   free_unit();
+   emit_free();
+   if (level <= LEVEL_GEN)
+      return 0;
+   const int ec = assemble(asm_name, output_name);  
+   remove(asm_name);
+   return ec;
 }

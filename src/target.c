@@ -31,9 +31,10 @@ static struct builtin_type* btypes = NULL;
 static FILE* file = NULL;
 unsigned asm_indent = 0;
 
-void emit_init(FILE* f) {
-   file = f;
-   asm_indent = 0;
+void target_init(void) {
+   static bool initialized = false;
+   if (initialized)
+      return;
    add_builtin_type("__builtin_int8_t", make_int(target_info.size_int8,    false));
    add_builtin_type("__builtin_int16_t", make_int(target_info.size_int16,  false));
    add_builtin_type("__builtin_int32_t", make_int(target_info.size_int32,  false));
@@ -47,6 +48,12 @@ void emit_init(FILE* f) {
 
    add_builtin_type("__builtin_ptrdiff_t", make_int(target_info.ptrdiff_type, false));
    add_builtin_type("__builtin_size_t", make_int(target_info.size_type, true));
+   initialized = true;
+}
+
+void emit_init(FILE* f) {
+   file = f;
+   asm_indent = 0;
 }
 
 void emit_free(void) {

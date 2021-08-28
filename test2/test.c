@@ -1,10 +1,11 @@
-int puts(const char* restrict);
-int printf(const char*, ...);
-int putchar(int);
+#include <stddef.h>
 
-char str[] = "Hello World";
-int a[10];
+struct A {
+   int a;
+   int b;
+};
 
-int main(void) {
-   puts(str);
+int main() {
+   struct A a;
+   return sizeof(a);
 }

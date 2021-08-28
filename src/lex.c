@@ -69,7 +69,8 @@ void lexer_init(FILE* f, const char* fn) {
 }
 void lexer_free(void) {
    if (file) {
-      fclose(file);
+      if (file != stdin)
+         fclose(file);
       file = NULL;
    }
 }

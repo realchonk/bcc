@@ -17,8 +17,9 @@ SUBDIRS = cpp
 
 tbin_PROGRAMS = bcc
 bcc_SOURCES = src/bcc.c src/cpp.c src/error.c src/expr.c src/func.c src/ir.c src/irgen.c src/lex.c \
-				  src/main.c src/optim_expr.c src/optim_ir.c src/optim_stmt.c src/scope.c src/stmt.c \
-				  src/strdb.c src/strint.c src/target.c src/token.c src/unit.c src/value.c src/vtype.c
+				  src/linker.c src/main.c src/optim_expr.c src/optim_ir.c src/optim_stmt.c src/scope.c \
+				  src/stmt.c src/strdb.c src/strint.c src/target.c src/token.c src/unit.c src/value.c  \
+				  src/vtype.c
 
 bcc_CPPFLAGS = -DBCPP_PATH=\"$(bindir)/`echo bcpp | sed '$(transform)'`\" \
 					-D_XOPEN_SOURCE=700 -DTARGET_INCLUDE_DIR=\"$(includedir)\" \

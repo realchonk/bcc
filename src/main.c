@@ -22,6 +22,7 @@
 #include "parser.h"
 #include "target.h"
 #include "config.h"
+#include "linker.h"
 #include "lex.h"
 #include "bcc.h"
 #include "cpp.h"
@@ -35,22 +36,20 @@ static void remove_asm_file(void) {
 int main(int argc, char* argv[]) {
    bool dumpmacros = false;
    struct cpp_arg cpp_arg;
-   const char* output_file = NULL;
-   int level = 'c';
+   const char* output_name = NULL;
+   enum compilation_level level = LEVEL_LINK; // TODO: implement linking
    int option;
    while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:CD:U:")) != -1) {
       switch (option) {
       case 'h':
          printf("Usage: bcc [options] file...\nOptions:\n%s", help_options);
          return 0;
-      case 'o': output_file = optarg; break;
-      case 'c':
-      case 'i':
-      case 'S':
-      case 'A':
-      case 'E':
-         level = option;
-         break;
+      case 'o': output_name = optarg;     break;
+      case 'E': level = LEVEL_PREPROCESS; break;
+      case 'A': level = LEVEL_PARSE;      break;
+      case 'i': level = LEVEL_IRGEN;      break;
+      case 'S': level = LEVEL_GEN;        break;
+      case 'c': level = LEVEL_ASSEMBLE;   break;
       case 'w':
          enable_warnings = false;
          break;
@@ -120,85 +119,44 @@ int main(int argc, char* argv[]) {
          return 1;
       }
    }
-   if (!emit_prepare()) return 1;
-   if ((argc - optind) != 1) {
+   const int nfiles = argc - optind;
+   if (nfiles < 1) {
       fputs("bcc: no input file\n", stderr);
       return 1;
-   } else if (dumpmacros) {
+   } else if (nfiles > 1 && level != LEVEL_LINK) {
+      fputs("bcc: '-o' cannot be specified with '-E', '-A', '-i', '-S' or '-c' with multiple input files\n", stderr);
+      return 1;
+   }
+   if (dumpmacros) {
       if (level == 'E') {
          cpp_arg.option = 'd';
          cpp_arg.arg = "M";
          buf_push(cpp_args, cpp_arg);
       }
    }
-   const char* source_file = argv[optind];
-   if (ends_with(source_file, target_info.fend_asm)) {
-      if (level != 'c') {
-         fprintf(stderr, "bcc: invalid option -'%c' for assembly file\n", level);
-         return 1;
-      } else return assemble(source_file, replace_ending(source_file, target_info.fend_obj));
-   }
-
-   // define macros
+   if (!emit_prepare()) return 1;
    define_macros();
 
-   FILE* source = run_cpp(source_file);
-   if (!source) {
-      return 1;
+   const char** objects = NULL;
+
+   for (; optind < argc; ++optind) {
+      const char* source_name = argv[optind];
+      const char* output_name2;
+      if (level == LEVEL_LINK) {
+         output_name2 = create_output_name(source_name, LEVEL_ASSEMBLE);
+         buf_push(objects, output_name2);
+      } else if (!output_name)
+         output_name2 = create_output_name(source_name, level);
+      else output_name2 = output_name;
+      if (ends_with(source_name, target_info.fend_obj))
+         continue;
+      const int ec = process_file(source_name, output_name2, level);
+      if (ec != 0) return ec;
    }
 
-   if (!output_file) {
-      if (source == stdin) output_file = "-";
-      else switch (level) {
-      case 'c':   output_file = replace_ending(source_file, target_info.fend_obj); break;
-      case 'S':   output_file = replace_ending(source_file, target_info.fend_asm); break;
-      case 'i':   output_file = replace_ending(source_file, "ir"); break;
-      case 'E':
-      case 'A':   output_file = "-"; break;
-      }
-   }
-   FILE* output = NULL;
-   const char* asm_filename = NULL;
-   FILE* asm_file;
-   if (level == 'c') {
-      asm_filename = tmpnam(NULL);
-      asm_file = fopen(asm_filename, "w");
-      if (!asm_file)
-         panic("failed to open '%s'", asm_filename);
-      remove_asm_filename = asm_filename;
-      atexit(remove_asm_file);
-   } else {
-      if (!strcmp(output_file, "-")) output = stdout;
-      else output = fopen(output_file, "w");
-      if (!output)
-         panic("failed to open '%s'", output_file);
-      asm_file = output;
-   }
-   
-   if (level == 'E') {
-      int ch;
-      while ((ch = fgetc(source)) != EOF) {
-         fputc(ch, output);
-      }
-      fclose(source);
-      fclose(output);
-      return 0;
+   if (level == LEVEL_LINK) {
+      run_linker(output_name, objects);
    }
 
-   lexer_init(source, source_file);
-   if (level == 'S' || level == 'c') emit_init(asm_file);
-   parse_unit(level != 'A');
-   if (level == 'A') print_unit(output);
-   else if (level == 'i') print_ir_unit(output);
-   else emit_unit();
-   free_unit();
-   lexer_free();
-   
-   int ec = 0;
-   if (level == 'S' || level == 'c') emit_free();
-   if (level == 'c') {
-      ec = assemble(asm_filename, output_file);
-      if (ec != 0) panic("assembler returned: %d", ec);
-   }
-   return ec;
+   return 0;
 }

@@ -23,6 +23,16 @@ extern bool enable_warnings;
 extern unsigned optim_level;
 extern bool console_colors;
 
+enum compilation_level {
+   LEVEL_NONE,
+   LEVEL_PREPROCESS,
+   LEVEL_PARSE,
+   LEVEL_IRGEN,
+   LEVEL_GEN,
+   LEVEL_ASSEMBLE,
+   LEVEL_LINK,          // TODO: implement linking
+};
+
 unsigned popcnt(uintmax_t);
 #define is_pow2(n) (popcnt(n) == 1)
 
@@ -30,6 +40,8 @@ istr_t replace_ending(const char* s, const char* end);
 bool ends_with(const char* s, const char* end);
 int get_mach_opt_vtype(const char*);
 bool parse_mach_opt(char*);
+const char* create_output_name(const char*, enum compilation_level);
+int process_file(const char* source, const char* output, enum compilation_level);
 
 #endif /* FILE_BCC_H */
 
