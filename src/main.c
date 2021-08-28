@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include "help_options.h"
+#include "cmdline.h"
 #include "parser.h"
 #include "target.h"
 #include "config.h"
@@ -32,6 +33,7 @@ static const char* remove_asm_filename;
 static void remove_asm_file(void) {
    remove(remove_asm_filename);
 }
+bool verbose = false;
 
 int main(int argc, char* argv[]) {
    bool dumpmacros = false;
@@ -39,7 +41,7 @@ int main(int argc, char* argv[]) {
    const char* output_name = NULL;
    enum compilation_level level = LEVEL_LINK;
    int option;
-   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:CD:U:L:l:sn:")) != -1) {
+   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:CD:U:L:l:sn:v")) != -1) {
       switch (option) {
       case 'h':
          printf("Usage: bcc [options] file...\nOptions:\n%s", help_options);
@@ -124,6 +126,9 @@ int main(int argc, char* argv[]) {
          cmd_arg.option = option;
          cmd_arg.arg = optarg;
          buf_push(linker_args, cmd_arg);
+         break;
+      case 'v':
+         verbose = true;
          break;
       case ':':
          if (optopt != 'd' && optopt != 'n') {

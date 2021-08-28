@@ -36,6 +36,35 @@ FILE* run_cpp(const char* source_name) {
    if (pipe(pipes) != 0)
       panic("failed to create pipes");
 
+   char** args = NULL;
+   buf_push(args, strdup(cpp_path));
+   if (!console_colors)
+      buf_push(args, strdup("-C"));
+   buf_push(args, strdup("-E"));
+   for (size_t i = 0; i < buf_len(cpp_args); ++i) {
+      const struct cmdline_arg arg = cpp_args[i];
+      const size_t len_buffer = (arg.arg ? strlen(arg.arg) : 0) + 3;
+      char* buffer = malloc(len_buffer);
+      if (!buffer)
+         panic("failed to allocate argument");
+      snprintf(buffer, len_buffer, "-%c%s", arg.option, arg.arg);
+      buf_push(args, buffer);
+   }
+   buf_push(args, strdup("-o"));
+   buf_push(args, strdup("-"));
+   if (nostdinc)
+      buf_push(args, strdup("-I" TARGET_INCLUDE_DIR));
+   buf_push(args, strdup(source_name));
+   buf_push(args, NULL);
+
+   if (verbose) {
+      fprintf(stderr, "Calling %s with:", cpp_path);
+      for (size_t i = 0; args[i]; ++i) {
+         fprintf(stderr, " %s", args[i]);
+      }
+      fputc('\n', stderr);
+   }
+
    const pid_t pid = fork();
    if (pid < 0) panic("failed to fork()");
    else if (pid == 0) {
@@ -43,28 +72,6 @@ FILE* run_cpp(const char* source_name) {
       close(1);
       if (dup(pipes[1]) != 1)
          panic("failed to duplicate file descriptor");
-
-      char** args = NULL;
-      buf_push(args, strdup(cpp_path));
-      if (!console_colors)
-         buf_push(args, strdup("-C"));
-      buf_push(args, strdup("-E"));
-      for (size_t i = 0; i < buf_len(cpp_args); ++i) {
-         char* s = malloc(3);
-         if (!s) panic("failed to allocate argument");
-         s[0] = '-';
-         s[1] = cpp_args[i].option;
-         s[2] = '\0';
-         buf_push(args, s);
-         if (cpp_args[i].arg)
-            buf_push(args, strdup(cpp_args[i].arg));
-      }
-      buf_push(args, strdup("-o"));
-      buf_push(args, strdup("-"));
-      if (nostdinc)
-         buf_push(args, strdup("-I" TARGET_INCLUDE_DIR));
-      buf_push(args, strdup(source_name));
-      buf_push(args, NULL);
 
       execvp(cpp_path, args);
       panic("failed to exec %s", cpp_path);

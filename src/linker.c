@@ -78,11 +78,13 @@ int run_linker(const char* output_name, const char** objects) {
    }
    buf_push(args, NULL);
    
-   printf("Calling %s with:", linker_path);
-   for (size_t i = 0; args[i]; ++i) {
-      printf(" %s", args[i]);
+   if (verbose) {
+      fprintf(stderr, "Calling %s with:", linker_path);
+      for (size_t i = 0; args[i]; ++i) {
+         fprintf(stderr, " %s", args[i]);
+      }
+      fputc('\n', stderr);
    }
-   putchar('\n');
 
    const pid_t pid = fork();
    if (pid < 0)

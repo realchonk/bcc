@@ -13,22 +13,19 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef FILE_CMDLINE_H
-#define FILE_CMDLINE_H
-#include <stdbool.h>
-#include <stdio.h>
+#include <stdarg.h>
+#include "cmdline.h"
 
-struct cmdline_arg {
-   char option;
-   const char* arg;
-};
+void vexecl_print(const char* prog, ...) {
+   if (!verbose)
+      return;
+   va_list ap;
+   va_start(ap, prog);
 
-extern bool verbose;
-
-#define verbose_execl(prog, arg0, ...) \
-   vexecl_print(prog, __VA_ARGS__); \
-   execlp(prog, arg0, __VA_ARGS__)
-
-void vexecl_print(const char* name, ...);
-
-#endif /* FILE_CMDLINE_H */
+   const char* s;
+   fprintf(stderr, "Calling %s:", prog);
+   while ((s = va_arg(ap, const char*)) != NULL) {
+      fprintf(stderr, " %s", s);
+   }
+   fputc('\n', stderr);
+}

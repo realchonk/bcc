@@ -43,7 +43,7 @@ int assemble(const char* source, const char* output) {
          _exit(1);
       }
       snprintf(mabi, 100, "-mabi=%s", get_mach_opt("abi")->sVal);
-      execlp(GNU_AS, GNU_AS, mabi, "-o", output, source, NULL);
+      verbose_execl(GNU_AS, GNU_AS, mabi, "-o", output, source, NULL);
       perror("bcc: failed to invoke assembler");
       _exit(1);
    } else {

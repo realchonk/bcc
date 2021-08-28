@@ -17,6 +17,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdio.h>
+#include "cmdline.h"
 #include "target.h"
 #include "config.h"
 #include "error.h"
@@ -103,7 +104,7 @@ int assemble(const char* source, const char* output) {
    const pid_t pid = fork();
    if (pid < 0) panic("failed to fork");
    if (pid == 0) {
-      execlp(NASM, NASM, "-f", ELFxx, "-o", output, source, NULL);
+      verbose_execl(NASM, NASM, "-f", ELFxx, "-o", output, source, NULL);
       perror("bcc: failed to invoke nasm");
       _exit(1);
    } else {
