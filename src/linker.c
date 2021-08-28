@@ -15,7 +15,11 @@
 
 #include <stdio.h>
 #include "linker.h"
+#include "config.h"
 #include "buf.h"
+
+const char* linker_path = GNU_LD;
+struct cmdline_arg* linker_args = NULL;
 
 int run_linker(const char* output_name, const char** objects) {
    if (!output_name)
@@ -24,6 +28,12 @@ int run_linker(const char* output_name, const char** objects) {
    printf("output file: %s\nobject files:", output_name);
    for (size_t i = 0; i < buf_len(objects); ++i) {
       printf(" %s", objects[i]);
+   }
+   putchar('\n');
+   printf("arguments:");
+   for (size_t i = 0; i < buf_len(linker_args); ++i) {
+      const struct cmdline_arg arg = linker_args[i];
+      printf(" -%c%s", arg.option, arg.arg ? arg.arg : "");
    }
    putchar('\n');
 

@@ -26,7 +26,7 @@
 #include "buf.h"
 
 const char* cpp_path = BCPP_PATH;
-struct cpp_arg* cpp_args = NULL;
+struct cmdline_arg* cpp_args = NULL;
 
 FILE* run_cpp(const char* source_name) {
    int pipes[2];
@@ -89,7 +89,7 @@ void define_macro2(const char* n, const char* v) {
       panic("failed to allocate string");
    snprintf(str, len, "%s=%s", n, v);
 
-   struct cpp_arg arg;
+   struct cmdline_arg arg;
    arg.option = 'D';
    arg.arg = str;
    buf_push(cpp_args, arg); 
@@ -105,7 +105,7 @@ void define_macro2u(const char* n, uintmax_t x) {
    define_macro2(n, str);
 }
 void define_macro(const char* n) {
-   struct cpp_arg arg;
+   struct cmdline_arg arg;
    arg.option = 'D';
    arg.arg = n;
    buf_push(cpp_args, arg); 

@@ -15,15 +15,12 @@
 
 #ifndef FILE_CPP_H
 #define FILE_CPP_H
+#include <stdint.h>
 #include <stdio.h>
-
-struct cpp_arg {
-   char option;
-   const char* arg;
-};
+#include "cmdline.h"
 
 extern const char* cpp_path;
-extern struct cpp_arg* cpp_args;
+extern struct cmdline_arg* cpp_args;
 FILE* run_cpp(const char* source_name);
 void define_macros(void);
 void define_macro(const char*);

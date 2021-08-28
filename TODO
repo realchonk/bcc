@@ -46,6 +46,7 @@ riscv:
 - options: -g, -L, -l, -s
 - <stdarg.h> header (depends on libbcc)
 - command-line interface accepting multiple source-files
+- move bcc-include to libbcc
 
 
 # Helpful Resources/Websites

@@ -13,13 +13,12 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef FILE_LINKER_H
-#define FILE_LINKER_H
-#include "cmdline.h"
+#ifndef FILE_CMDLINE_H
+#define FILE_CMDLINE_H
 
-extern const char* linker_path;
-extern struct cmdline_arg* linker_args;
+struct cmdline_arg {
+   char option;
+   const char* arg;
+};
 
-int run_linker(const char* output, const char** objects);
-
-#endif /* FILE_LINKER_H */
+#endif /* FILE_CMDLINE_H */

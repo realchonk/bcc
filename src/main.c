@@ -35,11 +35,11 @@ static void remove_asm_file(void) {
 
 int main(int argc, char* argv[]) {
    bool dumpmacros = false;
-   struct cpp_arg cpp_arg;
+   struct cmdline_arg cmd_arg;
    const char* output_name = NULL;
-   enum compilation_level level = LEVEL_LINK; // TODO: implement linking
+   enum compilation_level level = LEVEL_LINK;
    int option;
-   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:CD:U:")) != -1) {
+   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:CD:U:L:l:s")) != -1) {
       switch (option) {
       case 'h':
          printf("Usage: bcc [options] file...\nOptions:\n%s", help_options);
@@ -97,12 +97,19 @@ int main(int argc, char* argv[]) {
       case 'I':
       case 'D':
       case 'U':
-         cpp_arg.option = option;
-         cpp_arg.arg = optarg;
-         buf_push(cpp_args, cpp_arg);
+         cmd_arg.option = option;
+         cmd_arg.arg = optarg;
+         buf_push(cpp_args, cmd_arg);
          break;
       case 'C':
          console_colors = false;
+         break;
+      case 'L':
+      case 'l':
+      case 's':
+         cmd_arg.option = option;
+         cmd_arg.arg = optarg;
+         buf_push(linker_args, cmd_arg);
          break;
       case ':':
          if (optopt != 'd') {
@@ -129,9 +136,9 @@ int main(int argc, char* argv[]) {
    }
    if (dumpmacros) {
       if (level == 'E') {
-         cpp_arg.option = 'd';
-         cpp_arg.arg = "M";
-         buf_push(cpp_args, cpp_arg);
+         cmd_arg.option = 'd';
+         cmd_arg.arg = "M";
+         buf_push(cpp_args, cmd_arg);
       }
    }
    if (!emit_prepare()) return 1;
