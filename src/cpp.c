@@ -27,6 +27,7 @@
 
 const char* cpp_path = BCPP_PATH;
 struct cmdline_arg* cpp_args = NULL;
+bool nostdinc = false;
 
 #define TARGET_INCLUDE_DIR COMPILERDIR "/include"
 
@@ -60,7 +61,8 @@ FILE* run_cpp(const char* source_name) {
       }
       buf_push(args, strdup("-o"));
       buf_push(args, strdup("-"));
-      buf_push(args, strdup("-I" TARGET_INCLUDE_DIR));
+      if (nostdinc)
+         buf_push(args, strdup("-I" TARGET_INCLUDE_DIR));
       buf_push(args, strdup(source_name));
       buf_push(args, NULL);
 

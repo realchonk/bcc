@@ -13,18 +13,24 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <string.h>
 #include <stdio.h>
 #include "linker.h"
 #include "config.h"
+#include "error.h"
 #include "buf.h"
 
 const char* linker_path = GNU_LD;
 struct cmdline_arg* linker_args = NULL;
-
+bool nostartfiles = false, nolibc = false;
 
 // path: ${compilerdir}/lib/crtX.o
 #define bcc_crt(c)   COMPILERDIR "/lib/crt" c ".o"
 #define libc_crt(c)  TARGETDIR   "/lib/crt" c ".o"
+#define libc         TARGETDIR   "/lib/libc.a"
 
 // crt1.o      : libc
 // crti.o      : libc
@@ -39,29 +45,58 @@ int run_linker(const char* output_name, const char** objects) {
    if (!output_name)
       output_name = "a.out";
 
-   // DEBUG OUTPUT
-   fputs("bcc: linking is currently not supported!\n\n", stderr);
-   printf("output file: %s\nobject files:", output_name);
-   for (size_t i = 0; i < buf_len(objects); ++i) {
-      printf(" %s", objects[i]);
-   }
-   putchar('\n');
-   printf("arguments:");
-   for (size_t i = 0; i < buf_len(linker_args); ++i) {
-      const struct cmdline_arg arg = linker_args[i];
-      printf(" -%c%s", arg.option, arg.arg ? arg.arg : "");
-   }
-   putchar('\n');
-
    // ACTUAL LINKING PART
    char** args = NULL;
-   buf_push(args, libc_crt("1"));
-   buf_push(args, libc_crt("i"));
-   buf_push(args, bcc_crt("begin"));
-   // objects
-   buf_push(args, bcc_crt("end"));
-   buf_push(args, libc_crt("n"));
+   buf_push(args, strdup(linker_path));
+   if (!nostartfiles) {
+      buf_push(args, libc_crt("1"));
+      buf_push(args, libc_crt("i"));
+      buf_push(args, bcc_crt("begin"));
+   }
 
+   for (size_t i = 0; i < buf_len(objects); ++i) {
+      buf_push(args, strdup(objects[i]));
+   }
+   
+   if (!nolibc) {
+      buf_push(args, libc);
+   }
 
+   if (!nostartfiles) {
+      buf_push(args, bcc_crt("end"));
+      buf_push(args, libc_crt("n"));
+   }
+
+   for (size_t i = 0; i < buf_len(linker_args); ++i) {
+      const struct cmdline_arg arg = linker_args[i];
+      const size_t len_buffer = (arg.arg ? strlen(arg.arg) : 0) + 3;
+      char* buffer = malloc(len_buffer);
+      if (!buffer)
+         panic("failed to allocate buffer");
+      snprintf(buffer, len_buffer, "-%c%s", arg.option, arg.arg);
+      buf_push(args, buffer);
+   }
+   buf_push(args, NULL);
+   
+   printf("Calling %s with:", linker_path);
+   for (size_t i = 0; args[i]; ++i) {
+      printf(" %s", args[i]);
+   }
+   putchar('\n');
+
+   const pid_t pid = fork();
+   if (pid < 0)
+      panic("failed to fork()");
+   else if (pid == 0) {
+      execv(linker_path, args);
+      perror("bcc: failed to invoke linker");
+      _exit(1);
+   } else {
+      int wstatus;
+      waitpid(pid, &wstatus, 0);
+      if (WIFEXITED(wstatus))
+         return WEXITSTATUS(wstatus);
+      else panic("failed to wait for linker");
+   }
    return 1;
 }

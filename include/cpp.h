@@ -21,6 +21,8 @@
 
 extern const char* cpp_path;
 extern struct cmdline_arg* cpp_args;
+extern bool nostdinc;
+
 FILE* run_cpp(const char* source_name);
 void define_macros(void);
 void define_macro(const char*);

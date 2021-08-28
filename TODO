@@ -3,8 +3,16 @@
 
 # Major things
 - floating-point support
-- linking support (depends on libbcc)
 - libbcc
+
+
+# Linking support
+- support for dynamic libraries
+
+
+# libbcc
+- crtbegin.o, crtend.o
+- libbcc.a
 
 
 # Language
@@ -43,7 +51,7 @@ riscv:
 
 # Other
 - find & fix reason for random crashes
-- options: -g, -nostdlib, -nostdinc
+- options: -g, -v
 - <stdarg.h> header (depends on libbcc)
 - command-line interface accepting multiple source-files
 - move bcc-include to libbcc

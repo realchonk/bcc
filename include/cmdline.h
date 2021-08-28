@@ -15,6 +15,7 @@
 
 #ifndef FILE_CMDLINE_H
 #define FILE_CMDLINE_H
+#include <stdbool.h>
 
 struct cmdline_arg {
    char option;

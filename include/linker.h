@@ -19,6 +19,7 @@
 
 extern const char* linker_path;
 extern struct cmdline_arg* linker_args;
+extern bool nostartfiles, nolibc;
 
 int run_linker(const char* output, const char** objects);
 

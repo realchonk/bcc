@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
    const char* output_name = NULL;
    enum compilation_level level = LEVEL_LINK;
    int option;
-   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:CD:U:L:l:s")) != -1) {
+   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:CD:U:L:l:sn:")) != -1) {
       switch (option) {
       case 'h':
          printf("Usage: bcc [options] file...\nOptions:\n%s", help_options);
@@ -68,6 +68,20 @@ int main(int argc, char* argv[]) {
             return 1;
          }
          return 0;
+      case 'n':
+         if (!strcmp(optarg, "ostdinc")) {
+            nostdinc = true;
+         } else if (!strcmp(optarg, "ostdlib")) {
+            nostartfiles = nolibc = true;
+         } else if (!strcmp(optarg, "ostartfiles")) {
+            nostartfiles = true;
+         } else if (!strcmp(optarg, "olibc")) {
+            nolibc = true;
+         } else {
+            fprintf(stderr, "bcc: invalid option '-n%s'\n", optarg);
+            return 1;
+         }
+         break;
       case 'O':
       {
          char* endp;
@@ -112,7 +126,7 @@ int main(int argc, char* argv[]) {
          buf_push(linker_args, cmd_arg);
          break;
       case ':':
-         if (optopt != 'd') {
+         if (optopt != 'd' && optopt != 'n') {
             fprintf(stderr, "bcc: missing argument for '-%c'\n", optopt);
             return 1;
          }
