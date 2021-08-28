@@ -1,4 +1,4 @@
-.TH bcc 1 "2021-08-22" "bcc-VERSION"
+.TH bcc 1 "2021-08-28" "bcc-VERSION"
 
 .SH NAME
 bcc - brainlet C compiler
@@ -6,7 +6,7 @@ bcc - brainlet C compiler
 .SH SYNOPSIS
 .SY bcc
 .OP -c\fR|\fB-i\fR|\fB-A\fR|\fB-S\fR|\fB-E\fR
-.OP -wC
+.OP -svwC
 .OP -e \fIpath\fR
 .OP -O \fIolevel\fR
 .OP -o \fIoutput\fR
@@ -14,6 +14,8 @@ bcc - brainlet C compiler
 .OP -I \fIinclude_path\fR
 .OP -D\fIname\fR[=\fIvalue\fR]
 .OP -U\fIname\fR
+.OP -L \fIdirectory\fR
+.OP -l \fIlibrary\fR
 .I source
 .YS
 .SY bcc
@@ -29,6 +31,9 @@ The
 compiler is a small compiler for a C-like language.
 The language and the compiler are not fully complete
 and contain bugs.
+If no -c, -i, -A, -S or -E options are specified,
+.I bcc
+will try to link all generated object files into an executable.
 
 .SH OPTIONS
 .B -o \fIoutput\fR
@@ -41,14 +46,16 @@ By default the
 .I output
 file is derived from the 
 .I source
-file, except if the
+file, except one of the
 .B -A
-option was specified, then it is standard output.
+or
+.B -E
+options was specified, then it is standard output.
 .RE
 .B -c
 .RE
 .RS 5
-Compile and assemble the program. (This is the default)
+Compile and assemble the program.
 .RE
 .RS 5
 Note: For x86_64 and i386 it is required that the
@@ -82,6 +89,16 @@ Only pre-process the file.
 Specify the
 .I optimization
 level. (possible values: 0, 1, 2, 3)
+.RE
+.B -s
+.RE
+.RS 5
+Strip all unnecessary information from the generated executable.
+.RE
+.B -v
+.RE
+.RS 5
+Print verbose output.
 .RE
 .B -w
 .RE
@@ -123,6 +140,30 @@ Print the target machine architecture.
 .RS 5
 Dump all predefined macros.
 .RE
+.B -nostdinc
+.RE
+.RS 5
+Don't search the default include paths.
+.RE
+.B -nostdlib
+.RE
+.RS 5
+Same as
+.B -nostartfiles
+and
+.B -nolibc
+combined.
+.RE
+.B -nostartfiles
+.RE
+.RS 5
+Don't link against the crtX.o object files.
+.RE
+.B -nolibc
+.RE
+.RS 5
+Don't link against the C library.
+.RE
 .B -e \fIpath\fR
 .RE
 .RS 5
@@ -148,6 +189,18 @@ Specify a predefined macro.
 .RS 5
 Remove macro
 .I name\fR
+.RE
+.B -L \fIdirectory\fR
+.RE
+.RS 5
+Add
+.I directory
+to the search paths of the linker.
+.RE
+.B -l \fIlibrary\fR
+.RE
+.RS 5
+Tell the linker to link the executable against \fIlibrary\fR.
 .RE
 
 .SH OPERANDS

@@ -9,11 +9,11 @@ _bcc() {
       _filedir
       return
       ;;
-   -I)
+   -I|-L)
       _filedir -d
       return
       ;;
-   -D*|-U*)
+   -D*|-U*|-l*)
       return
    esac
    $split && return
