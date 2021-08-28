@@ -52,8 +52,11 @@ struct target_info {
    
    const bool unsigned_char;
 
-   const char* const fend_asm;
-   const char* const fend_obj;
+                                    // file extension of ...
+   const char* const fend_asm;      // assembly file
+   const char* const fend_obj;      // object file
+   const char* const fend_archive;  // archive
+   const char* const fend_dll;      // dynamically-linked library
 
    const enum integer_size ptrdiff_type;
    const enum integer_size size_type;

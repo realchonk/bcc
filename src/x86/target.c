@@ -65,6 +65,8 @@ const struct target_info target_info = {
 
    .fend_asm = "asm",
    .fend_obj = "o",
+   .fend_archive = "a",
+   .fend_dll = "so",
 
 #if BITS == 32
    .ptrdiff_type = INT_INT,

@@ -57,6 +57,8 @@ const struct target_info target_info = {
 
    .fend_asm = "s",
    .fend_obj = "o",
+   .fend_archive = "a",
+   .fend_dll = "so",
 
    .ptrdiff_type  = INT_LONG,
    .size_type     = INT_LONG,

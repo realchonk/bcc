@@ -164,25 +164,33 @@ int main(int argc, char* argv[]) {
    define_macros();
 
    const char** objects = NULL;
-
+   const char** delete_objects = NULL;
+   int ec = 0;
    for (; optind < argc; ++optind) {
       const char* source_name = argv[optind];
       const char* output_name2;
-      if (level == LEVEL_LINK) {
+      if (ends_with(source_name, target_info.fend_obj)
+         || ends_with(source_name, target_info.fend_archive)
+         || ends_with(source_name, target_info.fend_dll)) {
+         buf_push(objects, source_name);
+         continue;
+      } else if (level == LEVEL_LINK) {
          output_name2 = create_output_name(source_name, LEVEL_ASSEMBLE);
          buf_push(objects, output_name2);
-      } else if (!output_name)
+      } else if (!output_name) {
          output_name2 = create_output_name(source_name, level);
-      else output_name2 = output_name;
-      if (ends_with(source_name, target_info.fend_obj))
-         continue;
-      const int ec = process_file(source_name, output_name2, level);
-      if (ec != 0) return ec;
+      } else output_name2 = output_name;
+      buf_push(delete_objects, output_name2);
+      ec = process_file(source_name, output_name2, level);
+      if (ec != 0) break;
    }
 
    if (level == LEVEL_LINK) {
-      run_linker(output_name, objects);
+      if (!ec)
+         ec = run_linker(output_name, objects);
+      for (size_t i = 0; i < buf_len(delete_objects); ++i) {
+         remove(delete_objects[i]);
+      }
    }
-
-   return 0;
+   return ec;
 }
