@@ -78,7 +78,7 @@ test.s: test.c $(BCC)
 endif
 
 clean:
-	rm -f test.s test.asm test.o test test.ir
+	rm -f *.s *.asm *.o test *.ir
 
 run: test
 	@QEMU_LD_PREFIX=$(QLP) ./test;

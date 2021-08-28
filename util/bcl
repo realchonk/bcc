@@ -17,7 +17,7 @@ eval set -- "${args}"
 unset args
 
 output_file=""
-bcc_options=""
+bcc_options="-c -nostdlib"
 ld_options=""
 linking=yes
 

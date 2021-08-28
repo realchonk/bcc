@@ -20,11 +20,11 @@ AC_DEFUN([AX_SET_COMPILERDIRS], [
 AC_SUBST([compilerdir], ['${prefix}/lib/bcc/${TARGET}/${version}'])
 AC_SUBST([includedir],  ['${compilerdir}/include'])
 AC_SUBST([targetdir],   ['${prefix}/${TARGET}'])
-AC_SUBST([tbindir],     ['${targetdir}/bcc-bin/${version}'])
+AC_SUBST([tbindir],     ['${targetdir}/bcc-bin'])
 AC_SUBST([clibdir],     ['${compilerdir}'])
 
 AC_DEFINE_UNQUOTED([TARGETDIR], [PREFIX "/${TARGET}"],
                    [Path to the target directory])
-AC_DEFINE_UNQUOTED([COMPILERDIR], [PREFIX "/lib/bcc/${TARGET}/${version}"],
+AC_DEFINE_UNQUOTED([COMPILERDIR], [PREFIX "/lib/bcc/${version}/${TARGET}"],
                    [Path to the compiler directory])
 ])
