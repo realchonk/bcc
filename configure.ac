@@ -35,12 +35,7 @@ AC_PROG_CC
 # Determine the architecture
 AX_CHECK_TARGET
 AX_SET_PREDEF_MACROS
-
-# Additional paths
-AC_SUBST([compilerdir], ['${prefix}/lib/bcc/${TARGET}/${version}'])
-AC_SUBST([includedir], ['${compilerdir}/include'])
-AC_SUBST([targetdir], ['${prefix}/${TARGET}'])
-AC_SUBST([tbindir], ['${targetdir}/bcc-bin/${version}'])
+AX_SET_COMPILERDIRS
 
 # Find the assembler (NASM for x86, GNU as for other)
 if test $ARCH = x86; then
