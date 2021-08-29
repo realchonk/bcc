@@ -48,14 +48,17 @@ bool nostartfiles = false, nolibc = false;
 // crtn.o      : libc
 
 int run_linker(const char* output_name, const char** objects) {
-   if (!output_name)
+   if (!output_name) {
       output_name = "a.out";
+   }
 
    // ACTUAL LINKING PART
    char** args = NULL;
    buf_push(args, strdup(linker_path));
    buf_push(args, "-L" COMPILERDIR);
    buf_push(args, "-L" SYSLIBSDIR);
+   buf_push(args, "-o");
+   buf_push(args, strdup(output_name));
    if (!nostartfiles) {
       buf_push(args, libc_crt("1"));
       buf_push(args, libc_crt("i"));
@@ -65,15 +68,19 @@ int run_linker(const char* output_name, const char** objects) {
    for (size_t i = 0; i < buf_len(objects); ++i) {
       buf_push(args, strdup(objects[i]));
    }
-   
+ 
+#if HAS_LIBC
    if (!nolibc) {
       buf_push(args, libc);
    }
+#endif
 
    if (!nostartfiles) {
       buf_push(args, bcc_crt("end"));
       buf_push(args, libc_crt("n"));
+#if HAS_LIBBCC
       buf_push(args, "-lbcc");
+#endif
    }
 
    for (size_t i = 0; i < buf_len(linker_args); ++i) {

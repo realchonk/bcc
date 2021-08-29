@@ -86,6 +86,7 @@ AC_ARG_ENABLE(target-libbcc,
               [if test x$enableval = xyes; then ENABLE_LIBBCC=1; else ENABLE_LIBBCC=0; fi],
               ENABLE_LIBBCC=1)
 AM_CONDITIONAL([ENABLE_LIBBCC], [test x$ENABLE_LIBBCC = x1])
+AC_DEFINE_UNQUOTED([HAS_LIBBCC], [${ENABLE_LIBBCC}], [Will the compiler-support library, libbcc.a, be installed?])
 
 # --with-cpu=
 AC_ARG_WITH([cpu],

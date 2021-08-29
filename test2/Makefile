@@ -24,7 +24,7 @@ endif
 BCC_ARCH ?= $(shell $(BCC) -dumparch)
 BCC_MACH ?= $(shell $(BCC) -dumpmachine)
 
-BCCFLAGS+=-v -O2 -e $(BCPP) -I ../bcc-include
+BCCFLAGS+=-O2 -e $(BCPP) -I ../bcc-include
 
 ifeq ($(BCC_ARCH),x86_64)
 BITS=64
@@ -44,12 +44,6 @@ QLP=/usr/$(BCC_MACH)/
 BCCFLAGS+=-mabi=lp64
 endif
 
-ifeq ($(BCC_ARCH),$(shell uname -m))
-GCC=gcc
-else
-GCC=$(BCC_MACH)-gcc
-endif
-
 all: test
 
 test.ir: test.c $(BCC)
@@ -59,19 +53,13 @@ ifeq ($(ARCH),x86)
 test.asm: test.c $(BCC)
 	$(BCC) -S -o $@ $< $(BCCFLAGS)
 
-test.o: test.asm
-	$(BCC) -c -o $@ $<
-
-test: test.o
-	$(GCC) -m$(BITS) -o $@ $<
+test: test.asm
+	$(BCC) -o $@ $< $(BCCFLAGS)
 
 else ifeq ($(ARCH),riscv)
 
-test: test.o
-	$(GCC) -o $@ $<
-
-test.o: test.s
-	$(BCC) -c -o $@ $< $(BCCFLAGS)
+test: test.asm
+	$(BCC) -o $@ $< $(BCCFLAGS)
 
 test.s: test.c $(BCC)
 	$(BCC) -S -o $@ $< $(BCCFLAGS)

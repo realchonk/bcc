@@ -27,14 +27,17 @@ ac_macros="${ac_macros} __STDC_NO_THREADS__"
 
 case ${target_os} in
 linux*)
+   ac_has_libc=1
    ac_macros="${ac_macros} linux __linux __linux__"
    ac_macros="${ac_macros} unix __unix __unix__"
    ac_macros="${ac_macros} __ELF__"
    ;;
 elf*)
+   ac_has_libc=0
    ac_macros="${ac_macros} __ELF__"
    ;;
 *)
+   AC_MSG_ERROR([unsupported operating system, please look into util/m4/ax_set_predef_macros.m4])
    ;;
 esac
 
@@ -54,9 +57,13 @@ riscv32)
 riscv64)
    ac_macros="${ac_macros} __riscv __riscv_xlen=64"
    ;;
+*)
+   AC_MSG_ERROR([unsupported processor architecture, please look into util/m4/ax_set_predef_macros.m4}])
+   ;;
 esac
 
 AC_DEFINE_UNQUOTED([CPP_MACROS], ["${ac_macros}"], [Predefined macros for the pre-processor])
+AC_DEFINE_UNQUOTED([HAS_LIBC], [${ac_has_libc}], [Does the operating system have a C library?])
 
 ])
 
