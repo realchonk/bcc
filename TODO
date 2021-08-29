@@ -8,13 +8,14 @@
 
 
 # Linking support
-- support for dynamic libraries
+- support for shared libraries
+- fix ordering of object files & libraries
 
 
 # libbcc
 - crtbegin.o, crtend.o
 - libbcc.a
-- move compiler builtins to libbcc
+- move some compiler builtins to libbcc
 
 
 # Language
@@ -22,6 +23,7 @@
 - labels & goto
 - add configure option to disable extensions
 - add support for strings containing '\0' values
+- allow support for old C-style (function) pointers
 
 
 # IR-generation
@@ -34,6 +36,7 @@ General:
 
 x86:
 - fix nasm warning for indirect function calls (64bit)
+- optimize function calls
 
 riscv:
 - more simple optimizations
