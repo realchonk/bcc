@@ -29,6 +29,6 @@ AC_SUBST([clibdir],     ['${compilerdir}'])
 
 AC_DEFINE_UNQUOTED([TARGETDIR], [PREFIX "/${TARGET}"],
                    [Path to the target directory])
-AC_DEFINE_UNQUOTED([COMPILERDIR], [PREFIX "/lib/bcc/${version}/${TARGET}"],
+AC_DEFINE_UNQUOTED([COMPILERDIR], [PREFIX "/lib/bcc/${TARGET}/${version}"],
                    [Path to the compiler directory])
 ])
