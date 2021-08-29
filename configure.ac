@@ -75,9 +75,9 @@ AC_SUBST([ENABLE_FP])
 
 # Option to disable the installation of bcl
 AC_ARG_ENABLE(bcl,
-              [AS_HELP_STRING([--disable-bcl], [disable the installation of the helper wrapper bcl])],
+              [AS_HELP_STRING([--enable-bcl], [install the deprecated bcl wrapper])],
               [if test x$enableval = xyes; then ENABLE_BCL=1; else ENABLE_BCL=0; fi],
-              ENABLE_BCL=1)
+              ENABLE_BCL=0)
 AC_SUBST([ENABLE_BCL])
 
 # Option to disable the installation of libbcc
