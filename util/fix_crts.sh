@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Run this script, if bcc can't find crt{1,i,n}.o
+# Run this script, if bcc can't find crt{1,i,n}.o and/or libc.a
 
 print_usage() {
    echo "Usage: $(basename "$0") prefix target"
@@ -22,11 +22,15 @@ fi
 prefix="$1"
 target="$2"
 
+libdir="${prefix}/${target}/lib"
+
 fix_crt() {
-   ln -sfv "$(gcc -print-file-name="$1")" "${prefix}/${target}/$1"
+   [ -e "${libdir}/$1" ] || ln -sfv "$(gcc -print-file-name="$1")" "${libdir}/$1"
 }
 
+mkdir -p "${libdir}" || exit 1
 fix_crt "crt1.o" || exit 1
 fix_crt "crti.o" || exit 1
 fix_crt "crtn.o" || exit 1
+fix_crt "libc.a" || exit 1
 echo "Successfully fixed the crt{1,i,n}.o files."
