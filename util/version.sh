@@ -1,6 +1,6 @@
 #!/bin/sh
 
-ver="0.14"
+ver="0.15"
 
 commit="$(git describe --always 2>/dev/null)"
 
