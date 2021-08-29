@@ -92,14 +92,15 @@ full-clean: clean full-clean-target-libbcc
 
 
 if ENABLE_LIBBCC
-all-target-libbcc: bcc
+configure-target-libbcc:
 	cd $(srcdir)/libbcc && ./configure --with-bcc=$(PWD)/bcc --host=$(TARGET)
+all-target-libbcc: bcc configure-target-libbcc
 	$(MAKE) -C libbcc
 install-target-libbcc:
 	$(MAKE) -C libbcc DESTDIR=$(DESTDIR) install
 uninstall-target-libbcc:
 	$(MAKE) -C libbcc DESTDIR=$(DESTDIR) uninstall
-full-clean-target-libbcc:
+full-clean-target-libbcc: configure-target-libbcc
 	$(MAKE) -C libbcc full-clean
 else
 all-target-libbcc: bcc
