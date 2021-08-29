@@ -25,8 +25,8 @@ Common configure options:<br>
 | --disable-target-libbcc | don't build & install the compiler-support library |
 | --with-cpu=CPU | select the default target CPU |
 | --with-abi=ABI | select the default target ABI |
-<br>
-For Debug build use:<br>
+
+For Debug builds use:<br>
 <code>CFLAGS="-g -Og" ./configure</code>
 
 ### Building
@@ -58,6 +58,8 @@ The target can be specified as: [cpu](#supported-processor-architectures)-vendor
 | riscv32 | RISC-V (32 bit) | Least tested |
 | riscv64 | RISC-V (64 bit) | |
 
+Alternative names for processor architectures can be added [here](https://github.com/Benni3D/bcc/blob/master/util/m4/ax_check_target.m4#L21).
+
 ### Supported operating systems
 | OS | Notes |
 |------|-------------|
@@ -69,4 +71,3 @@ Support for operating systems can be added [here](https://github.com/Benni3D/bcc
 ## Contributing
 Feel free to create an [Issue](https://github.com/Benni3D/bcc/issues) or a [Pull Request](https://github.com/Benni3D/bcc/pulls).<br>
 Patches can also be send directly to <benni@stuerz.xyz>.<br>
-
