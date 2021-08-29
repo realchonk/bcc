@@ -61,44 +61,53 @@ transform = @program_transform_name@
 all-bcc: bcc
 all: all-recursive all-target-libbcc
 
-all-target-libbcc: bcc
-	cd $(srcdir)/libbcc && ./configure --with-bcc=$(PWD)/bcc --host=$(TARGET)
-	$(MAKE) -C libbcc
-
-install-target-libbcc:
-	$(MAKE) -C libbcc DESTDIR=$(DESTDIR) install
-
-uninstall-target-libbcc:
-	$(MAKE) -C libbcc DESTDIR=$(DESTDIR) uninstall
-
 install-data-local: install-target-libbcc
 	install -Dm644 util/bcc.bash $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
-	install -Dm755 $(srcdir)/util/bcl $(DESTDIR)/$(tbindir)/`echo bcl | sed '$(transform)'`
+	install -dm755 $(DESTDIR)/$(tbindir)
+	[ $(ENABLE_BCL) = 0 ] || install -m755 $(srcdir)/util/bcl $(DESTDIR)/$(tbindir)/`echo bcl | sed '$(transform)'`
 	install -dm755 $(DESTDIR)/$(bindir)
 	mv $(DESTDIR)/$(bindir)/`echo bcpp | sed '$(transform)'` $(DESTDIR)/$(tbindir)/
 	ln -sf $(tbindir)/bcc  $(DESTDIR)/$(bindir)/`echo bcc  | sed '$(transform)'`
 	ln -sf $(tbindir)/bcpp $(DESTDIR)/$(bindir)/`echo bcpp | sed '$(transform)'`
-	ln -sf $(tbindir)/bcl  $(DESTDIR)/$(bindir)/`echo bcl  | sed '$(transform)'`
+	[ $(ENABLE_BCL) = 0 ] || ln -sf $(tbindir)/bcl  $(DESTDIR)/$(bindir)/`echo bcl  | sed '$(transform)'`
 	if [ `echo file | sed '$(transform)'` != file ]; then \
 		ln -sf `echo bcc  | sed '$(transform)'` $(DESTDIR)/$(tbindir)/bcc;	\
 		ln -sf `echo bcpp | sed '$(transform)'` $(DESTDIR)/$(tbindir)/bcpp;	\
-		ln -sf `echo bcl  | sed '$(transform)'` $(DESTDIR)/$(tbindir)/bcl;	\
+		[ $(ENABLE_BCL) = 0 ] || ln -sf `echo bcl  | sed '$(transform)'` $(DESTDIR)/$(tbindir)/bcl;	\
 	fi
 
 uninstall-local: uninstall-target-libbcc
 	rm -f $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
 	rm -rf $(DESTDIR)/$(tbindir)
-	rm -f $(DESTDIR)/$(bindir)/bcl
+	[ $(ENABLE_BCL) = 0 ] || rm -f $(DESTDIR)/$(bindir)/bcl
 
-full-clean: clean
+full-clean: clean full-clean-target-libbcc
 	$(MAKE) -C cpp full-clean
 	$(MAKE) -C test clean
 	$(MAKE) -C test2 clean
-	$(MAKE) -C libbcc full-clean
 	rm -f Makefile Makefile.in configure src/.dirstamp src/$(ARCH)/.dirstamp
 	rm -f config.h config.h.in config.h.in~ config.log config.status stamp-h1 aclocal.m4
 	rm -rf autom4te.cache build-aux src/.deps .deps src/$(ARCH)/.deps
 	rm -f help_options.h bcc.1 configure~
+
+
+if ENABLE_LIBBCC
+all-target-libbcc: bcc
+	cd $(srcdir)/libbcc && ./configure --with-bcc=$(PWD)/bcc --host=$(TARGET)
+	$(MAKE) -C libbcc
+install-target-libbcc:
+	$(MAKE) -C libbcc DESTDIR=$(DESTDIR) install
+uninstall-target-libbcc:
+	$(MAKE) -C libbcc DESTDIR=$(DESTDIR) uninstall
+full-clean-target-libbcc:
+	$(MAKE) -C libbcc full-clean
+else
+all-target-libbcc: bcc
+install-target-libbcc:
+uninstall-target-libbcc:
+full-clean-target-libbcc:
+endif
+
 
 test: all
 	$(MAKE) -C test

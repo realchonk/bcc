@@ -136,7 +136,9 @@ struct value {
 };
 
 extern const char* integer_size_str[NUM_INTS];
+#if ENABLE_FP
 extern const char* fp_size_str[NUM_FPS];
+#endif
 extern const char* value_type_str[NUM_VALS];
 struct expression;
 struct scope;

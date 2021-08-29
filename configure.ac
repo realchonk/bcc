@@ -73,6 +73,20 @@ AC_ARG_ENABLE(fp,
 AC_DEFINE_UNQUOTED([ENABLE_FP], [$ENABLE_FP], [Enable/Disable floating-point support])
 AC_SUBST([ENABLE_FP])
 
+# Option to disable the installation of bcl
+AC_ARG_ENABLE(bcl,
+              [AS_HELP_STRING([--disable-bcl], [disable the installation of the helper wrapper bcl])],
+              [if test x$enableval = xyes; then ENABLE_BCL=1; else ENABLE_BCL=0; fi],
+              ENABLE_BCL=1)
+AC_SUBST([ENABLE_BCL])
+
+# Option to disable the installation of libbcc
+AC_ARG_ENABLE(target-libbcc,
+              [AS_HELP_STRING([--disable-target-libbcc], [disable the installation of the compiler-specific library libbcc])],
+              [if test x$enableval = xyes; then ENABLE_LIBBCC=1; else ENABLE_LIBBCC=0; fi],
+              ENABLE_LIBBCC=1)
+AM_CONDITIONAL([ENABLE_LIBBCC], [test x$ENABLE_LIBBCC = x1])
+
 # --with-cpu=
 AC_ARG_WITH([cpu],
             [AS_HELP_STRING([--with-cpu=CPU], [select the default target processor])],
