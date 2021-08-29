@@ -17,6 +17,8 @@
 
 AC_DEFUN([AX_CHECK_TARGET], [
 AC_MSG_CHECKING([for target architecture])
+
+# Alternative names for processor architectures can be added here
 case ${target_cpu} in
 i386|i486|i586|i686)
    FULL_ARCH=i386
