@@ -15,7 +15,7 @@
 
 
 crtbegin.o: src/x86/crtbegin.asm
-	$(BCC) -c -o $@ $<
+	$(CC) -c -o $@ $<
 
 crtend.o: src/x86/crtend.asm
-	$(BCC) -c -o $@ $<
+	$(CC) -c -o $@ $<

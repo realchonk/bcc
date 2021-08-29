@@ -14,7 +14,9 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 clib_DATA = crtbegin.o crtend.o
-# clib_LIBRARIES = libbcc.a
+clib_LIBRARIES = libbcc.a
+
+libbcc_a_SOURCES = src/has_libbcc.c
 
 if ARCH_x86
 include $(srcdir)/src/x86/Makefile.am

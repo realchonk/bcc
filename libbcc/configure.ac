@@ -26,19 +26,12 @@ AC_CONFIG_MACRO_DIRS([../util/m4])
 
 AC_SUBST([version], m4_defn([bcc_VERSION]))
 
+GCC_NO_EXECUTABLES
+AC_PROG_CC
 AC_PROG_RANLIB
-AC_PROG_CC_C_O
 
 AX_CHECK_TARGET
 AX_SET_COMPILERDIRS
-
-# --with-bcc=
-AC_ARG_WITH([bcc],
-            [AS_HELP_STRING([--with-bcc=PATH], [path to bcc])],
-            BCC=$withval,
-            BCC=../bcc)
-
-AC_SUBST([BCC])
 
 AM_CONDITIONAL([BITS_32], [test $BITS = 32])
 

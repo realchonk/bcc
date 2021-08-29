@@ -14,7 +14,7 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 crtbegin.o: src/riscv/crtbegin.s
-	$(BCC) -c -o $@ $<
+	$(CC) -c -o $@ $<
 
 crtend.o: src/riscv/crtend.s
-	$(BCC) -c -o $@ $<
+	$(CC) -c -o $@ $<

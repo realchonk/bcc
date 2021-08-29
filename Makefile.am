@@ -92,16 +92,22 @@ full-clean: clean full-clean-target-libbcc
 
 
 if ENABLE_LIBBCC
-configure-target-libbcc:
-	cd $(srcdir)/libbcc && ./configure --with-bcc=$(PWD)/bcc --host=$(TARGET)
-all-target-libbcc: bcc configure-target-libbcc
+configure-target-libbcc: bcc
+	cd $(srcdir)/libbcc && CC=../bcc ./configure --host=$(TARGET)
+all-target-libbcc: configure-target-libbcc
 	$(MAKE) -C libbcc
 install-target-libbcc:
 	$(MAKE) -C libbcc DESTDIR=$(DESTDIR) install
 uninstall-target-libbcc:
 	$(MAKE) -C libbcc DESTDIR=$(DESTDIR) uninstall
-full-clean-target-libbcc: configure-target-libbcc
-	$(MAKE) -C libbcc full-clean
+full-clean-target-libbcc:
+	if test -e libbcc/Makefile; then					\
+		$(MAKE) -C libbcc full-clean;					\
+	else														\
+		cd libbcc; 											\
+		rm -f Makefile.in aclocal.m4 configure;	\
+		rm -rf build-aux/ autom4te.cache;			\
+	fi
 else
 all-target-libbcc: bcc
 install-target-libbcc:
