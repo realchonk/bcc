@@ -42,7 +42,8 @@ Just install to PREFIX (default: /usr/local)<br>
 Install to a different PREFIX:<br>
 <code>make DESTDIR=... install</code><br>
 
-Note: due to linking not being stable yet, please use the *bcl* wrapper instead, which performs the linking process for now.
+Note: due to linking not being stable yet, please use the *bcl* wrapper instead, which performs the linking process for now.<br>
+Note 2: if bcc can't find the crt{1,i,n}.o files, please run ./util/fix\_crts.sh
 
 ## Testing
 Testing can be performed with:<br>

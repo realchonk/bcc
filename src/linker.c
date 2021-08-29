@@ -28,7 +28,7 @@ struct cmdline_arg* linker_args = NULL;
 bool nostartfiles = false, nolibc = false;
 
 // path: ${compilerdir}/lib/crtX.o
-#define bcc_crt(c)   COMPILERDIR "/lib/crt" c ".o"
+#define bcc_crt(c)   COMPILERDIR "/crt" c ".o"
 #define libc_crt(c)  TARGETDIR   "/lib/crt" c ".o"
 #define libc         TARGETDIR   "/lib/libc.a"
 
