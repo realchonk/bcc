@@ -63,8 +63,10 @@ The target can be specified as: [cpu](#supported-processor-architectures)-vendor
 |------|-------------|
 | linux* | The [musl libc](https://www.musl-libc.org/) is preferred; glibc likely needs a work-around. |
 | elf | A standalone environement. An implementation of memcpy must be provided by the program. |
+
+Support for operating systems can be added [here](https://github.com/Benni3D/bcc/blob/master/util/m4/ax_set_predef_macros.m4#L28).
   
 ## Contributing
 Feel free to create an [Issue](https://github.com/Benni3D/bcc/issues) or a [Pull Request](https://github.com/Benni3D/bcc/pulls).<br>
 Patches can also be send directly to <benni@stuerz.xyz>.<br>
-Support for operating systems can be added [here](https://github.com/Benni3D/bcc/blob/master/util/m4/ax_set_predef_macros.m4).
+
