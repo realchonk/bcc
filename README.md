@@ -51,16 +51,20 @@ If you have any issues, please paste the output.<br>
 The target can be specified as: [cpu](#supported-processor-architectures)-vendor-[os](#supported-operating-systems)
 
 ### Supported processor architectures
-- i386 (x86-32/IA-32)
-- x86\_64 (amd64/EMT64)
-- riscv32 (RISC-V 32bit)
-- riscv64 (RISC-V 64bit)
+| Name | Other Names | Notes |
+|------|-------------|---|
+| i386, i486, i586, i686 | x86-32, IA-32 | |
+| x86\_64 | amd64, EMT64 | Most tested |
+| riscv32 | RISC-V (32 bit) | Least tested |
+| riscv64 | RISC-V (64 bit) | |
 
 ### Supported operating systems
-- Linux (musl libc is preferred, glibc needs a work-around)
-- elf (freestanding)
+| Name | Notes |
+|------|-------------|
+| linux* | The [musl libc](https://www.musl-libc.org/) is preferred; glibc likely needs a work-around. |
+| elf | A standalone environement. An implementation of memcpy must be provided by the program. |
   
 ## Contributing
 Feel free to create an [Issue](https://github.com/Benni3D/bcc/issues) or a [Pull Request](https://github.com/Benni3D/bcc/pulls).<br>
-Patches can also be send to <benni@stuerz.xyz>.<br>
+Patches can also be send directly to <benni@stuerz.xyz>.<br>
 Support for operating systems can be added [here](https://github.com/Benni3D/bcc/blob/master/util/m4/ax_set_predef_macros.m4).
