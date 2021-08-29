@@ -58,14 +58,20 @@ man1_MANS = bcc.1
 completionsdir = $(datadir)/bash-completion/completions
 transform = @program_transform_name@
 
+all-bcc: bcc
+all: all-recursive all-target-libbcc
+
 all-target-libbcc: bcc
-	cd $(srcdir)/libbcc && ./configure --with-bcc=$(PWD)/bcc
+	cd $(srcdir)/libbcc && ./configure --with-bcc=$(PWD)/bcc --host=$(TARGET)
 	$(MAKE) -C libbcc
 
 install-target-libbcc:
 	$(MAKE) -C libbcc DESTDIR=$(DESTDIR) install
 
-install-data-local:
+uninstall-target-libbcc:
+	$(MAKE) -C libbcc DESTDIR=$(DESTDIR) uninstall
+
+install-data-local: install-target-libbcc
 	install -Dm644 util/bcc.bash $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
 	install -Dm755 $(srcdir)/util/bcl $(DESTDIR)/$(tbindir)/`echo bcl | sed '$(transform)'`
 	install -dm755 $(DESTDIR)/$(bindir)
@@ -79,7 +85,7 @@ install-data-local:
 		ln -sf `echo bcl  | sed '$(transform)'` $(DESTDIR)/$(tbindir)/bcl;	\
 	fi
 
-uninstall-local:
+uninstall-local: uninstall-target-libbcc
 	rm -f $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
 	rm -rf $(DESTDIR)/$(tbindir)
 	rm -f $(DESTDIR)/$(bindir)/bcl

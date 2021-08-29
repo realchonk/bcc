@@ -20,13 +20,12 @@ ask() {
 ./autogen.sh      || exit 1
 ./configure       || exit 1
 make -j$(nproc)   || exit 1
-make -j$(nproc) all-target-libbcc || exit 1
 
 ask "Check" && make check
 
 if ask "Test install"; then
    mkdir pkg         || exit 1
-   make DESTDIR="$PWD/pkg" install install-target-libbcc || exit 1
+   make DESTDIR="$PWD/pkg" install || exit 1
    find pkg
 fi
 
