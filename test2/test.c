@@ -1,11 +1,9 @@
 #include <stddef.h>
 
-struct A {
-   int a;
-   int b;
-};
+int puts(const char*);
 
-int main() {
-   struct A a;
-   return sizeof(a);
+int main(void) {
+   char str[] = "Hello World";
+   puts(str);
+   return 0;
 }

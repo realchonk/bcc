@@ -58,7 +58,7 @@ test: test.asm
 
 else ifeq ($(ARCH),riscv)
 
-test: test.asm
+test: test.s
 	$(BCC) -o $@ $< $(BCCFLAGS)
 
 test.s: test.c $(BCC)

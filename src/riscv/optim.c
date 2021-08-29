@@ -20,6 +20,7 @@
 #include "error.h"
 
 // Turn IR_MUL to IR_IFCALL (if no M extension)
+// TODO: implement the functions in libbcc first
 static bool mul_to_func(ir_node_t** n) {
    if (riscv_cpu.has_mult)
       return false;
@@ -100,10 +101,48 @@ static bool mul_to_func(ir_node_t** n) {
    return success;
 }
 
+static bool copy_to_memcpy(ir_node_t** n) {
+   bool success = false;
+   for (ir_node_t* cur = *n; cur; cur = cur->next) {
+      if (cur->type != IR_COPY)
+         continue;
+      ir_node_t fcall;
+      fcall.type = IR_FCALL;
+      fcall.prev = cur->prev;
+      fcall.next = cur->next;
+      fcall.func = cur->func;
+
+      fcall.ifcall.name = strint("memcpy");
+      fcall.ifcall.dest = cur->copy.dest;
+      fcall.ifcall.params = NULL;
+      
+      ir_node_t* param = new_node(IR_MOVE);
+      param->move.dest = fcall.ifcall.dest;
+      param->move.src  = cur->copy.dest;
+      param->move.size = IRS_PTR;
+      buf_push(fcall.ifcall.params, param);
+
+      param = new_node(IR_MOVE);
+      param->move.dest = fcall.ifcall.dest;
+      param->move.src  = cur->copy.src;
+      param->move.size = IRS_PTR;
+      buf_push(fcall.ifcall.params, param);
+
+      param = new_node(IR_LOAD);
+      param->load.dest = fcall.ifcall.dest;
+      param->load.value = cur->copy.len;
+      param->load.value = IRS_PTR;
+      buf_push(fcall.ifcall.params, param);
+      *cur = fcall;
+      success = true;
+   }
+   return success;
+}
+
 // TODO: implement target-specific IR optimizations
 bool target_optim_ir(ir_node_t** n) {
    bool success = false;
-   while (mul_to_func(n))
+   while (copy_to_memcpy(n))
       success = true;
    return success;
 }

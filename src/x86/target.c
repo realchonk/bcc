@@ -93,7 +93,6 @@ const struct target_info target_info = {
    .max_immed = INT64_MAX,
    .min_immed = INT64_MIN,
 #endif
-
 };
 
 #if BITS == 32

@@ -13,10 +13,10 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include "riscv/regs.h"
 #include "config.h"
 #include "target.h"
 #include "error.h"
-#include "regs.h"
 
 // 16 - REGSIZE
 #if BITS == 32

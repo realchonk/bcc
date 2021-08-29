@@ -93,7 +93,7 @@ full-clean: clean full-clean-target-libbcc
 
 if ENABLE_LIBBCC
 configure-target-libbcc: bcc
-	cd $(srcdir)/libbcc && CC=../bcc ./configure --host=$(TARGET)
+	cd $(srcdir)/libbcc && CC="../bcc -e ../cpp/bcpp" ./configure --host=$(TARGET)
 all-target-libbcc: configure-target-libbcc
 	$(MAKE) -C libbcc
 install-target-libbcc:

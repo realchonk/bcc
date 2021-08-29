@@ -14,11 +14,11 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <string.h>
+#include "riscv/emit_ir.h"
+#include "riscv/regs.h"
 #include "riscv/cpu.h"
-#include "emit_ir.h"
 #include "strdb.h"
 #include "error.h"
-#include "regs.h"
 #include "bcc.h"
 
 static uintreg_t size_stack;

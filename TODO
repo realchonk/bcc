@@ -52,13 +52,14 @@ riscv:
 - simplify
 - fix bugs
 - remove _GNU_SOURCE dependency
+- make test2 be usable without installation of libbcc
 
 
 # Other
 - find & fix reason for random crashes
 - options: -g, --sysroot=, -static, -shared, -save-temps
 - <stdarg.h> header
-
+- auto-detection of --with-cpu= & --with-abi=
 
 # Helpful Resources/Websites
 - POSIX C99 compiler    - https://pubs.opengroup.org/onlinepubs/9699919799/utilities/c99.html

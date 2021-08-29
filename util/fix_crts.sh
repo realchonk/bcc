@@ -34,6 +34,7 @@ unset args
 
 target="${MACHTYPE}"
 GCC="${MACHTYPE}-gcc"
+BCC="bcc"
 force=0
 fix_all=0
 search_files=""
@@ -76,6 +77,7 @@ while true; do
       ;;
    -t)
       target="$2"
+      BCC="${target}-bcc"
       shift 2
       ;;
    -g)
@@ -103,7 +105,7 @@ fi
 [ -z "$1" ] && error "operand prefix is missing"
 prefix="$1"
 libdir="${prefix}/${target}/lib"
-bcc="${prefix}/bin/bcc"
+bcc="${prefix}/bin/${BCC}"
 [ ! -x "${bcc}" ] && error "couldn't to find bcc"
 version="$("${bcc}" -dumpversion)" || error "failed to get bcc's version"
 clibdir="${prefix}/lib/bcc/${target}/${version}"

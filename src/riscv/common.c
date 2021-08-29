@@ -17,10 +17,11 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdio.h>
+#include "riscv/regs.h"
 #include "riscv/cpu.h"
+#include "cmdline.h"
 #include "target.h"
 #include "error.h"
-#include "regs.h"
 #include "config.h"
 
 struct machine_option mach_opts[] = {

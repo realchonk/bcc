@@ -167,7 +167,7 @@ typedef struct ir_node {
       } iicast;
       struct {
          istr_t name;
-         ir_reg_t dest;             // only used with IR_IFCALL
+         ir_reg_t dest;
          struct ir_node** params;
       } ifcall;
       struct {
