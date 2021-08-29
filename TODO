@@ -53,7 +53,7 @@ riscv:
 
 # Other
 - find & fix reason for random crashes
-- options: -g
+- options: -g, --sysroot=, -static, -shared, -save-temps
 - <stdarg.h> header
 
 
