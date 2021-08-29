@@ -17,6 +17,10 @@
 
 AC_DEFUN([AX_SET_COMPILERDIRS], [
 
+if test x${TARGET} = x; then
+   AC_MSG_ERROR([TARGET variable is not set])
+fi
+
 AC_SUBST([compilerdir], ['${prefix}/lib/bcc/${TARGET}/${version}'])
 AC_SUBST([includedir],  ['${compilerdir}/include'])
 AC_SUBST([targetdir],   ['${prefix}/${TARGET}'])

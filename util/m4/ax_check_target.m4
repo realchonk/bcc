@@ -56,6 +56,7 @@ AC_DEFINE_UNQUOTED([BCC_ARCH], ["${ARCH}"], [The base architecture name])
 AC_DEFINE_UNQUOTED([BITS], [${BITS}], [How many bits a register has])
 AC_DEFINE_UNQUOTED([SBITS], ["${BITS}"], [How many bits a register has (string variant)])
 
+AC_SUBST([TARGET])
 AC_SUBST([FULL_ARCH])
 AC_SUBST([ARCH])
 AC_SUBST([BITS])
