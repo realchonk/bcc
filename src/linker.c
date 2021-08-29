@@ -27,10 +27,16 @@ const char* linker_path = GNU_LD;
 struct cmdline_arg* linker_args = NULL;
 bool nostartfiles = false, nolibc = false;
 
-// path: ${compilerdir}/lib/crtX.o
+// compiler-specific libraries/startfiles
 #define bcc_crt(c)   COMPILERDIR "/crt" c ".o"
-#define libc_crt(c)  TARGETDIR   "/lib/crt" c ".o"
-#define libc         TARGETDIR   "/lib/libc.a"
+#define libbcc       COMPILERDIR "/libbcc.a"
+
+// system libraries/startfiles
+#define SYSLIBSDIR   TARGETDIR "/lib"
+#define libc_crt(c)  SYSLIBSDIR  "/crt" c ".o"
+#define libc         SYSLIBSDIR  "/libc.a"
+
+// TODO: figure out which option disables -lbcc
 
 // crt1.o      : libc
 // crti.o      : libc
@@ -48,6 +54,8 @@ int run_linker(const char* output_name, const char** objects) {
    // ACTUAL LINKING PART
    char** args = NULL;
    buf_push(args, strdup(linker_path));
+   buf_push(args, "-L" COMPILERDIR);
+   buf_push(args, "-L" SYSLIBSDIR);
    if (!nostartfiles) {
       buf_push(args, libc_crt("1"));
       buf_push(args, libc_crt("i"));
@@ -65,6 +73,7 @@ int run_linker(const char* output_name, const char** objects) {
    if (!nostartfiles) {
       buf_push(args, bcc_crt("end"));
       buf_push(args, libc_crt("n"));
+      buf_push(args, "-lbcc");
    }
 
    for (size_t i = 0; i < buf_len(linker_args); ++i) {
