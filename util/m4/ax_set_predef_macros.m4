@@ -25,6 +25,7 @@ ac_macros="${ac_macros} __STDC_NO_COMPLEX__"
 ac_macros="${ac_macros} __STDC_NO_THREADS__"
 # __STDC_NO_VLA__ is defined in src/cpp.c
 
+# Support for new operating systems can be added here:
 case ${target_os} in
 linux*)
    ac_has_libc=1
