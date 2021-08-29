@@ -8,11 +8,6 @@ The compiler generates assembly for the [System V ABI](https://wiki.osdev.org/Sy
 More documentation can be found on [bcc(1)](https://stuerz.xyz/bcc.html).<br>
 Planned features can be read in the [TODO](./TODO) file.
 
-## Target architectures
-- i386 (x86-32/IA-32)
-- x86\_64 (amd64/EMT64)
-- riscv32 (RISC-V 32bit)
-- riscv64 (RISC-V 64bit)
 
 ## Building/Installation
 ### Configuration
@@ -24,8 +19,10 @@ Common configure options:<br>
 |--------|-------------|
 | --help | see all available options |
 | --prefix=PREFIX  | installation path |
-| --target=TARGET | target architecture (SEE Target architectures) |
-| --disable-fp | disable preliminary floating-point support |
+| --target=TARGET | [target architecture](#target-architecture) ||
+| --enable-bcl | install the deprecated wrapper script [bcl](https://github.com/Benni3D/bcc/blob/master/util/bcl) |
+| --disable-fp | disable preliminary floating-point support 
+| --disable-target-libbcc | don't build & install the compiler-support library |
 | --with-cpu=CPU | select the target CPU |
 | --with-abi=ABI | select the target ABI |
 <br>
@@ -42,11 +39,28 @@ Just install to PREFIX (default: /usr/local)<br>
 Install to a different PREFIX:<br>
 <code>make DESTDIR=... install</code><br>
 
-Note: due to linking not being stable yet, please use the *bcl* wrapper instead, which performs the linking process for now.<br>
-Note 2: if bcc can't find the crt{1,i,n}.o files, please run ./util/fix\_crts.sh<br>
-Note 3: if the GNU C library (glibc) is buggy, please use the musl C library.
+Note: if bcc can't find the crt{1,i,n}.o files, please run ./util/fix\_crts.sh<br>
+Note 2: if linking against the GNU C library (glibc) fails, run ./util/fix\_crts.sh -af \<prefix\>, or use the musl C library.
 
 ## Testing
 Testing can be performed with:<br>
 <code>make check</code><br>
 If you have any issues, please paste the output.<br>
+
+## Target architecture
+The target can be specified as: [cpu](#supported-processor-architectures)-vendor-[os](#supported-operating-systems)
+
+### Supported processor architectures
+- i386 (x86-32/IA-32)
+- x86\_64 (amd64/EMT64)
+- riscv32 (RISC-V 32bit)
+- riscv64 (RISC-V 64bit)
+
+### Supported operating systems
+- Linux (musl libc is preferred, glibc needs a work-around)
+- elf (freestanding)
+  
+## Contributing
+Feel free to create an [Issue](https://github.com/Benni3D/bcc/issues) or a [Pull Request](https://github.com/Benni3D/bcc/pulls).<br>
+Patches can also be send to <benni@stuerz.xyz>.<br>
+Support for operating systems can be added [here](https://github.com/Benni3D/bcc/blob/master/util/m4/ax_set_predef_macros.m4).
