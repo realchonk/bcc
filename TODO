@@ -4,6 +4,7 @@
 # Major things
 - floating-point support
 - libbcc
+- retire the preliminary bcl wrapper
 
 
 # Linking support
@@ -13,6 +14,7 @@
 # libbcc
 - crtbegin.o, crtend.o
 - libbcc.a
+- move compiler builtins to libbcc
 
 
 # Language
