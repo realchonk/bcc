@@ -29,12 +29,6 @@ AC_SUBST([version], m4_defn([bcc_VERSION]))
 AX_CHECK_TARGET
 AX_SET_COMPILERDIRS
 
-if test $ARCH = x86; then
-   AX_FIND_NASM
-else
-   AX_FIND_AS
-fi
-
 # --with-bcc=
 AC_ARG_WITH([bcc],
             [AS_HELP_STRING([--with-bcc=PATH], [path to bcc])],
@@ -43,7 +37,7 @@ AC_ARG_WITH([bcc],
 
 AC_SUBST([BCC])
 
-AM_CONDITIONAL([BITS_32], [test $BITS = 32 ])
+AM_CONDITIONAL([BITS_32], [test $BITS = 32])
 
 # Generate a Makefile
 AC_CONFIG_FILES([Makefile])
