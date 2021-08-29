@@ -23,8 +23,8 @@ Common configure options:<br>
 | --enable-bcl | install the deprecated wrapper script [bcl](https://github.com/Benni3D/bcc/blob/master/util/bcl) |
 | --disable-fp | disable preliminary floating-point support 
 | --disable-target-libbcc | don't build & install the compiler-support library |
-| --with-cpu=CPU | select the target CPU |
-| --with-abi=ABI | select the target ABI |
+| --with-cpu=CPU | select the default target CPU |
+| --with-abi=ABI | select the default target ABI |
 <br>
 For Debug build use:<br>
 <code>CFLAGS="-g -Og" ./configure</code>
@@ -51,7 +51,7 @@ If you have any issues, please paste the output.<br>
 The target can be specified as: [cpu](#supported-processor-architectures)-vendor-[os](#supported-operating-systems)
 
 ### Supported processor architectures
-| Name | Other Names | Notes |
+| CPU | Other Names | Notes |
 |------|-------------|---|
 | i386, i486, i586, i686 | x86-32, IA-32 | |
 | x86\_64 | amd64, EMT64 | Most tested |
@@ -59,7 +59,7 @@ The target can be specified as: [cpu](#supported-processor-architectures)-vendor
 | riscv64 | RISC-V (64 bit) | |
 
 ### Supported operating systems
-| Name | Notes |
+| OS | Notes |
 |------|-------------|
 | linux* | The [musl libc](https://www.musl-libc.org/) is preferred; glibc likely needs a work-around. |
 | elf | A standalone environement. An implementation of memcpy must be provided by the program. |
