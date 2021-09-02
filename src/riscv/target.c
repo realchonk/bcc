@@ -72,4 +72,3 @@ const struct target_info target_info = {
    .max_immed = 2047,
    .min_immed = -2048,
 };
-

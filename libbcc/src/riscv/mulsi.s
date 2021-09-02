@@ -13,29 +13,39 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-m4_define([bcc_VERSION], m4_esyscmd_s([../util/version.sh]))
-AC_INIT([libbcc], m4_defn([bcc_VERSION]), [benni@stuerz.xyz], [libbcc-]m4_defn([bcc_VERSION]),
-        [https://github.com/Benni3D/bcc])
-
-# Initialization stuff
-AC_PREREQ([2.69])
-AC_CONFIG_AUX_DIR([build-aux])
-AC_CANONICAL_TARGET
-AM_INIT_AUTOMAKE([1.16 foreign subdir-objects])
-AC_CONFIG_MACRO_DIRS([../util/m4])
-
-AC_SUBST([version], m4_defn([bcc_VERSION]))
-
-GCC_NO_EXECUTABLES
-AC_PROG_CC
-AC_PROG_RANLIB
-AM_PROG_AS
-
-AX_CHECK_TARGET
-AX_SET_COMPILERDIRS
-
-AM_CONDITIONAL([BITS_32], [test $BITS = 32])
-
-# Generate a Makefile
-AC_CONFIG_FILES([Makefile])
-AC_OUTPUT
+.global __mulsi2
+__mulsi2:
+mv a5, a0
+blt a0, x0, .L22
+blt a1, x0, .L11
+mv a3, x0
+beq a1, x0, .L20
+.L4:
+mv a0, x0
+.L8:
+andi a4, a1, 1
+srai a1, a1, 1
+add a0, a0, a5
+.L7:
+slli a5, a5, 1
+bne a1, x0, .L8
+beq a3, x0, .L1
+neg a0, a0
+.L1:
+ret
+.L11:
+li a3, 1
+neg a1, a1
+j .L4
+.L22:
+neg a5, a0
+blt a1, x0, .L9
+li a3, 1
+bne a1, x0, .L4
+.L20:
+mv a0, x0
+ret
+.L9:
+mv a3, x0
+neg a1, a1
+j .L4

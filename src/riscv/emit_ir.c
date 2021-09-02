@@ -400,7 +400,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          if (n->iicast.dest != n->iicast.src)
             emit("mv %s, %s", dest, src);
       } else if (n->iicast.ds < n->iicast.ss) {
-         switch (n->iicast.ss) {
+         switch (n->iicast.ds) {
          case IRS_BYTE:
          case IRS_CHAR:
             emit("andi %s, %s, 255", dest, src);

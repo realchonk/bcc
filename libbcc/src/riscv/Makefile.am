@@ -18,3 +18,11 @@ crtbegin.o: src/riscv/crtbegin.s
 
 crtend.o: src/riscv/crtend.s
 	$(CC) -c -o $@ $<
+
+libbcc_a_SOURCES += 	src/riscv/mului.s \
+							src/riscv/mulsi.s	\
+							src/riscv/divui.s	\
+							src/riscv/divsi.s	\
+							src/riscv/modui.s	\
+							src/riscv/modsi.s
+						  	

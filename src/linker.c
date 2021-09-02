@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include "target.h"
 #include "linker.h"
 #include "config.h"
 #include "error.h"
@@ -55,6 +56,10 @@ int run_linker(const char* output_name, const char** objects) {
    // ACTUAL LINKING PART
    char** args = NULL;
    buf_push(args, strdup(linker_path));
+   // TODO: fixme
+   //buf_push(args, "--no-warn-search-mismatch");
+   //buf_push(args, "--no-warn-mismatch");
+   buf_push(args, get_ld_abi());
    buf_push(args, "-L" COMPILERDIR);
    buf_push(args, "-L" SYSLIBSDIR);
    buf_push(args, "-o");

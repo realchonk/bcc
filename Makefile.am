@@ -78,7 +78,6 @@ install-data-local: install-target-libbcc
 
 uninstall-local: uninstall-target-libbcc
 	rm -f $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
-	rm -rf $(DESTDIR)/$(tbindir)
 	[ $(ENABLE_BCL) = 0 ] || rm -f $(DESTDIR)/$(bindir)/bcl
 
 full-clean: clean full-clean-target-libbcc

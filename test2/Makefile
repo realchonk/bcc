@@ -24,7 +24,7 @@ endif
 BCC_ARCH ?= $(shell $(BCC) -dumparch)
 BCC_MACH ?= $(shell $(BCC) -dumpmachine)
 
-BCCFLAGS+=-O2 -e $(BCPP) -I ../bcc-include
+BCCFLAGS+=-O2 -e $(BCPP) -I ../bcc-include -lgcc
 
 ifeq ($(BCC_ARCH),x86_64)
 BITS=64

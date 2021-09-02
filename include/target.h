@@ -114,5 +114,6 @@ bool emit_prepare(void);
 const struct machine_option* get_mach_opt(const char* name);
 void define_ctarget_macros(void);
 void target_init(void);
+char* get_ld_abi(void);
 
 #endif /* FILE_TARGET_H */

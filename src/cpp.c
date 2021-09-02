@@ -52,7 +52,7 @@ FILE* run_cpp(const char* source_name) {
    }
    buf_push(args, strdup("-o"));
    buf_push(args, strdup("-"));
-   if (nostdinc)
+   if (!nostdinc)
       buf_push(args, strdup("-I" TARGET_INCLUDE_DIR));
    buf_push(args, strdup(source_name));
    buf_push(args, NULL);

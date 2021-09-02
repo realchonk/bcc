@@ -93,6 +93,12 @@ const struct target_info target_info = {
    .max_immed = INT64_MAX,
    .min_immed = INT64_MIN,
 #endif
+
+#if BITS == 32
+   .ld_abi = "-melf_i386",
+#else
+   .l_abi = "-melf_x86_64",
+#endif
 };
 
 #if BITS == 32
@@ -114,4 +120,11 @@ int assemble(const char* source, const char* output) {
       if (WIFEXITED(wstatus)) return WEXITSTATUS(wstatus);
       panic("failed to wait for nasm");
    }
+}
+char* get_ld_abi(void) {
+#if BITS == 32
+   return strdup("-melf_i386");
+#else
+   return strdup("-melf_x86_64");
+#endif
 }

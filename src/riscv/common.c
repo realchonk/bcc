@@ -54,3 +54,11 @@ int assemble(const char* source, const char* output) {
       panic("failed to wait for assembler");
    }
 }
+
+char* get_ld_abi(void) {
+   char* abi = malloc(100);
+   if (!abi)
+      panic("failed to malloc()");
+   snprintf(abi, 100, "-melf%dlriscv_%s", BITS, get_mach_opt("abi")->sVal);
+   return abi;
+}

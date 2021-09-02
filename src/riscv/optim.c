@@ -57,7 +57,7 @@ static bool mul_to_func(ir_node_t** n) {
       default:
          continue;
       }
-      char name[] = "__mulxi" SBITS;
+      char name[] = "__mulxi2";
       memcpy(name + 2, type, 3);
       name[5] = sign;
 
@@ -142,7 +142,8 @@ static bool copy_to_memcpy(ir_node_t** n) {
 // TODO: implement target-specific IR optimizations
 bool target_optim_ir(ir_node_t** n) {
    bool success = false;
-   while (copy_to_memcpy(n))
+   while (copy_to_memcpy(n)
+      ||  mul_to_func(n))
       success = true;
    return success;
 }
