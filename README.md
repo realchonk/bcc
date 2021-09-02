@@ -5,7 +5,7 @@
 This is my third iteration of compiler design and implementation.<br>
 The <strong>bcc</strong> compiler is heavily based on the predecessor [benc](https://github.com/Benni3D/benc).<br>
 The compiler generates assembly for the [System V ABI](https://wiki.osdev.org/System_V_ABI), where applicable.<br>
-More documentation can be found on [bcc(1)](https://stuerz.xyz/bcc.html).<br>
+More documentation can be found on [bcc(1)](https://stuerz.xyz/bcc.1.html).<br>
 Planned features can be read in the [TODO](./TODO) file.
 
 
