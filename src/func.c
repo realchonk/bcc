@@ -54,6 +54,12 @@ void parse_func_part(struct function* func) {
             var.name = NULL;
             var.end = var.type->end;
          }
+         if (lexer_match(TK_LBRACK)) {
+            var.type = vt_pointer_from(var.type);
+            var.type->is_const = true;
+            // TODO: sized arrays or VLAs are not supported
+            var.end = var.type->end = lexer_expect(TK_RBRACK).end;
+         }
          buf_push(func->params, var);
       } while (lexer_match(TK_COMMA));
    }

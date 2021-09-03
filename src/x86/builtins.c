@@ -98,6 +98,10 @@ struct builtin_func builtin_funcs[] = {
    gen_div(8,  u,  al,  dl, byte,   div),
    gen_div(16, u,  ax,  dx, word,   div),
    gen_div(32, u, eax, edx, dword,  div),
+#if BITS == 64
+   gen_div(64, s, rax, rdx, qword, idiv),
+   gen_div(64, u, rax, rdx, qword,  div),
+#endif
    
    gen_mod(8,  s,  al,  dl, byte,  idiv),
    gen_mod(16, s,  ax,  dx, word,  idiv),
@@ -105,6 +109,10 @@ struct builtin_func builtin_funcs[] = {
    gen_mod(8,  u,  al,  dl, byte,   div),
    gen_mod(16, u,  ax,  dx, word,   div),
    gen_mod(32, u, eax, edx, dword,  div),
+#if BITS == 64
+   gen_mod(64, s, rax, rdx, qword, idiv),
+   gen_mod(64, u, rax, rdx, qword,  div),
+#endif
 
    gen_mul(8,  s,  al,  dl, byte,  imul),
    gen_mul(16, s,  ax,  dx, word,  imul),
@@ -112,6 +120,10 @@ struct builtin_func builtin_funcs[] = {
    gen_mul(8,  u,  al,  dl, byte,   mul),
    gen_mul(16, u,  ax,  dx, word,   mul),
    gen_mul(32, u, eax, edx, dword,  mul),
+#if BITS == 64
+   gen_mul(64, s, rax, rdx, qword, imul),
+   gen_mul(64, u, rax, rdx, qword,  mul),
+#endif
 
 #if BITS == 32
    {

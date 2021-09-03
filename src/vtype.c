@@ -1121,3 +1121,15 @@ const char* attr_to_string(enum attribute a) {
 
    }
 }
+struct value_type* vt_pointer_from(struct value_type* base) {
+   struct value_type* vt = new_vt();
+   vt->type = VAL_POINTER;
+   vt->begin = base->begin;
+   vt->end = base->end;
+   vt->is_const = false;
+   vt->is_volatile = false;
+   vt->pointer.type = base;
+   vt->pointer.is_array = false;
+   vt->pointer.is_restrict = false;
+   return vt;
+}

@@ -75,6 +75,8 @@ int main(int argc, char* argv[]) {
             nostartfiles = true;
          } else if (!strcmp(optarg, "olibc")) {
             nolibc = true;
+         } else if (!strcmp(optarg, "obccobjs")) {
+            nobccobjs = true;
          } else {
             fprintf(stderr, "bcc: invalid option '-n%s'\n", optarg);
             return 1;

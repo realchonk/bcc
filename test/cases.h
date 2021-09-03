@@ -962,3 +962,11 @@
       "}",
    .output = "Hello World\n",
 },
+{
+   .name = "unsized array as parameter",
+   .compiles = true,
+   .source =
+      "int main(int argc, char* argv[]) {"
+      "  return 0;"
+      "}",
+},

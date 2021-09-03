@@ -26,7 +26,7 @@
 
 const char* linker_path = GNU_LD;
 struct cmdline_arg* linker_args = NULL;
-bool nostartfiles = false, nolibc = false;
+bool nostartfiles = false, nolibc = false, nobccobjs = false;
 
 // compiler-specific libraries/startfiles
 #define bcc_crt(c)   COMPILERDIR "/crt" c ".o"
@@ -67,7 +67,8 @@ int run_linker(const char* output_name, const char** objects) {
    if (!nostartfiles) {
       buf_push(args, libc_crt("1"));
       buf_push(args, libc_crt("i"));
-      buf_push(args, bcc_crt("begin"));
+      if (!nobccobjs)
+         buf_push(args, bcc_crt("begin"));
    }
 
    for (size_t i = 0; i < buf_len(objects); ++i) {
@@ -81,7 +82,8 @@ int run_linker(const char* output_name, const char** objects) {
 #endif
 
    if (!nostartfiles) {
-      buf_push(args, bcc_crt("end"));
+      if (!nobccobjs)
+         buf_push(args, bcc_crt("end"));
       buf_push(args, libc_crt("n"));
 #if HAS_LIBBCC
       buf_push(args, "-lbcc");
