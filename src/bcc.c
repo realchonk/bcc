@@ -26,6 +26,7 @@
 bool enable_warnings = true;
 bool console_colors = true;
 unsigned optim_level = 1;
+bool save_temps = false;
 
 unsigned popcnt(const uintmax_t val) {
    const unsigned len = sizeof(val) * 8;

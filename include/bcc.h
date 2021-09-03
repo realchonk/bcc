@@ -22,6 +22,7 @@
 extern bool enable_warnings;
 extern unsigned optim_level;
 extern bool console_colors;
+extern bool save_temps;
 
 enum compilation_level {
    LEVEL_NONE,

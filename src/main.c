@@ -29,10 +29,6 @@
 #include "cpp.h"
 #include "ir.h"
 
-static const char* remove_asm_filename;
-static void remove_asm_file(void) {
-   remove(remove_asm_filename);
-}
 bool verbose = false;
 
 int main(int argc, char* argv[]) {
@@ -41,7 +37,7 @@ int main(int argc, char* argv[]) {
    const char* output_name = NULL;
    enum compilation_level level = LEVEL_LINK;
    int option;
-   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:CD:U:L:l:sn:v")) != -1) {
+   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:CD:U:L:l:s:n:v")) != -1) {
       switch (option) {
       case 'h':
          printf("Usage: bcc [options] file...\nOptions:\n%s", help_options);
@@ -122,16 +118,34 @@ int main(int argc, char* argv[]) {
          break;
       case 'L':
       case 'l':
-      case 's':
          cmd_arg.option = option;
          cmd_arg.arg = optarg;
          buf_push(linker_args, cmd_arg);
+         break;
+      case 's':
+         if (!strcmp(optarg, "ave-temps")) {
+            save_temps = true;
+         } else if (!strcmp(optarg, "tatic")) {
+            // is implied
+         } else if (!strcmp(optarg, "hared")) {
+            // TODO: implement shared libraries
+            fputs("bcc: dynamic linking is not supported.\n", stderr);
+            return 1;
+         } else {
+            fprintf(stderr, "bcc: invalid option '-s%s'\n", optarg);
+            return 1;
+         }
          break;
       case 'v':
          verbose = true;
          break;
       case ':':
-         if (optopt != 'd' && optopt != 'n') {
+         if (optopt == 's') {
+            cmd_arg.option = optopt;
+            cmd_arg.arg = NULL;
+            buf_push(cpp_args, cmd_arg);
+            break;
+         } else if (optopt != 'd' && optopt != 'n') {
             fprintf(stderr, "bcc: missing argument for '-%c'\n", optopt);
             return 1;
          }
@@ -188,8 +202,10 @@ int main(int argc, char* argv[]) {
    if (level == LEVEL_LINK) {
       if (!ec)
          ec = run_linker(output_name, objects);
-      for (size_t i = 0; i < buf_len(delete_objects); ++i) {
-         remove(delete_objects[i]);
+      if (!save_temps) {
+         for (size_t i = 0; i < buf_len(delete_objects); ++i) {
+            remove(delete_objects[i]);
+         }
       }
    }
    return ec;

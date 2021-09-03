@@ -16,6 +16,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <string.h>
 #include <stdio.h>
 #include "cmdline.h"
 #include "target.h"
@@ -94,11 +95,6 @@ const struct target_info target_info = {
    .min_immed = INT64_MIN,
 #endif
 
-#if BITS == 32
-   .ld_abi = "-melf_i386",
-#else
-   .l_abi = "-melf_x86_64",
-#endif
 };
 
 #if BITS == 32
