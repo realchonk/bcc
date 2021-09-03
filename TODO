@@ -57,7 +57,7 @@ riscv:
 
 # Other
 - find & fix reason for random crashes
-- options: -g, --sysroot=, -static, -shared, -save-temps
+- options: -g, --sysroot=
 - <stdarg.h> header
 - auto-detection of --with-cpu= & --with-abi=
 
