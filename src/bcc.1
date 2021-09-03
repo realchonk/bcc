@@ -1,4 +1,4 @@
-.TH bcc 1 "2021-08-28" "bcc-VERSION"
+.TH bcc 1 "2021-09-03" "bcc-VERSION"
 
 .SH NAME
 bcc - brainlet C compiler
@@ -163,6 +163,21 @@ Don't link against the crtX.o object files.
 .RE
 .RS 5
 Don't link against the C library.
+.RE
+.B -static
+.RE
+.RS 5
+Link the program with the static libc. (default)
+.RE
+.B -shared
+.RE
+.RS 5
+Link the program with the shared libc. (unimplemented)
+.RE
+.B -save-temps
+.RE
+.RS 5
+Don't delete the generated temporary files.
 .RE
 .B -e \fIpath\fR
 .RE
