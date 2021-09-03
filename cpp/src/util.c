@@ -15,6 +15,7 @@
 
 #include <string.h>
 #include <ctype.h>
+#include "strint.h"
 #include "token.h"
 #include "cpp.h"
 
@@ -123,14 +124,13 @@ static char* read_line(FILE* file, bool* eof, size_t* linenum) {
          goto begin;
       } else buf_push(line, ch);
    }
-   if (line)
-      buf_push(line, '\0');
+   buf_push(line, '\0');
    *eof |= (ch == EOF);
    return line;
 }
 
 // check if #line
-static bool check_hline(const char* s, size_t* linenum) {
+static bool check_hline(const char* s, size_t* linenum, const char** filename) {
    while (isspace(*s)) ++s;
    if (*s != '#') return false;
    ++s;
@@ -144,6 +144,18 @@ static bool check_hline(const char* s, size_t* linenum) {
       nl = nl * 10 + (*s++ - '0');
    if (!nl)
       fail(*linenum, "expected valid line number, not '%c'", *s);
+   while (isspace(*s)) ++s;
+   if (*s == '"') {
+      char* buf = NULL;
+      ++s;
+      while (*s != '"')
+         buf_push(buf, *s++);
+      buf_push(buf, '\0');
+      ++s;
+      *filename = strint(buf);
+      buf_free(buf);
+      while (isspace(*s)) ++s;
+   } else *filename = NULL;
    *linenum = nl - 1;
    return true;
 }
@@ -157,11 +169,27 @@ struct line_pair* read_lines(FILE* file) {
       pair.linenum = linenum;
       pair.line = read_line(file, &eof, &linenum);
       if (pair.line) {
-         if (check_hline(pair.line, &linenum))
-            continue;
+         const char* filename;
+         if (check_hline(pair.line, &linenum, &filename)) {
+            char buf[64];
+            if (filename) {
+               printf("%s\n", filename);
+               snprintf(buf, sizeof(buf), "# %zu \"%s\"", linenum + 1, filename);
+            } else {
+               snprintf(buf, sizeof(buf), "# %zu", linenum + 1);
+            }
+            pair.linenum = linenum;
+            char* new_buf = NULL;
+            for (size_t i = 0; buf[i]; ++i)
+               buf_push(new_buf, buf[i]);
+            buf_push(new_buf, '\0');
+            pair.line = new_buf;
+         }
          buf_push(pairs, pair);
       }
    } while (!eof);
+   if (!buf_last(pairs).line[1])
+      buf_remove(pairs, buf_len(pairs) - 1, 1);
    return pairs;
 }
 
@@ -177,3 +205,25 @@ void print_lines(FILE* file, const struct line_pair* lines) {
    }
 }
 
+static bool is_empty(const char* s) {
+   while (1) {
+      if (!isspace(*s++))
+         return false;
+   }
+   return true;
+}
+
+void trim_lines(struct line_pair** plines) {
+   struct line_pair* lines = *plines;
+   // find the last non-ws line
+   struct line_pair* end;
+   for (end = &buf_last(lines); end != lines; --end) {
+      if (!is_empty(end->line))
+         break;
+   }
+   if (end != lines) {
+      const size_t off = end - lines;
+      buf_remove(lines, off, buf_len(lines) - off);
+   }
+   *plines = lines;
+}

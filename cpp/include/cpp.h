@@ -46,6 +46,7 @@ int run_cpp(FILE* in, FILE* out, bool dumpmacros);
 struct line_pair* read_lines(FILE* file);
 void print_lines(FILE* out, const struct line_pair*);
 void free_lines(struct line_pair*);
+void trim_lines(struct line_pair**);
 
 void warn(size_t linenum, const char*, ...);
 void fail(size_t linenum, const char*, ...);

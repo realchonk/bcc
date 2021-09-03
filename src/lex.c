@@ -32,9 +32,43 @@ static struct source_pos pos;
 
 #define input_peek() (peekd_ch ? peekd_ch : (peekd_ch = input_read()))
 #define input_skip() (peekd_ch ? peekd_ch = '\0' : (input_read(), 0))
+static int isspacennl(int ch) {
+   return (ch != '\n') && isspace(ch);
+}
 static int input_read(void) {
-   const int ch = fgetc(file);
-   if (ch == '\n') {
+   int ch = fgetc(file);
+   if (ch == '#' && pos.column == 0) {
+      ++pos.column;
+      while (isspacennl(ch = input_read()));
+      if (ch == '\n') {
+         pos.line += 1;
+         pos.column = 0;
+         return input_read();
+      }
+      size_t n = 0;
+      while (isdigit(ch)) {
+         n = n * 10 + (ch - '0');
+         ch = input_read();
+      }
+      if (!n)
+         parse_error(&pos, "invalid line number");
+      while (isspacennl(ch = input_read()));
+
+      const char* filename = NULL;
+      if (ch != '\n' && ch == '"') {
+         char* buf = NULL;
+         while ((ch = input_read()) != '"')
+            buf_push(buf, ch);
+         buf_push(buf, '\0');
+         filename = strint(buf);
+         buf_free(buf);
+         while ((ch = input_read()) != '\n');
+      }
+      pos.file = filename;
+      pos.line = n - 1;
+      pos.column = 0;
+      return ch;
+   } else if (ch == '\n') {
       pos.line += 1;
       pos.column = 0;
    } else ++pos.column;

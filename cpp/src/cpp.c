@@ -42,6 +42,10 @@ static bool do_cpp_stuff(size_t linenum, const char* line, struct token* tokens,
       return true;
 
    const struct token tk_dir = tokens[tki];
+   if (tk_dir.type == TK_NUMBER) {
+      fprintf(out, "%s\n", line);
+      return true;
+   }
    if (tk_dir.type != TK_WORD) {
       warn(linenum, "expected word, got %s", token_type_str[tk_dir.type]);
       return false;
@@ -64,10 +68,13 @@ int run_cpp(FILE* in, FILE* out, bool dumpmacros) {
 
    if (failed)
       return 1;
+   //trim_lines(&lines);
 
    char* buf;
    size_t len_buf;
    FILE* tmp = open_memstream(&buf, &len_buf);
+
+   fprintf(tmp, "# 1 \"%s\"\n", source_name);
    
    for (size_t i = 0; i < buf_len(lines); ++i) {
       const struct line_pair pair = lines[i];

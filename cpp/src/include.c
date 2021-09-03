@@ -103,9 +103,11 @@ bool dir_include(size_t linenum, const char* line, struct token* tokens, size_t 
    // run cpp on the included file
    const int ec = run_cpp(file, out, false);
 
+
    // restore old values
    source_name = saved_name;
    if_layers = saved_if_layers;
+   fprintf(out, "# %zu \"%s\"\n", linenum + 2, source_name);
    fclose(file);
    free(path);
    return ec == 0;
