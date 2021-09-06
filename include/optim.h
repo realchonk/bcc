@@ -23,6 +23,10 @@ struct expression* optim_expr(struct expression*);
 struct statement* optim_stmt(struct statement*);
 struct ir_node* optim_ir_nodes(struct ir_node*);
 
+// target-specific IR optimizations
 bool target_optim_ir(struct ir_node**);
+
+// ... that are performed, after all other IR optimizations are done.
+bool target_post_optim_ir(struct ir_node**);
 
 #endif /* FILE_OPTIM_H */

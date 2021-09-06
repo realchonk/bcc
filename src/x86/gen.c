@@ -644,4 +644,42 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
 }
 
 
+#define eextern(name) emit("extern " name);
+void emit_externs(void) {
 
+   // multiply
+   eextern("__mului8");
+   eextern("__mului16");
+   eextern("__mului32");
+   eextern("__mulsi8");
+   eextern("__mulsi16");
+   eextern("__mulsi32");
+#if BITS == 64
+   eextern("__mului64");
+   eextern("__mulsi64");
+#endif
+
+   // divide
+   eextern("__divui8");
+   eextern("__divui16");
+   eextern("__divui32");
+   eextern("__divsi8");
+   eextern("__divsi16");
+   eextern("__divsi32");
+#if BITS == 64
+   eextern("__divui64");
+   eextern("__divsi64");
+#endif
+
+   // modulo
+   eextern("__modui8");
+   eextern("__modui16");
+   eextern("__modui32");
+   eextern("__modsi8");
+   eextern("__modsi16");
+   eextern("__modsi32");
+#if BITS == 64
+   eextern("__modui64");
+   eextern("__modsi64");
+#endif
+}

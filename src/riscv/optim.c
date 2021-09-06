@@ -142,8 +142,14 @@ static bool copy_to_memcpy(ir_node_t** n) {
 // TODO: implement target-specific IR optimizations
 bool target_optim_ir(ir_node_t** n) {
    bool success = false;
-   while (copy_to_memcpy(n)
-      ||  mul_to_func(n))
+   while (copy_to_memcpy(n))
+      success = true;
+   return success;
+}
+
+bool target_post_optim_ir(ir_node_t** n) {
+   bool success = false;
+   while (mul_to_func(n))
       success = true;
    return success;
 }

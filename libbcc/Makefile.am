@@ -26,6 +26,9 @@ if ARCH_riscv
 include $(srcdir)/src/riscv/Makefile.am
 endif
 
+print-sources:
+	@echo $(libbcc_a_SOURCES)
+
 full-clean: clean
 	rm -f Makefile Makefile.in configure src/.dirstamp src/$(ARCH)/.dirstamp
 	rm -f config.h config.h.in config.h.in~ config.log config.status stamp-h1 aclocal.m4
@@ -33,3 +36,4 @@ full-clean: clean
 
 clean-local:
 	rm -f crtbegin.o crtend.o
+

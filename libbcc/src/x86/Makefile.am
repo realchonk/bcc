@@ -14,8 +14,23 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
+
 crtbegin.o: src/x86/crtbegin.asm
 	$(CC) -c -o $@ $<
 
 crtend.o: src/x86/crtend.asm
 	$(CC) -c -o $@ $<
+
+.asm.o:
+	$(CC) -c -o $@ $<
+
+if BITS_32
+libbcc_a_SOURCES += src/x86/mul32.asm	\
+						  src/x86/div32.asm	\
+						  src/x86/mod32.asm
+else
+libbcc_a_SOURCES += src/x86/mul64.asm	\
+						  src/x86/div64.asm	\
+						  src/x86/mod64.asm
+endif
+

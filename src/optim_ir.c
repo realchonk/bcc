@@ -44,7 +44,6 @@ static bool is_immed(const intmax_t v) {
 }
 
 // (load R1, 40; iadd R0, R0, R1) -> (iadd R0, R0, 40) 
-// TODO: fix this
 static bool direct_val(ir_node_t** n) {
    bool success = false;
    
@@ -55,14 +54,15 @@ static bool direct_val(ir_node_t** n) {
                IR_ISTEQ, IR_ISTNE, IR_ISTGR, IR_ISTGE, IR_ISTLT, IR_ISTLE,
                IR_USTGR, IR_USTGE, IR_USTLT, IR_USTLE, NUM_IR_NODES)
             && is_immed(cur->load.value) ) {
-         if (cur->load.dest == cur->next->binary.b.reg) {
-            cur->next->binary.b.type = IRT_UINT;
-            cur->next->binary.b.uVal = cur->load.value;
+         ir_node_t* next = cur->next;
+         if (next->binary.b.type == IRT_REG && cur->load.dest == next->binary.b.reg) {
+            next->binary.b.type = IRT_UINT;
+            next->binary.b.uVal = cur->load.value;
             cur->type = IR_NOP;
             success = true;
-         } else if (cur->load.dest == cur->next->binary.a.reg) {
-            cur->next->binary.a.type = IRT_UINT;
-            cur->next->binary.a.uVal = cur->load.value;
+         } else if (next->binary.a.type == IRT_REG && cur->load.dest == next->binary.a.reg) {
+            next->binary.a.type = IRT_UINT;
+            next->binary.a.uVal = cur->load.value;
             cur->type = IR_NOP;
             success = true;
          }
@@ -341,10 +341,11 @@ static bool fuse_load_iicast(ir_node_t** n) {
 ir_node_t* optim_ir_nodes(ir_node_t* n) {
    if (optim_level < 1) {
       while (target_optim_ir(&n));
+      while (target_post_optim_ir(&n));
       return n;
    }
    while (remove_nops(&n)
-      //|| direct_val(&n)
+      || direct_val(&n)
       || unmuldiv(&n)
       || fold(&n)
       || reorder_params(&n)
@@ -355,5 +356,6 @@ ir_node_t* optim_ir_nodes(ir_node_t* n) {
       || fuse_load_iicast(&n)
       || target_optim_ir(&n)
    );
+   while (target_post_optim_ir(&n));
    return n;
 }

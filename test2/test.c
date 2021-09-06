@@ -5,8 +5,12 @@
 int printf(const char*, ...);
 extern unsigned long f(unsigned long, unsigned long);
 
+struct A {
+   int a;
+   int b;
+};
 
 int main(int argc, char** argv) {
-   int a = 11, b = 2;
-   printf("f(%u, %u);\n", a, b);
+   int a = 10, b = 9;
+   return a % b;
 }

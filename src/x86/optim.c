@@ -17,8 +17,6 @@
 #include "optim.h"
 #include "error.h"
 
-// TODO: depending for libbcc
-
 static ir_node_t* val_to_node(const struct ir_value* val, const ir_reg_t dest, const enum ir_value_size irs) {
    ir_node_t* n;
    switch (val->type) {
@@ -74,7 +72,7 @@ static bool mul_to_func(ir_node_t** n) {
       }
       const ir_reg_t dest = cur->binary.dest;
       char name[] = "__mulxixx";
-      snprintf(name, sizeof(name), "__%s%ci%zu", name, sign, irs2sz(cur->binary.size) * 8);
+      snprintf(name, sizeof(name), "__%s%ci%zu", type, sign, irs2sz(cur->binary.size) * 8);
       ir_node_t func;
       func.type = IR_IFCALL;
       func.ifcall.name = strint(name);
@@ -90,6 +88,13 @@ static bool mul_to_func(ir_node_t** n) {
 
 // TODO: implement target-specific IR optimizations
 bool target_optim_ir(struct ir_node** n) {
-   (void)n;
    return false;
 }
+
+bool target_post_optim_ir(struct ir_node** n) {
+   bool success = false;
+   while (mul_to_func(n))
+      success = true;
+   return success;
+}
+

@@ -45,6 +45,8 @@ struct machine_option mach_opts[] = {
 const size_t num_mach_opts = arraylen(mach_opts);
 bool emit_prepare(void) { return true; }
 
+void emit_externs(void);
+
 static const char* nasm_size(enum ir_value_size s) {
    switch (s) {
    case IRS_BYTE:
@@ -93,6 +95,7 @@ static void emit_begin(void) {
    if (defined) buf_free(defined);
    emit("default rel");
    emit("section .text");
+   emit_externs();
    for (size_t i = 0; i < buf_len(cunit.vars); ++i) {
       const struct variable* v = &cunit.vars[i];
       if (!(v->attrs & ATTR_EXTERN))

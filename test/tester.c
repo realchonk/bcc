@@ -35,14 +35,12 @@
 #if defined(__x86_64__) || defined(__i386__)
 #define BCC_ADD "-mstack-check"
 #else
-#define BCC_ADD "-mabi=lp64"
+#define BCC_ADD
 #endif
 
 #define PATH_BCC "../bcc"
-#define BCC PATH_BCC " -C -e ../cpp/bcpp -I ../bcc-include -c -O2 -w " BCC_ADD " -o "
-#define LINKER "gcc"
+#define BCC PATH_BCC " -Cv -e ../cpp/bcpp -I ../bcc-include -O2 -w -L ../libbcc -nobccobjs " BCC_ADD " -o "
 #define TEST_SOURCE "/tmp/test.c"
-#define TEST_OBJECT "/tmp/test.o"
 #define TEST_BINARY "/tmp/test"
 
 // 0 = silent, 1 = default, 2 = verbose
@@ -81,53 +79,19 @@ static void write_test(const char* s) {
    fclose(file);
 }
 
-static int run_linker(void) {
-   FILE* file = popen(PATH_BCC " -dumpmachine", "r");
-   if (!file) 
-      panic("failed to determine linker");
-
-   char* target = malloc(256);
-   if (!target)
-      panic("failed to allocate 256 bytes");
-   if (!fgets(target, 256, file))
-      panic("failed to run " PATH_BCC " -dumpmachine");
-   pclose(file);
-
-   const size_t len_target = strlen(target);
-   if (target[len_target - 1] == '\n')
-      target[len_target - 1] = '\0';
-   
-   char* cmdline = NULL;
-   const char* redir;
-   if (verbosity < 2) {
-      redir = "2>>gcc.log";
-   } else {
-      // TODO: fix this, the exit value of the linkr is discarded
-      redir = "2>&1 | tee -a gcc.log";
-   }
-   if (asprintf(&cmdline, "%s-gcc -o %s %s %s", target, TEST_BINARY, TEST_OBJECT, redir) < 0)
-      panic("failed to construct linker cmdline");
-   const int ec = system(cmdline);
-   free(target);
-   free(cmdline);
-   return ec;
-}
-
 static int compile_test(void) {
    const char* bcc_str;
    if (verbosity < 2) {
-      bcc_str = BCC TEST_OBJECT " " TEST_SOURCE " 2>>bcc.log";
+      bcc_str = BCC TEST_BINARY " " TEST_SOURCE " 2>>bcc.log";
    } else {
       // TODO: fix this, the exit value of bcc is discarded
-      bcc_str = BCC TEST_OBJECT " " TEST_SOURCE " 2>&1 | tee -a bcc.log";
+      bcc_str = BCC TEST_BINARY " " TEST_SOURCE " 2>&1 | tee -a bcc.log";
    }
    int ec = system(bcc_str);
    if (ec < 0 || ec == 127) panic("failed to invoke bcc");
    else if (ec != 0) return ec;
 
-   ec = run_linker();
-   if (ec < 0 || ec == 127) panic("failed to invoke linker");
-   else return ec;
+   return ec;
 }
 
 static bool run_test(const struct test_case* test) {
