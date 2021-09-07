@@ -27,11 +27,11 @@ completionsdir = $(datadir)/bash-completion/completions
 transform = @program_transform_name@
 
 install-data-local:
-	[ $(ENABLE_BASHCOMP) = 1 ] && \
+	[ $(ENABLE_BASHCOMP) = 0 ] || \
 		install -Dm644 bcpp.bash $(DESTDIR)/$(completionsdir)/`echo bcpp | sed '$(transform)'`
 
 uninstall-local:
-	[ $(ENABLE_BASHCOMP) = 1 ] && \
+	[ $(ENABLE_BASHCOMP) = 0 ] || \
 		rm -f $(DESTDIR)/$(completionsdir)/`echo bcpp | sed '$(transform)'`
 
 

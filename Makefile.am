@@ -63,11 +63,11 @@ all-bcc: bcc
 all: all-recursive all-target-libbcc
 
 install-completions:
-	[ $(ENABLE_BASHCOMP) = 1 ] && \
+	[ $(ENABLE_BASHCOMP) = 0 ] || \
 		install -Dm644 util/bcc.bash $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
 
 uninstall-completions:
-	[ $(ENABLE_BASHCOMP) = 1 ] && \
+	[ $(ENABLE_BASHCOMP) = 0 ] || \
 		rm -f $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
 
 
