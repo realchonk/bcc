@@ -56,13 +56,22 @@ print-config:
 man1_MANS = bcc.1
 
 completionsdir = $(datadir)/bash-completion/completions
+
 transform = @program_transform_name@
 
 all-bcc: bcc
 all: all-recursive all-target-libbcc
 
-install-data-local: install-target-libbcc
-	install -Dm644 util/bcc.bash $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
+install-completions:
+	[ $(ENABLE_BASHCOMP) = 1 ] && \
+		install -Dm644 util/bcc.bash $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
+
+uninstall-completions:
+	[ $(ENABLE_BASHCOMP) = 1 ] && \
+		rm -f $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
+
+
+install-data-local: install-target-libbcc install-completions
 	install -dm755 $(DESTDIR)/$(tbindir)
 	[ $(ENABLE_BCL) = 0 ] || install -m755 $(srcdir)/util/bcl $(DESTDIR)/$(tbindir)/`echo bcl | sed '$(transform)'`
 	install -dm755 $(DESTDIR)/$(bindir)
@@ -76,8 +85,7 @@ install-data-local: install-target-libbcc
 		[ $(ENABLE_BCL) = 0 ] || ln -sf `echo bcl  | sed '$(transform)'` $(DESTDIR)/$(tbindir)/bcl;	\
 	fi
 
-uninstall-local: uninstall-target-libbcc
-	rm -f $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
+uninstall-local: uninstall-target-libbcc uninstall-completions
 	[ $(ENABLE_BCL) = 0 ] || rm -f $(DESTDIR)/$(bindir)/bcl
 
 full-clean: clean full-clean-target-libbcc

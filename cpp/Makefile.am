@@ -27,10 +27,13 @@ completionsdir = $(datadir)/bash-completion/completions
 transform = @program_transform_name@
 
 install-data-local:
-	install -Dm644 bcpp.bash $(DESTDIR)/$(completionsdir)/`echo bcpp | sed '$(transform)'`
+	[ $(ENABLE_BASHCOMP) = 1 ] && \
+		install -Dm644 bcpp.bash $(DESTDIR)/$(completionsdir)/`echo bcpp | sed '$(transform)'`
 
 uninstall-local:
-	rm -f $(DESTDIR)/$(completionsdir)/`echo bcpp | sed '$(transform)'`
+	[ $(ENABLE_BASHCOMP) = 1 ] && \
+		rm -f $(DESTDIR)/$(completionsdir)/`echo bcpp | sed '$(transform)'`
+
 
 full-clean: clean
 	rm -f Makefile Makefile.in configure src/.dirstamp

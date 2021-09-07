@@ -88,6 +88,14 @@ AC_ARG_ENABLE(target-libbcc,
 AM_CONDITIONAL([ENABLE_LIBBCC], [test x$ENABLE_LIBBCC = x1])
 AC_DEFINE_UNQUOTED([HAS_LIBBCC], [${ENABLE_LIBBCC}], [Will the compiler-support library, libbcc.a, be installed?])
 
+# Option to disable the installation of bash-completions
+AC_ARG_ENABLE(bash-completions,
+              [AS_HELP_STRING([--disable-bash-completions], [disable the installation of bash-completions])],
+              [if test x$enableval = xyes; then ENABLE_BASHCOMP=1; else ENABLE_BASHCOMP=0; fi],
+              ENABLE_BASHCOMP=1)
+AC_SUBST([ENABLE_BASHCOMP])
+
+
 # --with-cpu=
 AC_ARG_WITH([cpu],
             [AS_HELP_STRING([--with-cpu=CPU], [select the default target processor])],

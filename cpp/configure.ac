@@ -40,6 +40,15 @@ SYS_INCLUDES="/usr/include:/usr/local/include"
 
 AC_DEFINE_UNQUOTED([SYS_INCLUDES], ["$SYS_INCLUDES"], [The default system-wide includes])
 
+
+# Option to disable the installation of bash-completions
+AC_ARG_ENABLE(bash-completions,
+              [AS_HELP_STRING([--disable-bash-completions], [disable the installation of bash-completions])],
+              [if test x$enableval = xyes; then ENABLE_BASHCOMP=1; else ENABLE_BASHCOMP=0; fi],
+              ENABLE_BASHCOMP=1)
+AC_SUBST([ENABLE_BASHCOMP])
+
+
 # Patch bcpp.1
 sed "s/VERSION/$VERSION/g" ${srcdir}/src/bcpp.1 >bcpp.1 || AC_MSG_ERROR([failed to patch bcpp.1])
 

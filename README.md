@@ -25,6 +25,7 @@ Common configure options:<br>
 | --disable-target-libbcc | don't build & install the compiler-support library |
 | --with-cpu=CPU | select the default target CPU |
 | --with-abi=ABI | select the default target ABI |
+| --disable-bash-completions | disable the installation of bash-completions |
 
 For Debug builds use:<br>
 <code>CFLAGS="-g -Og" ./configure</code>
