@@ -4,7 +4,6 @@
 # Major things
 - floating-point support
 - libbcc
-- retire the preliminary bcl wrapper
 
 
 # Linking support
@@ -51,16 +50,17 @@ riscv:
 
 # Test suite
 - simplify
-- fix bugs
-- remove _GNU_SOURCE dependency
-- make test2 be usable without installation of libbcc
+- fix bugs (fix -v)
 
 
 # Other
 - find & fix reason for random crashes
+- document the code & add comments
 - options: -g, --sysroot=
 - <stdarg.h> header
 - auto-detection of --with-cpu= & --with-abi=
+- add zsh-completions
+- retire the preliminary bcl wrapper
 
 # Helpful Resources/Websites
 - POSIX C99 compiler    - https://pubs.opengroup.org/onlinepubs/9699919799/utilities/c99.html
