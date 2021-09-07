@@ -205,33 +205,75 @@ typedef struct ir_node {
    };
 } ir_node_t;
 
+
+/// IR-generation stuff
+
 ir_node_t* irgen_expr(struct scope*, const struct expression*);
 ir_node_t* irgen_stmt(const struct statement*);
 ir_node_t* irgen_func(const struct function*);
 
-ir_node_t* ir_append(ir_node_t*, ir_node_t*);
-ir_node_t* ir_insert(ir_node_t*, ir_node_t*);
+
+
+// Node-manipulation stuff
+
+// appends `b` to the end of `a`
+ir_node_t* ir_append(ir_node_t* a, ir_node_t* b);
+
+// inserts `b` after `a`
+ir_node_t* ir_insert(ir_node_t* a, ir_node_t* b);
+
+// returns the last node
 ir_node_t* ir_end(ir_node_t*);
+
+// returns the total number of nodes
 size_t ir_length(const ir_node_t*);
-void ir_remove(ir_node_t*);
+
+// removes the node `n`
+void ir_remove(ir_node_t* n);
+
+
+
+/// Printing stuff
 
 void print_ir_node(FILE*, const ir_node_t*);
 void print_ir_nodes(FILE*, const ir_node_t*);
 void print_ir_value(FILE*, const struct ir_value*);
 
+
+
+/// Memory management
+ir_node_t* new_node(enum ir_node_type t);
 void free_ir_node(ir_node_t*);
 void free_ir_nodes(ir_node_t*);
 
-enum ir_value_size vt2irs(const struct value_type*);
 
-bool ir_is(ir_node_t*, enum ir_node_type);
-bool ir_isv(ir_node_t*, ...); // must be terminated with NUM_IR_NODES
 
+/// Other stuff
+
+// gets the ir_value_size from `vt` if possible, else panic's
+enum ir_value_size vt2irs(const struct value_type* vt);
+
+// is `n` non-NULL and of type `t`
+bool ir_is(ir_node_t* n, enum ir_node_type t);
+
+// checks if `n` is one of the given types
+// Note: must be terminated with NUM_IR_NODES
+bool ir_isv(ir_node_t* n, ...); 
+
+// a nonsensical value, like NULL
 #define IRR_NONSENSE ((ir_reg_t)-1)
+
+// returns the target-register of `n` if applicable;
+// otherwise IRR_NONSENSE
 ir_reg_t ir_get_target(const ir_node_t*);
-bool ir_is_source(const ir_node_t*, ir_reg_t);
-bool ir_is_binary(const enum ir_node_type);
+
+// checks if `r` is used as a source by `n`
+bool ir_is_source(const ir_node_t* n, ir_reg_t r);
+
+// checks if `t` is a binary operation
+bool ir_is_binary(const enum ir_node_type t);
+
+// checks if `n` uses the the register `r` (source, or target)
 bool ir_is_used(const ir_node_t*, ir_reg_t);
-ir_node_t* new_node(enum ir_node_type t);
 
 #endif /* FILE_IR_H */
