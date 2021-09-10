@@ -27,7 +27,7 @@ Common configure options:<br>
 | --with-abi=ABI | select the default target ABI |
 | --disable-bash-completions | disable the installation of bash-completions |
 
-For Debug builds use:<br>
+For debug builds use:<br>
 <code>CFLAGS="-g -Og" ./configure</code>
 
 ### Building
