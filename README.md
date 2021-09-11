@@ -5,7 +5,7 @@
 This is my third iteration of compiler design and implementation.<br>
 The <strong>bcc</strong> compiler is heavily based on the predecessor [benc](https://github.com/Benni3D/benc).<br>
 The compiler generates assembly for the [System V ABI](https://wiki.osdev.org/System_V_ABI), where applicable.<br>
-More documentation can be found on [bcc(1)](https://stuerz.xyz/bcc.1.html).<br>
+More documentation can be found in [bcc(1)](https://stuerz.xyz/bcc.1.html).<br>
 Planned features can be read in the [TODO](./TODO) file.
 
 
@@ -27,7 +27,7 @@ Common configure options:<br>
 | --with-abi=ABI | select the default target ABI |
 | --disable-bash-completions | disable the installation of bash-completions |
 
-For Debug builds use:<br>
+For debug builds use:<br>
 <code>CFLAGS="-g -Og" ./configure</code>
 
 ### Building
@@ -65,7 +65,7 @@ Alternative names for processor architectures can be added [here](https://github
 | OS | Notes |
 |------|-------------|
 | linux* | The [musl libc](https://www.musl-libc.org/) is preferred; glibc likely needs a work-around. |
-| elf | A standalone environement. An implementation of memcpy must be provided by the program. |
+| elf | A standalone environment. An implementation of memcpy must be provided by the program. |
 
 Support for operating systems can be added [here](https://github.com/Benni3D/bcc/blob/master/util/m4/ax_set_predef_macros.m4#L28).
   
