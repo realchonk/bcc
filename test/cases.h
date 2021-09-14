@@ -970,3 +970,11 @@
       "  return 0;"
       "}",
 },
+{
+   .name = "local array with no size",
+   .compiles = false,
+   .source =
+      "int main(void) {"
+      "  char a[];"
+      "}",
+},

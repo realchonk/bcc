@@ -840,7 +840,9 @@ ir_node_t* irgen_stmt(const struct statement* s) {
                cur = new_node(IR_ALLOCA);
                cur->alloca.dest = creg;
                cur->alloca.var = var;
+
                tmp = irgen_expr(s->parent, type->pointer.array.dsize);
+
                ir_node_t* mul = new_node(IR_UMUL);
                mul->binary.size = IRS_PTR;
                mul->binary.dest = creg - 1;

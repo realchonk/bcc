@@ -383,7 +383,8 @@ struct statement* parse_stmt(struct scope* scope) {
                parse_error(&var.begin, "redefinition of parameter as variable");
     
             // TODO: add multi-dimensional arrays
-            if (lexer_match(TK_LBRACK)) {
+            if (lexer_matches(TK_LBRACK)) {
+               const struct source_pos pos_lbrack = lexer_next().begin;
                vtype = make_array_vt(vtype);
                if (lexer_match(TK_RBRACK)) {
                   //parse_error(&vtype->end, "expected array size");
@@ -412,6 +413,12 @@ struct statement* parse_stmt(struct scope* scope) {
                   vtype->pointer.array.dsize = expr;
                }
                vtype->end = lexer_expect(TK_RBRACK).end;
+
+               // check if array has size
+               if (!vtype->pointer.array.has_const_size && !vtype->pointer.array.dsize) {
+                  parse_error(&pos_lbrack, "expected size for array");
+               }
+
             }
          skip_asize:
             var.init = lexer_match(TK_EQ) ? parse_var_init(scope, &vtype) : NULL;
