@@ -8,6 +8,11 @@ The compiler generates assembly for the [System V ABI](https://wiki.osdev.org/Sy
 More documentation can be found in [bcc(1)](https://stuerz.xyz/bcc.1.html).<br>
 Planned features can be read in the [TODO](./TODO) file.
 
+## Notice
+There is currently a rewrite for the x86 architecture ongoing.<br>
+Check out the x86-rewrite branch for the status.<br>
+Do not submit problems relating to the old x86 architecture.<br>
+
 
 ## Building/Installation
 ### Configuration
