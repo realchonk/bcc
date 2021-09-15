@@ -515,7 +515,7 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       emit("mov %s, %s", mreg(param_regs[1]), mreg(n->copy.src));
       emit("mov %s, %s", mreg(param_regs[0]), mreg(n->copy.dest));
       emit("mov %s, %ju", mreg(param_regs[2]), n->copy.len);
-      emit("call [rel memcpy wrt ..got]");
+      emit("call [rel __builtin_memcpy wrt ..got]");
       if (align) emit("add %s, %zu", reg_sp, align);
 #else
       esp += 12;
@@ -524,10 +524,10 @@ static ir_node_t* emit_ir(const ir_node_t* n) {
       emit("push %ju", n->copy.len);
       emit("push %s", mreg(n->copy.src));
       emit("push %s", mreg(n->copy.dest));
-      emit("call memcpy");
+      emit("call __builtin_memcpy");
       emit("add esp, %zu", 12 + align);
 #endif
-      add_unresolved(strint("memcpy"));
+      add_unresolved(strint("__builtin_memcpy"));
       return n->next;
    }
    case IR_FLOOKUP:

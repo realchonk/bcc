@@ -112,7 +112,7 @@ static bool copy_to_memcpy(ir_node_t** n) {
       fcall.next = cur->next;
       fcall.func = cur->func;
 
-      fcall.ifcall.name = strint("memcpy");
+      fcall.ifcall.name = strint("__builtin_memcpy");
       fcall.ifcall.dest = cur->copy.dest;
       fcall.ifcall.params = NULL;
       

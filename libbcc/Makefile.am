@@ -16,7 +16,8 @@
 clib_DATA = crtbegin.o crtend.o
 clib_LIBRARIES = libbcc.a
 
-libbcc_a_SOURCES = src/has_libbcc.c
+libbcc_a_SOURCES = src/has_libbcc.c		\
+						 src/memcpy.c
 
 if ARCH_x86
 include $(srcdir)/src/x86/Makefile.am

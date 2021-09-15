@@ -978,3 +978,31 @@
       "  char a[];"
       "}",
 },
+{
+   .name = "__builtin_memcpy",
+   .compiles = true,
+   .source =
+      "#include <stddef.h>\n"
+      "extern void* __builtin_memcpy(void*, const void*, size_t);"
+      "int main(void) {"
+      "  int a[] = { 1, 2, 3, 4, 5 };"
+      "  int b[arraylen(a)];"
+      "  __builtin_memcpy(b, a, sizeof(a));"
+      "  int sum = 0;"
+      "  for (size_t i = 0; i < arraylen(b); ++i) {"
+      "     sum += b[i];"
+      "  }"
+      "  return sum;"
+      "}",
+   .ret_val = 1 + 2 + 3 + 4 + 5,
+},
+{
+   .name = "address of array",
+   .compiles = true,
+   .source =
+      "int main(void) {"
+      "  int a[10];"
+      "  return &a == a;"
+      "}",
+   .ret_val = 1,
+},
