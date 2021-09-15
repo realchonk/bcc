@@ -15,13 +15,10 @@
 
 #include "riscv/cpu.h"
 #include "target.h"
+#include "config.h"
 
 const struct target_info target_info = {
-#if BITS == 32
-   .name = "riscv32",
-#else
-   .name = "riscv64",
-#endif
+   .name = BCC_FULL_ARCH,
    .size_byte     = 1,
    .size_char     = 1,
    .size_short    = 2,
