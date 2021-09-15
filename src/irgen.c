@@ -109,7 +109,7 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
                   n->type = IR_GLOOKUP;
                   n->lstr.str = e->str;
                   n->lstr.reg = creg++;
-                  *is_lv = !(vt_is_array(vt) && vt->pointer.array.has_const_size);
+                  //*is_lv = !(vt_is_array(vt) && vt->pointer.array.has_const_size);
                   break;
                }
                case SYM_CONST:
@@ -144,7 +144,7 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
          n->lookup.reg = creg++;
          n->lookup.var_idx = idx;
          const struct value_type* vt = n->lookup.scope->vars[n->lookup.var_idx].type;
-         *is_lv = !(vt_is_array(vt) && vt->pointer.array.has_const_size);
+         //*is_lv = !(vt_is_array(vt) && vt->pointer.array.has_const_size);
       }
       return n;
    case EXPR_INDIRECT:
@@ -360,7 +360,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    {
       bool is_lv;
       n = ir_lvalue(scope, e, &is_lv);
-      if (is_lv && !is_struct(vt->type)) {
+      if (is_lv && !is_struct(vt->type) && !vt_is_array(vt)) {
          tmp = new_node(IR_READ);
          tmp->read.dest = tmp->read.src = creg - 1;
          tmp->read.size = vt2irsb(vt);
@@ -422,13 +422,6 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       bool is_lv;
       n = ir_lvalue(scope, e->expr, &is_lv);
       if (!is_lv && ve->type != VAL_FUNC) parse_error(&e->begin, "expected lvalue");
-      if (ve->type == VAL_POINTER && ve->pointer.is_array) {
-         tmp = new_node(IR_READ);
-         tmp->read.dest = tmp->read.src = creg - 1;
-         tmp->read.size = IRS_PTR;
-         tmp->read.sign_extend = false;
-         ir_append(n, tmp);
-      }
       break;
    }
    case EXPR_CAST:
