@@ -153,6 +153,8 @@ size_t irs2sz(enum ir_value_size irs);
 // returns an existing machine-option; or NULL
 const struct machine_option* get_mach_opt(const char* name);
 
+// emit the contents of the string database
+void emit_strdb(void);
 
 
 /// global variables that must be defined by the target

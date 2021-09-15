@@ -37,13 +37,8 @@ AX_CHECK_TARGET
 AX_SET_PREDEF_MACROS
 AX_SET_COMPILERDIRS
 
-# Find the assembler (NASM for x86, GNU as for other)
-if test $ARCH = x86; then
-   AX_FIND_NASM
-else
-   AX_FIND_AS
-fi
-
+# Find the GNU binutils
+AX_FIND_AS
 AX_FIND_LD
 
 # Suggested by autoscan

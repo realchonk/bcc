@@ -15,8 +15,10 @@
 
 #include <stdarg.h>
 #include <string.h>
+#include <ctype.h>
 #include "target.h"
 #include "error.h"
+#include "strdb.h"
 #include "cpp.h"
 
 #define ASM_INDENT ' '
@@ -174,4 +176,18 @@ void define_ctarget_macros(void) {
    define_macro2i("__bcc_min_long", target_info.min_long);
    define_macro2i("__bcc_max_long", target_info.max_long);
    define_macro2i("__bcc_max_ulong", target_info.max_ulong);
+}
+void emit_strdb(void) {
+   emit(".section .rodata");
+   emit("__strings:");
+   emitraw(".string \"");
+   for (size_t i = 0; i < buf_len(strdb) - 1; ++i) {
+      const char ch = strdb[i];
+      if (isprint(ch)) {
+         emitraw("%c", ch);
+      } else {
+         emitraw("\\%03o", ch);
+      }
+   }
+   emit("\"");
 }
