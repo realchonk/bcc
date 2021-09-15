@@ -17,7 +17,11 @@
 #include "target.h"
 
 const struct target_info target_info = {
+#if BITS == 32
    .name = "riscv32",
+#else
+   .name = "riscv64",
+#endif
    .size_byte     = 1,
    .size_char     = 1,
    .size_short    = 2,
