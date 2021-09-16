@@ -158,6 +158,54 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
       emit("test %s, %s", reg(n->cjmp.reg), reg(n->cjmp.reg));
       emit("%s %s.%s", instr, cur_func->name, n->cjmp.label);
       return n->next;
+   case IR_ISTEQ:
+   case IR_ISTNE:
+   case IR_ISTGR:
+   case IR_ISTGE:
+   case IR_ISTLT:
+   case IR_ISTLE:
+   case IR_USTGR:
+   case IR_USTGE:
+   case IR_USTLT:
+   case IR_USTLE:
+   {
+      struct entry {
+         const char* set;
+         const char* jmp;
+         enum ir_node_type negation;
+      };
+      const struct entry es[] = {
+         [IR_ISTEQ] = { "sete",  "je",  IR_ISTNE },
+         [IR_ISTNE] = { "setne", "jne", IR_ISTEQ },
+         [IR_ISTGR] = { "setg",  "jg",  IR_ISTLE },
+         [IR_ISTGE] = { "setge", "jge", IR_ISTLT },
+         [IR_ISTLT] = { "setl",  "jl",  IR_ISTGE },
+         [IR_ISTLE] = { "setle", "jle", IR_ISTGR },
+         [IR_USTGR] = { "seta",  "ja",  IR_USTLE },
+         [IR_USTGE] = { "setae", "jae", IR_USTLT },
+         [IR_USTLT] = { "setb",  "jb",  IR_USTGE },
+         [IR_USTLE] = { "setbe", "jbe", IR_USTGR },
+      };
+      const char* dest = reg(n->binary.dest);
+      const char* a = irv2str(&n->binary.a);
+      const char* b = irv2str(&n->binary.b);
+
+      emit("cmp %s, %s", a, b);
+      if (optim_level >= 1 && n->next && (n->next->type == IR_JMPIF || n->next->type == IR_JMPIFN)
+            && n->binary.dest == n->next->cjmp.reg) {
+         const char* instr;
+         if (n->next->type == IR_JMPIF)
+            instr = es[n->type].jmp;
+         else instr = es[es[n->type].negation].jmp;
+         emit("%s %s.%s", instr, cur_func->name, n->next->str);
+         return n->next->next;
+      } else {
+         emit("%s %s", es[n->type].set, regs8[n->binary.dest]);
+         if (n->binary.size > IRS_CHAR)
+            emit("movzx %s, %s", dest, regs8[n->binary.dest]);
+         return n->next;
+      }
+   }
 
    case IR_GLOOKUP:
       emit("lea %s, [%s]", reg(n->lstr.reg), n->lstr.str);
