@@ -114,6 +114,7 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
 
    case IR_PROLOGUE:
+   {
       emit("");
       if (func_is_global(n->func))
          emit(".global %s", n->func->name);
@@ -123,7 +124,49 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
       emit("push %s", REG_BP);
       emit("mov %s, %s", REG_BP, REG_SP);
       cur_func = n->func;
+
+
+      // stack allocation
+      size_t nrp;
+#if BITS == 32
+      nrp = 0;
+#else
+      nrp = my_min(arraylen(param_regs), buf_len(n->func->params));
+#endif
+      size_t size_stack = 0;
+      size_stack += nrp * REGSIZE;
+      size_stack += sizeof_scope(n->func->scope);
+      size_stack = align_stack_size(size_stack);
+      emit("sub %s, %zu", REG_SP, size_stack);
+
+      size_t sp = 0;
+#if BITS == 64
+      for (size_t i = 0; i < nrp; ++i) {
+         sp += REGSIZE;
+         emit("mov QWORD PTR [rbp - %zu], %s", sp, regs[param_regs[i]]);
+      }
+#endif
+
+      assign_scope(n->func->scope, &sp);
+
       return n->next;
+   }
+   case IR_FPARAM:
+#if BITS == 32
+      emit("lea %s, [ebp + %zu]", reg(n->fparam.reg), 8 + (REGSIZE * n->fparam.idx));
+#else
+      if (n->fparam.idx < arraylen(param_regs)) {
+         emit("lea %s, [rbp - %zu]", reg(n->fparam.reg), REGSIZE * (n->fparam.idx + 1));
+      } else {
+         emit("lea %s, [rbp + %zu]", reg(n->fparam.reg), 16 + (REGSIZE * n->fparam.idx));
+      }
+#endif
+      return n->next;
+
+   case IR_LOOKUP:
+      emit("lea %s, [%s - %zu]", reg(n->lookup.reg), REG_BP, n->lookup.scope->vars[n->lookup.var_idx].addr);
+      return n->next;
+
    case IR_EPILOGUE:
       emit_clear(REG_AX);
       emit("%s.ret:", n->func->name);

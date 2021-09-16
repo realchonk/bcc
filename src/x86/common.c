@@ -25,6 +25,7 @@
 
 struct machine_option mach_opts[] = {
    { "clean-asm", "Generate cleaned assembly", 0, .bVal = false },
+   { "stack-check", "Check the stack on every function entry", 0, .bVal = false }, // stub
 };
 const size_t num_mach_opts = arraylen(mach_opts);
 

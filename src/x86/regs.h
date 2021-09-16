@@ -21,6 +21,8 @@
 #include "error.h"
 #include "ir.h"
 
+#define REGSIZE (BITS / 8)
+
 #if BITS == 32
 
 typedef uint32_t uintreg_t;
@@ -45,6 +47,7 @@ static const char* regs16[] = {  "ax",  "di",  "si",  "dx",  "cx", "r8w", "r9w",
 static const char* regs32[] = { "eax", "edi", "esi", "edx", "ecx", "r8d", "r9d", "r10d", "r11d" };
 #define regs64 regs
 static const char* gas_sizes[] = { "BYTE", "BYTE", "WORD", "DWORD", "QWORD", "QWORD" };
+static size_t param_regs[] = { 1, 2, 3, 4, 5, 6 };
 
 #define REG_SP "rsp"
 #define REG_BP "rbp"
