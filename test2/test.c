@@ -1,5 +1,6 @@
 
 int main(void) {
-   int a = 3, b = 1;
-   return a && b;
+   int* a = (int*)(sizeof(int) * 12);
+   int* b = (int*)(sizeof(int) * 10);
+   return a - b;
 }

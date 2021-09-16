@@ -43,7 +43,7 @@ static const char* irv2str(const struct ir_value* v) {
       return reg(v->reg);
    case IRT_UINT:
    {
-      char buffer[snslen(v->sVal)];
+      char buffer[snslen(v->sVal) + 1];
       snprintf(buffer, sizeof(buffer), "%jd", v->sVal);
       return strint(buffer);
    }

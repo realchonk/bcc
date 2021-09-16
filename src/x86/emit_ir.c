@@ -17,6 +17,12 @@
 
 static const struct function* cur_func;
 
+#if BITS == 32
+#define only_on_x86_64() panic("this should not be reached in i386")
+#else
+#define only_on_x86_64()
+#endif
+
 const ir_node_t* emit_ir(const ir_node_t* n) {
    const char* instr;
    switch (n->type) {
@@ -103,8 +109,17 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
 #elif BITS == 64
       if (n->read.size < INT_LONG) {
 #endif
-         emit("mov%s %s, %s PTR [%s]", n->read.sign_extend ? "sx" : "zx", reg(n->read.dest),
-               as_size(n->move.size), reg(n->read.src));
+         const char* suffix;
+         const char* dest = reg(n->read.dest);
+         if (n->read.sign_extend) {
+            suffix = "sx";
+         } else if (n->read.size == INT_INT) {
+            suffix = "";
+            dest = regs32[n->read.dest];
+         } else {
+            suffix = "zx";
+         }
+         emit("mov%s %s, %s PTR [%s]", suffix, dest, as_size(n->move.size), reg(n->read.src));
       } else {
          emit("mov %s, %s PTR [%s]", reg(n->read.dest), as_size(n->read.size), reg(n->read.src));
       }
@@ -253,6 +268,43 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
    case IR_GLOOKUP:
       emit("lea %s, [%s]", reg(n->lstr.reg), n->lstr.str);
       return n->next;
+   
+   case IR_IICAST:
+   {
+      const ir_reg_t dest = n->iicast.dest;
+      const ir_reg_t src = n->iicast.src;
+      const enum ir_value_size ds = n->iicast.ds;
+      const enum ir_value_size ss = n->iicast.ss;
+      const size_t size_ds = sizeof_irs(ds);
+      const size_t size_ss = sizeof_irs(ss);
+      if (size_ds < size_ss) {
+         if (dest == src) {
+            if (size_ds == 4 && size_ss == 8) {
+               only_on_x86_64();
+               reg(dest), reg(src); // verify registers
+               emit("mov %s, %s", regs32[dest], regs32[src]);
+            } else {
+               emit("and %s, 0x%08jx", reg(dest), target_get_umax(ds));
+            }
+         } else {
+            emit("mov %s, %s", reg_wsz(dest, ds), reg_wsz(src, ds));
+         }
+      } else if (size_ds > size_ss) {
+         const char* suffix;
+         if (n->iicast.sign_extend) {
+            suffix = "sx";
+         } else if (ds == IRS_LONG && ss == IRS_INT) {
+            only_on_x86_64();
+            suffix = "";
+         } else {
+            suffix = "zx";
+         }
+         emit("mov%s %s, %s", suffix, reg_wsz(dest, ds), reg_wsz(src, ss));
+      } else if (n->iicast.dest != n->iicast.src) {
+         emit("mov %s, %s", reg(dest), reg(src));
+      }
+      return n->next;
+   }
 
    default:
       panic("unimplemented ir_node type '%s'", ir_node_type_str[n->type]);

@@ -14,6 +14,7 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <stdarg.h>
+#include "target.h"
 #include "error.h"
 #include "ir.h"
 
@@ -393,4 +394,15 @@ bool ir_is_used(const ir_node_t* n, ir_reg_t r) {
       n = n->next;
    }
    return false;
+}
+size_t sizeof_irs(enum ir_value_size sz) {
+   switch (sz) {
+   case IRS_BYTE:    return target_info.size_byte;
+   case IRS_CHAR:    return target_info.size_char;
+   case IRS_SHORT:   return target_info.size_short;
+   case IRS_INT:     return target_info.size_int;
+   case IRS_LONG:    return target_info.size_long;
+   case IRS_PTR:     return target_info.size_pointer;
+   default:          panic("invalid IR value size");
+   }
 }

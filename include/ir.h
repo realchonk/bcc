@@ -276,4 +276,7 @@ bool ir_is_binary(const enum ir_node_type t);
 // checks if `n` uses the the register `r` (source, or target)
 bool ir_is_used(const ir_node_t*, ir_reg_t);
 
+// returns the size in bytes of an irs
+size_t sizeof_irs(enum ir_value_size);
+
 #endif /* FILE_IR_H */

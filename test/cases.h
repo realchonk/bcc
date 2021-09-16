@@ -150,13 +150,12 @@
    .name = "pointer-arithmetic",
    .compiles = true,
    .source =
-      "int printf(const char*, ...);"
       "int main(void) {"
       "  int* a = (int*)(sizeof(int) * 12);"
       "  int* b = (int*)(sizeof(int) * 10);"
-      "  printf(\"%d\", a - b);"
+      "  return a - b;"
       "}",
-   .output = "2",
+   .ret_val = 2,
 },
 {
    .name = "enum",
