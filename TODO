@@ -34,9 +34,8 @@ General:
 - passing/returning structs/unions
 
 x86:
-- XXX fix function calls
-- fix nasm warning for indirect function calls (64bit)
 - optimize function calls
+- add VLAs
 
 riscv:
 - more simple optimizations
