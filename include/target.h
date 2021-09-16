@@ -17,6 +17,7 @@
 #define FILE_TARGET_H
 #include <stdio.h>
 #include "value.h"
+#include "error.h"
 #include "ir.h"
 
 struct target_info {
@@ -106,10 +107,10 @@ void target_init(void);
 void emit_free(void);
 
 // like printf, but also prints a newline
-void emit(const char*, ...);
+void emit(const char*, ...) PRINTF_FMT_WARN(1, 2);
 
 // line emit(), but doesn't print a newline
-void emitraw(const char*, ...);
+void emitraw(const char*, ...) PRINTF_FMT_WARN(1, 2);
 
 // defines compiler-specific macros
 void define_ctarget_macros(void);

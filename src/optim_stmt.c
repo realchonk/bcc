@@ -32,6 +32,8 @@ static struct statement* make_nop(struct statement* old) {
 }
 
 struct statement* optim_stmt(struct statement* s) {
+   if (!s)
+      panic("s == NULL");
    if (optim_level < 1) return s;
    if (stmt_is_pure(s)) return make_nop(s);
    switch (s->type) {

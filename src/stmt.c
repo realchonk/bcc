@@ -464,7 +464,9 @@ struct statement* parse_stmt(struct scope* scope) {
    }
    return optim_stmt(stmt);
 }
+
 bool stmt_is_pure(const struct statement* s) {
+   assert(s != NULL);
    switch (s->type) {
    case STMT_NOP:
       return true;
@@ -474,7 +476,7 @@ bool stmt_is_pure(const struct statement* s) {
    case STMT_IF:
       return expr_is_pure(s->ifstmt.cond)
          && stmt_is_pure(s->ifstmt.true_case)
-         && stmt_is_pure(s->ifstmt.false_case);
+         && (!s->ifstmt.false_case || stmt_is_pure(s->ifstmt.false_case));
    case STMT_SCOPE:
       for (size_t i = 0; i < buf_len(s->scope->body); ++i) {
          if (!stmt_is_pure(s->scope->body[i]))

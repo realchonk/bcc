@@ -49,21 +49,11 @@ all: test
 test.ir: test.c $(BCC)
 	$(BCC) -i -o $@ $< $(BCCFLAGS)
 
-ifeq ($(ARCH),x86)
-test.asm: test.c $(BCC)
-	$(BCC) -S -o $@ $< $(BCCFLAGS)
-
-test: test.asm
-	$(BCC) -o $@ $< $(BCCFLAGS)
-
-else ifeq ($(ARCH),riscv)
-
 test: test.s
 	$(BCC) -o $@ $< $(BCCFLAGS)
 
 test.s: test.c $(BCC)
 	$(BCC) -S -o $@ $< $(BCCFLAGS)
-endif
 
 clean:
 	rm -f *.s *.asm *.o test *.ir

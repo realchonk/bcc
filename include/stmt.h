@@ -88,7 +88,6 @@ struct switch_entry {
 struct statement* parse_stmt(struct scope*);
 
 void print_stmt(FILE*, const struct statement*);
-void print_stmt_tree(FILE*, const struct statement*);
 void free_stmt(struct statement*);
 struct statement* new_stmt(void);
 bool stmt_is_pure(const struct statement*);

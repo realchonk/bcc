@@ -32,7 +32,7 @@ int assemble(const char* source, const char* output) {
    const pid_t pid = fork();
    assert(pid >= 0);
    if (pid == 0) {
-      verbose_execl(GNU_AS, GNU_AS, "-o", output, source, NULL);
+      verbose_execl(GNU_AS, GNU_AS, "-msyntax=intel", "-o", output, source, NULL);
       perror("bcc: failed to invoke assembler");
       _exit(1);
    } else {

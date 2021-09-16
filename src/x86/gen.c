@@ -26,7 +26,7 @@ const ir_node_t* emit_ir(const ir_node_t*);
 void emit_unit(void) {
    strdb_init();
    //emit(".file \"%s\"", source_name);
-   emit(".intel_syntax");
+   emit(".intel_syntax noprefix");
    emit(".section .text");
 
    for (size_t i = 0; i < buf_len(cunit.funcs); ++i) {
@@ -67,7 +67,7 @@ void emit_unit(void) {
 
          if (!get_mach_opt("clean-asm")->bVal) {
             emit(".type %s, @object", var->name);
-            emit(".size %s, %zu", sizeof_value(vt, false));
+            emit(".size %s, %zu", var->name, sizeof_value(vt, false));
          }
       }
    }
