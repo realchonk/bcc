@@ -14,6 +14,7 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "emit_ir.h"
+#include "strdb.h"
 
 static const struct function* cur_func;
 
@@ -303,6 +304,13 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
       } else if (n->iicast.dest != n->iicast.src) {
          emit("mov %s, %s", reg(dest), reg(src));
       }
+      return n->next;
+   }
+   case IR_LSTR:
+   {
+      const struct strdb_ptr* ptr;
+      strdb_add(n->lstr.str, &ptr);
+      emit("lea %s, [__strings + %zu]", reg(n->lstr.reg), ptr->idx);
       return n->next;
    }
 
