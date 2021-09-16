@@ -486,11 +486,11 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       const struct value_type* func = actual_func_vt(vt);
       const bool has_rv = func->func.ret_val->type != VAL_VOID;
       n = new_node(has_rv ? IR_IRCALL : IR_RCALL);
-      n->rcall.addr = ir_expr(scope, e->fcall.func);
+      n->call.addr = ir_expr(scope, e->fcall.func);
       --creg;
-      n->rcall.dest = creg;
-      n->rcall.params = NULL;
-      n->rcall.variadic = func->func.variadic;
+      n->call.dest = creg;
+      n->call.params = NULL;
+      n->call.variadic = func->func.variadic;
       for (size_t i = 0; i < buf_len(e->fcall.params); ++i) {
          struct expression* p = e->fcall.params[i];
          const struct value_type* vp = get_value_type(scope, p);
@@ -504,7 +504,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
             tmp->iicast.sign_extend = irs == IRS_PTR ? false : !func->func.ret_val->integer.is_unsigned;
             ir_append(ir, tmp);
          }
-         buf_push(n->rcall.params, optim_ir_nodes(ir));
+         buf_push(n->call.params, optim_ir_nodes(ir));
          --creg;
       }
       ++creg;

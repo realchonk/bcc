@@ -266,15 +266,10 @@ static bool direct_call(ir_node_t** n) {
    bool success = false;
    for (ir_node_t* cur = *n; cur; cur = cur->next) {
       if (ir_isv(cur, IR_RCALL, IR_IRCALL, NUM_IR_NODES)
-         && ir_is(cur->rcall.addr, IR_FLOOKUP) && !cur->rcall.addr->next) {
-         const ir_reg_t dest = cur->rcall.dest;
-         const istr_t name = cur->rcall.addr->lstr.str;
-         ir_node_t** params = cur->rcall.params;
-         free_ir_node(cur->rcall.addr);
+         && ir_is(cur->call.addr, IR_FLOOKUP) && !cur->call.addr->next) {
+         const istr_t name = cur->call.addr->lstr.str;
          cur->type = rcall_to_fcall(cur->type);
-         cur->ifcall.name = name;
-         cur->ifcall.dest = dest;
-         cur->ifcall.params = params;
+         cur->call.name = name;
          success = true;
       }
    }

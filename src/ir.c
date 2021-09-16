@@ -199,13 +199,12 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
       fprintf(file, ".%s R%u, %s R%u", ir_size_str[n->iicast.ds], n->iicast.dest, ir_size_str[n->iicast.ss], n->iicast.src);
       break;
    case IR_IFCALL:
-      fprintf(file, " %s, R%u", n->ifcall.name, n->ifcall.dest);
-      /*for (size_t i = 0; i < buf_len(n->ifcall.params); ++i)
-         fprintf(file, ", R%u", n->ifcall.params[i]);
-      */
+   case IR_IRCALL:
+      fprintf(file, " %s, R%u", n->call.name, n->call.dest);
       break;
    case IR_FCALL:
-      fprintf(file, "%s", n->ifcall.name);
+   case IR_RCALL:
+      fprintf(file, "%s", n->call.name);
       break;
 
    case IR_FPARAM:
@@ -235,11 +234,6 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
    case IR_COPY:
       fprintf(file, " R%u, R%u, %ju", n->copy.dest, n->copy.src, n->copy.len);
       break;
-   case IR_IRCALL:
-      fprintf(file, " R%u", n->rcall.dest);
-      break;
-   case IR_RCALL:
-      break;
    }
    fputc('\n', file);
 }
@@ -255,14 +249,10 @@ void print_ir_value(FILE* file, const struct ir_value* v) {
    }
 }
 void free_ir_node(ir_node_t* n) {
-   if (n->type == IR_IFCALL || n->type == IR_FCALL) {
-      for (size_t i = 0; i < buf_len(n->ifcall.params); ++i)
-         free_ir_nodes(n->ifcall.params[i]);
-      buf_free(n->ifcall.params);
-   } else if (n->type == IR_IRCALL || n->type == IR_RCALL) {
-      for (size_t i = 0; i < buf_len(n->rcall.params); ++i)
-         free_ir_nodes(n->rcall.params[i]);
-      free_ir_nodes(n->rcall.addr);
+   if (n->type == IR_IFCALL || n->type == IR_FCALL || n->type == IR_RCALL || n->type == IR_IRCALL) {
+      for (size_t i = 0; i < buf_len(n->call.params); ++i)
+         free_ir_nodes(n->call.params[i]);
+      buf_free(n->call.params);
    }
    free(n);
 }
@@ -313,9 +303,8 @@ ir_reg_t get_target(const ir_node_t* n) {
    case IR_IICAST:
       return n->iicast.dest;
    case IR_IFCALL:
-      return n->ifcall.dest;
    case IR_IRCALL:
-      return n->rcall.dest;
+      return n->call.dest;
    case IR_LSTR:
    case IR_FLOOKUP:
       return n->lstr.reg;

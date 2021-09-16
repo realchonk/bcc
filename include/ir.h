@@ -53,7 +53,7 @@ enum ir_node_type {
    IR_PROLOGUE,      // .func       | beginning of a function
    IR_EPILOGUE,      // .func       | ending of a function
    IR_IICAST,        // .iicast     | integer-to-integer cast
-   IR_IFCALL,        // .ifcall     | function call w/ integer return value
+   IR_IFCALL,        // .call       | function call w/ integer return value
    IR_FPARAM,        // .fparam     | load address of function parameter
    IR_LSTR,          // .lstr       | load address of string
    IR_ISTEQ,         // .binary     | set if integer equal
@@ -74,9 +74,9 @@ enum ir_node_type {
    IR_COPY,          // .copy       | copy array
    IR_ARRAYLEN,      // .lookup     | get length of variable-length array
    IR_GLOOKUP,       // .lstr       | get address of global variable
-   IR_FCALL,         // .ifcall     | function call w/ return-type void
-   IR_IRCALL,        // .rcall      | indirect function call w/ integer return value
-   IR_RCALL,         // .rcall      | indirect function call w/o return value
+   IR_FCALL,         // .call       | function call w/ return-type void
+   IR_IRCALL,        // .call       | indirect function call w/ integer return value
+   IR_RCALL,         // .call       | indirect function call w/o return value
    IR_FLOOKUP,       // .lstr       | function lookup
    IR_SRET,          // .sret       | return struct/union
 
@@ -166,11 +166,6 @@ typedef struct ir_node {
          bool sign_extend;
       } iicast;
       struct {
-         istr_t name;
-         ir_reg_t dest;
-         struct ir_node** params;
-      } ifcall;
-      struct {
          ir_reg_t reg;
          size_t idx;
       } fparam;
@@ -195,9 +190,12 @@ typedef struct ir_node {
       struct {
          ir_reg_t dest;
          bool variadic;
-         struct ir_node* addr;
          struct ir_node** params;
-      } rcall;
+         union {
+            struct ir_node* addr;   // IR_*RCALL
+            const char* name;       // IR_*FCALL
+         };
+      } call;
       struct {
          ir_reg_t ptr;
          uintmax_t size;
