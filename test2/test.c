@@ -1,9 +1,8 @@
 
-int add(int a, int b) {
-   return a + b;
-}
+
+extern int __mulsi32(int, int);
 
 int main(void) {
-   auto f = &add;
-   return f(3, 2);
+   int a = 3, b = 2;
+   return __mulsi32(a, b);
 }
