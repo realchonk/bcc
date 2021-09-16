@@ -32,8 +32,12 @@ void parse_func_part(struct function* func) {
             func->variadic = true;
             break;
          }
+         const struct source_pos pbegin = lexer_peek().begin;
          struct variable var;
          var.type = parse_value_type(NULL);
+         if (!var.type) {
+            parse_error(&pbegin, "invalid parameter type");
+         }
          if (var.type->type == VAL_VOID) {
             if (func->params)
                parse_error(&var.type->begin, "incomplete type void");

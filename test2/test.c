@@ -1,5 +1,9 @@
 
+int add(int a, int b) {
+   return a + b;
+}
+
 int main(void) {
-   auto s = "Hello World";
-   return s[0];
+   auto f = &add;
+   return f(3, 2);
 }

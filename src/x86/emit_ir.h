@@ -30,7 +30,7 @@ static void emit_clear(const char* r) {
 }
 static size_t snslen(intmax_t v) {
    size_t n = 0;
-   if (!v) return 0;
+   if (!v) return 1;
    if (v < 0) {
       v = -v;
       ++n;
@@ -76,7 +76,7 @@ static void assign_scope(struct scope* scope, size_t* sp) {
       scope->vars[i].addr = *sp;
    }
    for (size_t i = 0; i < buf_len(scope->children); ++i) {
-      size_t tmp_sp;
+      size_t tmp_sp = *sp;
       assign_scope(scope->children[i], &tmp_sp);
       if (tmp_sp > *sp)
          *sp = tmp_sp;

@@ -36,6 +36,7 @@ static const char* gas_sizes[] = { "BYTE", "BYTE", "WORD", "DWORD", "DWORD", "DW
 #define REG_SP "esp"
 #define REG_BP "ebp"
 #define REG_AX "eax"
+#define REG_BX "ebx"
 
 #else
 
@@ -52,6 +53,7 @@ static size_t param_regs[] = { 1, 2, 3, 4, 5, 6 };
 #define REG_SP "rsp"
 #define REG_BP "rbp"
 #define REG_AX "rax"
+#define REG_BX "rbx"
 
 #endif
 
@@ -82,3 +84,4 @@ static const char* reg_wsz(ir_reg_t r, enum ir_value_size sz) {
 }
 
 #endif /* FILE_X86_REGS_H */
+

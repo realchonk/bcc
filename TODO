@@ -61,6 +61,7 @@ riscv:
 - auto-detection of --with-cpu= & --with-abi=
 - add zsh-completions
 - retire the preliminary bcl wrapper
+- implement is_assembly_file() function
 
 # Helpful Resources/Websites
 - POSIX C99 compiler    - https://pubs.opengroup.org/onlinepubs/9699919799/utilities/c99.html

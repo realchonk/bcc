@@ -24,8 +24,13 @@ static const struct function* cur_func;
 #define only_on_x86_64()
 #endif
 
+#define alloc_stack(n) ((n) && optim_level >= 1 ? emit("sub %s, %zu", REG_SP, (n)) : 0)
+#define free_stack(n) ((n) && optim_level >= 1 ? emit("add %s, %zu", REG_SP, (n)) : 0)
+
+
 const ir_node_t* emit_ir(const ir_node_t* n) {
    const char* instr;
+   bool flag = false, flag2 = false;
    switch (n->type) {
    case IR_NOP:
       emit("nop");
@@ -153,7 +158,7 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
       size_stack += nrp * REGSIZE;
       size_stack += sizeof_scope(n->func->scope);
       size_stack = align_stack_size(size_stack);
-      emit("sub %s, %zu", REG_SP, size_stack);
+      alloc_stack(size_stack);
 
       size_t sp = 0;
 #if BITS == 64
@@ -174,7 +179,7 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
       if (n->fparam.idx < arraylen(param_regs)) {
          emit("lea %s, [rbp - %zu]", reg(n->fparam.reg), REGSIZE * (n->fparam.idx + 1));
       } else {
-         emit("lea %s, [rbp + %zu]", reg(n->fparam.reg), 16 + (REGSIZE * n->fparam.idx));
+         emit("lea %s, [rbp + %zu]", reg(n->fparam.reg), 16 + (REGSIZE * (n->fparam.idx - arraylen(param_regs))));
       }
 #endif
       return n->next;
@@ -203,10 +208,10 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
 
    case IR_LABEL:
-      emit("%s.%s:", cur_func->name, n->str);
+      emit("%s:", n->str);
       return n->next;
    case IR_JMP:
-      emit("jmp %s.%s", cur_func->name, n->str);
+      emit("jmp %s", n->str);
       return n->next;
    case IR_JMPIF:
       instr = "jnz";
@@ -215,7 +220,7 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
       instr = "jz";
    ir_jmpifn:
       emit("test %s, %s", reg(n->cjmp.reg), reg(n->cjmp.reg));
-      emit("%s %s.%s", instr, cur_func->name, n->cjmp.label);
+      emit("%s %s", instr, n->cjmp.label);
       return n->next;
    case IR_ISTEQ:
    case IR_ISTNE:
@@ -256,7 +261,7 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
          if (n->next->type == IR_JMPIF)
             instr = es[n->type].jmp;
          else instr = es[es[n->type].negation].jmp;
-         emit("%s %s.%s", instr, cur_func->name, n->next->str);
+         emit("%s %s", instr, n->next->str);
          return n->next->next;
       } else {
          emit("%s %s", es[n->type].set, regs8[n->binary.dest]);
@@ -267,6 +272,7 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
    }
 
    case IR_GLOOKUP:
+   case IR_FLOOKUP:
       emit("lea %s, [%s]", reg(n->lstr.reg), n->lstr.str);
       return n->next;
    
@@ -311,6 +317,103 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
       const struct strdb_ptr* ptr;
       strdb_add(n->lstr.str, &ptr);
       emit("lea %s, [__strings + %zu]", reg(n->lstr.reg), ptr->idx);
+      return n->next;
+   }
+   
+   // flag: relative
+   // flag2: has return value
+   case IR_RCALL:
+      flag = true;
+      goto ir_fcall;
+   case IR_IRCALL:
+      flag = flag2 = true;
+      goto ir_fcall;
+   case IR_IFCALL:
+      flag2 = true;
+      fallthrough;
+   case IR_FCALL:
+   {
+   ir_fcall:;
+      const ir_reg_t dest = n->call.dest;
+      struct ir_node** params = n->call.params;
+      const size_t np = buf_len(params);
+      
+      if (!flag && is_builtin_func(n->call.name))
+         request_builtin(n->call.name);
+
+      size_t n_stack = 0;
+      n_stack += dest;
+#if BITS == 64
+      n_stack += np;
+#endif
+      n_stack = align_stack_size(n_stack * REGSIZE);
+      alloc_stack(n_stack);
+
+      uintreg_t sp = n_stack;
+
+      for (size_t i = 0; i < dest; ++i) {
+         emit("mov %s PTR [%s + %zu], %s", as_size(IRS_PTR), REG_SP, sp, reg(i));
+         sp -= REGSIZE;
+      }
+
+      const size_t saved_sp = sp;
+
+      sp = REGSIZE * (np - 1);
+#if BITS == 32
+      for (size_t i = np; i != 0; --i) {
+         const ir_node_t* tmp = params[i - 1];
+         while ((tmp = emit_ir(tmp)) != NULL);
+         emit("mov %s PTR [%s + %zu], %s", as_size(IRS_PTR), REGS_SP, sp, reg(dest));
+         sp -= REGSIZE;
+      }
+#else
+      for (size_t i = 0; i < my_min(np, arraylen(param_regs)); ++i) {
+         const ir_node_t* tmp = params[i];
+         while ((tmp = emit_ir(tmp)) != NULL);
+         emit("mov %s PTR [%s + %zu], %s", as_size(IRS_PTR), REG_SP, sp, reg(dest));
+         sp -= REGSIZE;
+      }
+      for (size_t i = np; i > arraylen(param_regs); --i) {
+         const ir_node_t* tmp = params[i - 1];
+         while ((tmp = emit_ir(tmp)) != NULL);
+         emit("mov %s PTR [%s + %zu], %s", as_size(IRS_PTR), REG_SP, sp, reg(dest));
+         sp -= REGSIZE;
+      }
+#endif
+
+      if (flag) {
+         const ir_node_t* tmp = n->call.addr;
+         while ((tmp = emit_ir(tmp)) != NULL);
+         emit("mov %s, %s", REG_AX, reg(n->call.dest));
+      }
+
+#if BITS == 64
+      sp = REGSIZE * (np - 1);
+
+      for (size_t i = 0; i < my_min(np, arraylen(param_regs)); ++i) {
+         emit("mov %s, %s PTR [%s + %zu]", reg(param_regs[i]), as_size(IRS_PTR), REG_SP, sp);
+         sp -= REGSIZE;
+      }
+#endif
+
+      if (flag) {
+         emit("call %s", reg(0));
+      } else {
+         emit("call %s", n->call.name);
+      }
+
+      if (dest != 0)
+         emit("mov %s, %s", reg(dest), reg(0));
+
+      sp = n_stack;
+      for (size_t i = 0; i < dest; ++i) {
+         emit("mov %s, %s PTR [%s + %zu]", reg(i), as_size(IRS_PTR), REG_SP, sp);
+         sp -= REGSIZE;
+      }
+
+
+      free_stack(n_stack);
+
       return n->next;
    }
 
