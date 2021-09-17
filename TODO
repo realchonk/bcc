@@ -54,6 +54,7 @@ riscv:
 
 
 # Other
+- replace `builtin functions` with `inlinable intrinsics`
 - find & fix reason for random crashes
 - document the code & add comments
 - options: -g, --sysroot=
