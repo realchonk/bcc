@@ -1,8 +1,10 @@
 
 
-extern int __mulsi32(int, int);
+int printf(const char*, ...);
+const int a[] = { 1, 2, 3, 4, 5 };
 
 int main(void) {
-   int a = 3, b = 2;
-   return __mulsi32(a, b);
+   for (unsigned i = 0; i < arraylen(a); ++i) {
+      printf("%d\n", a[i]);
+   }
 }

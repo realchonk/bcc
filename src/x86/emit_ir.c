@@ -300,9 +300,11 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
          const char* suffix;
          if (n->iicast.sign_extend) {
             suffix = "sx";
-         } else if (ds == IRS_LONG && ss == IRS_INT) {
+         } else if (size_ds == 8 && size_ss == 4) {
             only_on_x86_64();
             suffix = "";
+            emit("mov %s, %s", regs32[dest], regs32[src]);
+            return n->next;
          } else {
             suffix = "zx";
          }

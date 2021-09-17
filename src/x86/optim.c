@@ -86,6 +86,43 @@ static bool mul_to_func(ir_node_t** n) {
    }
    return success;
 }
+static bool copy_to_memcpy(ir_node_t** n) {
+   bool success = false;
+   for (ir_node_t* cur = *n; cur; cur = cur->next) {
+      if (cur->type != IR_COPY)
+         continue;
+      ir_node_t fcall;
+      fcall.type = IR_IFCALL;
+      fcall.prev = cur->prev;
+      fcall.next = cur->next;
+      fcall.func = cur->func;
+
+      fcall.call.name = strint("__builtin_memcpy");
+      fcall.call.dest = cur->copy.dest;
+      fcall.call.params = NULL;
+      
+      ir_node_t* param = new_node(IR_MOVE);
+      param->move.dest = fcall.call.dest;
+      param->move.src  = cur->copy.dest;
+      param->move.size = IRS_PTR;
+      buf_push(fcall.call.params, param);
+
+      param = new_node(IR_MOVE);
+      param->move.dest = fcall.call.dest;
+      param->move.src  = cur->copy.src;
+      param->move.size = IRS_PTR;
+      buf_push(fcall.call.params, param);
+
+      param = new_node(IR_LOAD);
+      param->load.dest = fcall.call.dest;
+      param->load.value = cur->copy.len;
+      param->load.size = IRS_PTR;
+      buf_push(fcall.call.params, param);
+      *cur = fcall;
+      success = true;
+   }
+   return success;
+}
 
 bool target_optim_ir(ir_node_t** n) {
    (void)n;
@@ -93,7 +130,8 @@ bool target_optim_ir(ir_node_t** n) {
 }
 bool target_post_optim_ir(ir_node_t** n) {
    bool success = false;
-   while (mul_to_func(n))
+   while (mul_to_func(n)
+         || copy_to_memcpy(n))
       success = true;
    return success;
 }
