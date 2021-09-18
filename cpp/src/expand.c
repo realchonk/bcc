@@ -19,22 +19,6 @@
 #include "dir.h"
 #include "cpp.h"
 
-// buf.h helper functions
-static char* buf_puts_impl(char* buf, const char* s) {
-   while (*s) {
-      buf_push(buf, *s++);
-   }
-   return buf;
-}
-static char* buf_putsr_impl(char* buf, const char* begin, const char* end) {
-   while (begin != end) {
-      buf_push(buf, *begin++);
-   }
-   return buf;
-}
-#define buf_putsr(buf, begin, end) ((buf) = (buf_puts_impl((buf), (begin), (end))))
-#define buf_puts(buf, s) ((buf) = (buf_puts_impl((buf), (s))))
-
 // other helper functions
 static const struct var* find_var(const struct var* vars, istr_t name) {
    for (size_t i = 0; i < buf_len(vars); ++i) {

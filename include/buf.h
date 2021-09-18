@@ -72,4 +72,20 @@ inline static void* buf__grow(void* buf, size_t new_length, size_t elem_size) {
 	return (void*)new_hdr->buf;
 }
 
+// buf.h helper functions
+inline static char* buf_puts_impl(char* buf, const char* s) {
+   while (*s) {
+      buf_push(buf, *s++);
+   }
+   return buf;
+}
+inline static char* buf_putsr_impl(char* buf, const char* begin, const char* end) {
+   while (begin != end) {
+      buf_push(buf, *begin++);
+   }
+   return buf;
+}
+#define buf_putsr(buf, begin, end) ((buf) = (buf_puts_impl((buf), (begin), (end))))
+#define buf_puts(buf, s) ((buf) = (buf_puts_impl((buf), (s))))
+
 #endif /* FILE_BUF_H */

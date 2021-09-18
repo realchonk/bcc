@@ -39,6 +39,11 @@ unsigned popcnt(const uintmax_t val) {
 
 istr_t replace_ending(const char* s, const char* end) {
    const size_t len_end = strlen(end);
+   if (!strcmp(s, "-")) {
+      char new_str[8 + len_end + 2];
+      snprintf(new_str, sizeof(new_str), "bcc_temp.%s", end);
+      return strint(new_str);
+   }
    const char* dot = strrchr(s, '.');
    const size_t len_s = dot ? (size_t)(dot - s) : strlen(s);
    char new_str[len_s + len_end + 2];

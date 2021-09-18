@@ -18,7 +18,7 @@ all: tester
 	@./tester
 
 tester: tester.c cases.h
-	gcc -o $@ $< -Wall -Wextra -std=c99 -D_XOPEN_SOURCE=700 -O3
+	gcc -o $@ $< -Wall -Wextra -std=c99 -Og -g
 
 clean:
 	rm -f tester bcc.log gcc.log
