@@ -15,8 +15,8 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#include "riscv/cpu.h"
 #include "target.h"
+#include "cpu.h"
 
 struct riscv_cpu riscv_cpu;
 

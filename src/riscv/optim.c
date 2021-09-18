@@ -15,9 +15,9 @@
 
 #include <string.h>
 #include <stdio.h>
-#include "riscv/cpu.h"
 #include "optim.h"
 #include "error.h"
+#include "cpu.h"
 
 // Turn IR_MUL to IR_IFCALL (if no M extension)
 // TODO: implement the functions in libbcc first

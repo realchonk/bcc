@@ -28,7 +28,7 @@ fix_clib() {
 }
 
 
-args=$(getopt -o "ahg:t:fF:" -- "$@") || exit 1
+args=$(getopt -o "ahg:t:fF:G" -- "$@") || exit 1
 eval set -- "${args}"
 unset args
 
@@ -37,6 +37,7 @@ GCC="${MACHTYPE}-gcc"
 BCC="bcc"
 force=0
 fix_all=0
+fix_gcc=0
 search_files=""
 
 while true; do
@@ -55,6 +56,7 @@ while true; do
       echo "               (may be specified multiple times)"
       echo "  -t target    Specify the target of bcc."
       echo "  -g GCC       Specify the name of gcc."
+      echo "  -G           Copy the libgcc.a"
       echo
       echo "Operands:"
       echo "  prefix       The installation prefix of bcc"
@@ -65,6 +67,10 @@ while true; do
       ;;
    -a)
       fix_all=1
+      shift
+      ;;
+   -G)
+      fix_lgcc=1
       shift
       ;;
    -f)
@@ -121,6 +127,10 @@ fix "libc.a"
 if [ "${fix_all}" = 1 ]; then
    fix_clib "crtbegin.o" 
    fix_clib "crtend.o"   
+fi
+if [ "${fix_lgcc}" = 1 ]; then
+   fix_clib "libgcc.a"
+   fix_clib "libgcc_eh.a"
 fi
 if [ -z "${fixed}" ]; then
    echo "No files were fixed. Maybe try again with -f"

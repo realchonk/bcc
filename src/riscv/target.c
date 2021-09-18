@@ -13,9 +13,9 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "riscv/cpu.h"
 #include "target.h"
 #include "config.h"
+#include "cpu.h"
 
 static const char* fend_asm[]      = { "s", "S", NULL };
 static const char* fend_obj[]      = { "o", NULL      };

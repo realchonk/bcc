@@ -14,11 +14,11 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <string.h>
-#include "riscv/emit_ir.h"
-#include "riscv/regs.h"
-#include "riscv/cpu.h"
+#include "emit_ir.h"
 #include "strdb.h"
 #include "error.h"
+#include "regs.h"
+#include "cpu.h"
 #include "bcc.h"
 
 static uintreg_t size_stack;
@@ -32,10 +32,10 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       emit("nop");
       return n->next;
    case IR_MOVE:
-      emit("mv   %s, %s", reg_op(n->move.dest), reg_op(n->move.src));
+      emit("mv   %s, %s", reg(n->move.dest), reg(n->move.src));
       return n->next;
    case IR_LOAD:
-      emit("li   %s, %jd", reg_op(n->load.dest), (intmax_t)n->load.value);
+      emit("li   %s, %jd", reg(n->load.dest), (intmax_t)n->load.value);
       return n->next;
    // flag2: swap operands
    case IR_IADD:
@@ -81,19 +81,19 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       }
       const char* a;
       if (av.type == IRT_REG) {
-         a = reg_op(av.reg);
+         a = reg(av.reg);
       } else {
-         a = reg_op(n->binary.dest);
+         a = reg(n->binary.dest);
          emit("li %s, %jd", a, av.sVal);
       }
       if (bv.type == IRT_REG) {
          emit("%s  %s, %s, %s", instr,
-            reg_op(n->binary.dest),
+            reg(n->binary.dest),
             a,
-            reg_op(bv.reg));
+            reg(bv.reg));
       } else {
          emit("%si %s, %s, %jd", instr,
-            reg_op(n->binary.dest),
+            reg(n->binary.dest),
             a,
             bv.sVal);
       }
@@ -132,9 +132,9 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       default:          panic("unsupported operand size '%s'", ir_size_str[n->read.size]);
       }
       if (flag) {
-         emit("%s %s, %d(fp)", instr, reg_op(dest), off);
+         emit("%s %s, %jd(fp)", instr, reg(dest), (intmax_t)off);
       } else {
-         emit("%s %s, 0(%s)", instr, reg_op(dest), reg_op(n->read.src));
+         emit("%s %s, 0(%s)", instr, reg(dest), reg(n->read.src));
       }
       return next;
    }
@@ -156,9 +156,9 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       default:          panic("unsupported operand size '%s'", ir_size_str[n->write.size]);
       }
       if (flag) {
-         emit("%s %s, %d(fp)", instr, reg_op(n->write.src), off);
+         emit("%s %s, %jd(fp)", instr, reg(n->write.src), (intmax_t)off);
       } else {
-         emit("%s %s, 0(%s)", instr, reg_op(n->write.src), reg_op(n->write.dest));
+         emit("%s %s, 0(%s)", instr, reg(n->write.src), reg(n->write.dest));
       }
       return n->next;
    case IR_PROLOGUE:
@@ -169,9 +169,9 @@ ir_node_t* emit_ir(const ir_node_t* n) {
 
       if (get_mach_opt("stack-check")->bVal) {
          emit("addi sp, sp, -16");
-         emit(SW " ra, %zu(sp)", 16 - REGSIZE);
+         emit(SW " ra, %zu(sp)", (size_t)(16 - REGSIZE));
          emit("call __check_sp");
-         emit(LW " ra, %zu(sp)", 16 - REGSIZE);
+         emit(LW " ra, %zu(sp)", (size_t)(16 - REGSIZE));
          emit("addi sp, sp, 16");
          request_builtin("__check_sp");
       }
@@ -182,14 +182,14 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       size_stack += 3 * REGSIZE;
       size_stack += num_reg_params * REGSIZE;
       size_stack = align_stack_size(size_stack);
-      emit("addi sp, sp, -%zu", size_stack);
+      emit("addi sp, sp, -%ju", (uintmax_t)size_stack);
       uintreg_t sp = size_stack;
-      emit(SW "   fp, %zu(sp)", sp -= REGSIZE);
-      emit(SW "   ra, %zu(sp)", sp -= REGSIZE);
+      emit(SW "   fp, %ju(sp)", (uintmax_t)(sp -= REGSIZE));
+      emit(SW "   ra, %ju(sp)", (uintmax_t)(sp -= REGSIZE));
       for (size_t i = 0; i < num_reg_params; ++i) {
-         emit(SW "   a%zu, %zu(sp)", i, sp -= REGSIZE);
+         emit(SW "   a%zu, %ju(sp)", i, (uintmax_t)(sp -= REGSIZE));
       }
-      emit("addi fp, sp, %zu", size_stack);
+      emit("addi fp, sp, %ju", (uintmax_t)size_stack);
 
       uintreg_t fp = REGSIZE * (3 + num_reg_params);
       assign_scope(n->func->scope, &fp);
@@ -200,15 +200,15 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       if (!strcmp(n->func->name, "main"))
          emit("mv   a0, x0");
       emit("%s.ret:", n->func->name);
-      emit(LW "   fp, %zu(sp)", size_stack - 1*REGSIZE);
-      emit(LW "   ra, %zu(sp)", size_stack - 2*REGSIZE);
-      emit("addi sp, sp, %zu",     size_stack);
+      emit(LW "   fp, %ju(sp)", (uintmax_t)(size_stack - 1*REGSIZE));
+      emit(LW "   ra, %ju(sp)", (uintmax_t)(size_stack - 2*REGSIZE));
+      emit("addi sp, sp, %ju",     (uintmax_t)size_stack);
       emit("ret");
       return n->next;
 
    case IR_IRET:
       if (n->unary.reg != 0) {
-         emit("mv   a0, %s", reg_op(n->unary.reg));
+         emit("mv   a0, %s", reg(n->unary.reg));
       }
       fallthrough;
    case IR_RET:
@@ -226,15 +226,15 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    case IR_JMPIFN:
       instr = "beq ";
    ir_branch:;
-      emit("%s %s, x0, %s", instr, reg_op(n->cjmp.reg), n->cjmp.label);
+      emit("%s %s, x0, %s", instr, reg(n->cjmp.reg), n->cjmp.label);
       return n->next;
    case IR_FLOOKUP:
    case IR_GLOOKUP:
-      emit("la   %s, %s", reg_op(n->lstr.reg), n->lstr.str);
+      emit("la   %s, %s", reg(n->lstr.reg), n->lstr.str);
       return n->next;
    case IR_LOOKUP:
    {
-      const char* dest = reg_op(n->lookup.reg);
+      const char* dest = reg(n->lookup.reg);
       const size_t addr = n->lookup.scope->vars[n->lookup.var_idx].addr;
       const ir_reg_t reg = n->lookup.reg;
       if (optim_level >= 2
@@ -262,12 +262,12 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    {
       const struct strdb_ptr* ptr;
       strdb_add(n->lstr.str, &ptr);
-      emit("la   %s, __strings + %zu", reg_op(n->lstr.reg), ptr->idx);
+      emit("la   %s, __strings + %zu", reg(n->lstr.reg), ptr->idx);
       return n->next;
    }
    case IR_FPARAM:
       if (n->fparam.idx < 8) {
-         const char* dest = reg_op(n->fparam.reg);
+         const char* dest = reg(n->fparam.reg);
          const size_t addr = (3 + n->fparam.idx) * REGSIZE;
          const ir_reg_t reg = n->lookup.reg;
          if (optim_level >= 2
@@ -293,13 +293,13 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       }
       return n->next;
    case IR_INEG:
-      emit("sub %s, x0, %s", reg_op(n->unary.reg), reg_op(n->unary.reg));
+      emit("sub %s, x0, %s", reg(n->unary.reg), reg(n->unary.reg));
       return n->next;
    case IR_INOT:
-      emit("not %s, %s", reg_op(n->unary.reg), reg_op(n->unary.reg));
+      emit("not %s, %s", reg(n->unary.reg), reg(n->unary.reg));
       return n->next;
    case IR_BNOT:
-      emit("seqz %s, %s", reg_op(n->unary.reg), reg_op(n->unary.reg));
+      emit("seqz %s, %s", reg(n->unary.reg), reg(n->unary.reg));
       return n->next;
    case IR_ISTEQ:
       instr = "seqz";
@@ -308,16 +308,16 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       instr = "snez";
    {
    ir_seqz:;
-      const char* dest = reg_op(n->binary.dest);
+      const char* dest = reg(n->binary.dest);
       const char* a;
       if (n->binary.a.type == IRT_REG) {
-         a = reg_op(n->binary.a.reg);
+         a = reg(n->binary.a.reg);
       } else {
-         a = reg_op(n->binary.dest);
+         a = reg(n->binary.dest);
          emit("li %s, %jd", a, n->binary.b.sVal);
       }
       if (n->binary.b.type == IRT_REG) {
-         emit("sub %s, %s, %s", dest, a, reg_op(n->binary.b.reg));
+         emit("sub %s, %s, %s", dest, a, reg(n->binary.b.reg));
       } else {
          const char* sign = n->binary.b.sVal < 0 ? "" : "-";
          emit("addi %s, %s, %s%jd", dest, a, sign, n->binary.b.sVal);
@@ -347,16 +347,16 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          av = n->binary.a;
          bv = n->binary.b;
       }
-      const char* dest = reg_op(n->binary.dest);
+      const char* dest = reg(n->binary.dest);
       const char* a;
       if (av.type == IRT_REG) {
-         a = reg_op(av.reg);
+         a = reg(av.reg);
       } else {
          a = dest;
          emit("li %s, %jd", a, av.sVal);
       }
       if (bv.type == IRT_REG) {
-         emit("%s %s, %s, %s", flag ? "sltu" : "slt", dest, a, reg_op(bv.reg));
+         emit("%s %s, %s, %s", flag ? "sltu" : "slt", dest, a, reg(bv.reg));
       } else {
          emit("%s %s, %s, %jd", flag ? "sltiu" : "slti", dest, a, bv.sVal);
       }
@@ -369,7 +369,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       fallthrough;
    case IR_USTLT:
    {
-      const char* dest = reg_op(n->binary.dest);
+      const char* dest = reg(n->binary.dest);
       struct ir_value av, bv;
       if (flag2) {
          av = n->binary.b;
@@ -380,13 +380,13 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       }
       const char* a;
       if (av.type == IRT_REG) {
-         a = reg_op(av.reg);
+         a = reg(av.reg);
       } else {
          a = dest;
          emit("li %s, %jd", a, av.sVal);
       }
       if (bv.type == IRT_REG) {
-         emit("sltu %s, %s, %s", dest, a, reg_op(bv.reg));
+         emit("sltu %s, %s, %s", dest, a, reg(bv.reg));
       } else {
          emit("sltiu %s, %s, %jd", dest, a, bv.sVal);
       }
@@ -394,8 +394,8 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    }
    case IR_IICAST:
    {
-      const char* dest = reg_op(n->iicast.dest);
-      const char* src = reg_op(n->iicast.src);
+      const char* dest = reg(n->iicast.dest);
+      const char* src = reg(n->iicast.src);
       if (n->iicast.ds == n->iicast.ss) {
          if (n->iicast.dest != n->iicast.src)
             emit("mv %s, %s", dest, src);
@@ -449,13 +449,13 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       uintreg_t sp = saved_sp;
       n_stack = align_stack_size(n_stack);
 
-      emit("addi sp, sp, -%zu", n_stack);
+      emit("addi sp, sp, -%ju", (uintmax_t)n_stack);
 
       if (flag2) {
          if (is_builtin_func(n->call.name))
             request_builtin(n->call.name);
          for (size_t i = 0; i < dest; ++i) {
-            emit(SW " %s, %zu(sp)", reg_op(i), sp -= REGSIZE);
+            emit(SW " %s, %ju(sp)", reg(i), (uintmax_t)(sp -= REGSIZE));
          }
       }
       const size_t params_sp = sp;
@@ -463,14 +463,14 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       for (size_t i = 0; i < my_min(8, np); ++i) {
          ir_node_t* tmp = params[i];
          while ((tmp = emit_ir(tmp)) != NULL);
-         emit(SW " %s, %zu(sp)", reg_op(dest), sp -= REGSIZE);
+         emit(SW " %s, %ju(sp)", reg(dest), (uintmax_t)(sp -= REGSIZE));
       }
 
       if (np) {
          for (size_t i = np - 1; i >= 8; --i) {
             ir_node_t* tmp = params[i];
             while ((tmp = emit_ir(tmp)) != NULL);
-            emit(SW " %s, %zu", reg_op(dest), sp -= REGSIZE);
+            emit(SW " %s, %ju", reg(dest), (uintmax_t)(sp -= REGSIZE));
          }
       }
 
@@ -482,7 +482,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
 
       sp = params_sp;
       for (size_t i = 0; i < my_min(8, np); ++i) {
-         emit(LW " a%zu, %zu(sp)", i, sp -= REGSIZE);
+         emit(LW " a%zu, %ju(sp)", i, (uintmax_t)(sp -= REGSIZE));
       }
       if (flag) {
          emit("jalr t0");
@@ -490,13 +490,13 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          emit("call %s", n->call.name);
       }
       if (flag2 && dest != 0) {
-         emit("mv %s, a0", reg_op(dest));
+         emit("mv %s, a0", reg(dest));
          sp = saved_sp;
          for (size_t i = 0; i < dest; ++i) {
-            emit(LW " %s, %zu(sp)", reg_op(i), sp -= REGSIZE);
+            emit(LW " %s, %ju(sp)", reg(i), (uintmax_t)(sp -= REGSIZE));
          }
       }
-      emit("addi sp, sp, %zu", n_stack);
+      emit("addi sp, sp, %ju", (uintmax_t)n_stack);
       return n->next;
    }
 
@@ -518,7 +518,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    {
    ir_mul:;
       struct ir_value av, bv;
-      const char* dest = reg_op(n->binary.dest);
+      const char* dest = reg(n->binary.dest);
       av = n->binary.a;
       bv = n->binary.b;
 
@@ -544,14 +544,14 @@ ir_node_t* emit_ir(const ir_node_t* n) {
 
 
       if (av.type == IRT_REG) {
-         a = reg_op(av.reg);
+         a = reg(av.reg);
       } else {
          a = dest;
          emit("li %s, %jd", a, av.sVal);
       }
 
       if (bv.type == IRT_REG) {
-         b = reg_op(bv.reg);
+         b = reg(bv.reg);
       } else {
          b = "s1";
          emit(SW " s1, -4(sp)");

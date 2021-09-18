@@ -17,12 +17,12 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdio.h>
-#include "riscv/regs.h"
-#include "riscv/cpu.h"
 #include "cmdline.h"
 #include "target.h"
 #include "error.h"
 #include "config.h"
+#include "regs.h"
+#include "cpu.h"
 
 struct machine_option mach_opts[] = {
    { "cpu", "The target CPU (default: " DEF_CPU ")", 2, .sVal = DEF_CPU },

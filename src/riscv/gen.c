@@ -14,11 +14,11 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <ctype.h>
-#include "riscv/cpu.h"
 #include "config.h"
 #include "target.h"
 #include "error.h"
 #include "strdb.h"
+#include "cpu.h"
 
 ir_node_t* emit_ir(ir_node_t*);
 
