@@ -110,7 +110,7 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    
    case IR_READ:
-#if BTIS == 32
+#if BITS == 32
       if (n->read.size < INT_INT) {
 #elif BITS == 64
       if (n->read.size < INT_LONG) {
@@ -354,7 +354,7 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
       uintreg_t sp = n_stack;
 
       for (size_t i = 0; i < dest; ++i) {
-         emit("mov %s PTR [%s + %zu], %s", as_size(IRS_PTR), REG_SP, sp, reg(i));
+         emit("mov %s PTR [%s + %ju], %s", as_size(IRS_PTR), REG_SP, (uintmax_t)sp, reg(i));
          sp -= REGSIZE;
       }
 
@@ -365,20 +365,20 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
       for (size_t i = np; i != 0; --i) {
          const ir_node_t* tmp = params[i - 1];
          while ((tmp = emit_ir(tmp)) != NULL);
-         emit("mov %s PTR [%s + %zu], %s", as_size(IRS_PTR), REGS_SP, sp, reg(dest));
+         emit("mov %s PTR [%s + %ju], %s", as_size(IRS_PTR), REG_SP, (uintmax_t)sp, reg(dest));
          sp -= REGSIZE;
       }
 #else
       for (size_t i = 0; i < my_min(np, arraylen(param_regs)); ++i) {
          const ir_node_t* tmp = params[i];
          while ((tmp = emit_ir(tmp)) != NULL);
-         emit("mov %s PTR [%s + %zu], %s", as_size(IRS_PTR), REG_SP, sp, reg(dest));
+         emit("mov %s PTR [%s + %ju], %s", as_size(IRS_PTR), REG_SP, (uintmax_t)sp, reg(dest));
          sp -= REGSIZE;
       }
       for (size_t i = np; i > arraylen(param_regs); --i) {
          const ir_node_t* tmp = params[i - 1];
          while ((tmp = emit_ir(tmp)) != NULL);
-         emit("mov %s PTR [%s + %zu], %s", as_size(IRS_PTR), REG_SP, sp, reg(dest));
+         emit("mov %s PTR [%s + %ju], %s", as_size(IRS_PTR), REG_SP, (uintmax_t)sp, reg(dest));
          sp -= REGSIZE;
       }
 #endif
@@ -393,7 +393,7 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
       sp = REGSIZE * (np - 1);
 
       for (size_t i = 0; i < my_min(np, arraylen(param_regs)); ++i) {
-         emit("mov %s, %s PTR [%s + %zu]", reg(param_regs[i]), as_size(IRS_PTR), REG_SP, sp);
+         emit("mov %s, %s PTR [%s + %ju]", reg(param_regs[i]), as_size(IRS_PTR), REG_SP, (uintmax_t)sp);
          sp -= REGSIZE;
       }
 #endif
@@ -409,7 +409,7 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
 
       sp = n_stack;
       for (size_t i = 0; i < dest; ++i) {
-         emit("mov %s, %s PTR [%s + %zu]", reg(i), as_size(IRS_PTR), REG_SP, sp);
+         emit("mov %s, %s PTR [%s + %ju]", reg(i), as_size(IRS_PTR), REG_SP, (uintmax_t)sp);
          sp -= REGSIZE;
       }
 

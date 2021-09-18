@@ -21,7 +21,7 @@
 .type __mului32, @function
 __mului32:
 mov eax, dword [esp + 8]
-mul eax, dword [esp + 4]
+mul dword ptr [esp + 4]
 ret
 .size __mului32, .-__mului32
 
@@ -30,7 +30,7 @@ ret
 __mului16:
 xor eax, eax
 mov ax, word [esp + 6]
-mul ax, word [esp + 4]
+mul word ptr [esp + 4]
 ret
 .size __mului16, .-__mului16
 
@@ -39,7 +39,7 @@ ret
 __mului8:
 xor eax, eax
 mov al, byte [esp + 5]
-mul al, byte [esp + 4]
+mul byte ptr [esp + 4]
 ret
 .size __mului8, .-__mului8
 
@@ -67,6 +67,6 @@ ret
 __mulsi8:
 xor eax, eax
 mov al, byte [esp + 5]
-imul al, byte [esp + 4]
+imul byte ptr [esp + 4]
 ret
 .size __mulsi8, .-__mulsi8
