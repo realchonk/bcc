@@ -18,7 +18,7 @@ ask() {
 [ -d pkg ] && rm -rf pkg
 
 ./autogen.sh      || exit 1
-./configure       || exit 1
+./configure $@    || exit 1
 make -j$(nproc)   || exit 1
 
 ask "Check" && make check
