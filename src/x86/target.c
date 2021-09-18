@@ -21,6 +21,11 @@
 .max_##name = INT##bits##_MAX,   \
 .max_u##name = UINT##bits##_MAX
 
+static const char* fend_asm[]      = { "s", "S", "asm", NULL   };
+static const char* fend_obj[]      = { "o", NULL               };
+static const char* fend_archive[]  = { "a", NULL               };
+static const char* fend_dll[]      = { "so", NULL              };
+
 const struct target_info target_info = {
    .name          = BCC_FULL_ARCH,
    .size_byte     = 1,
@@ -40,10 +45,10 @@ const struct target_info target_info = {
 
    .unsigned_char = false,
 
-   .fend_asm      =  "s",
-   .fend_obj      = "o",
-   .fend_archive  = "a",
-   .fend_dll      = "so",
+   .fend_asm      = fend_asm,
+   .fend_obj      = fend_obj,
+   .fend_archive  = fend_archive,
+   .fend_dll      = fend_dll,
 
    .ptrdiff_type  = INT_LONG,
    .size_type     = INT_LONG,

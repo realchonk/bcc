@@ -54,10 +54,10 @@ struct target_info {
    const bool unsigned_char;                    // is the char datatype unsigned
 
                                                 // file extension of ...
-   const char* const fend_asm;                  //    an assembly file
-   const char* const fend_obj;                  //    an object file
-   const char* const fend_archive;              //    an archive
-   const char* const fend_dll;                  //    a  dynamically-linked library
+   const char** const fend_asm;                 //    an assembly file
+   const char** const fend_obj;                 //    an object file
+   const char** const fend_archive;             //    an archive
+   const char** const fend_dll;                 //    a  dynamically-linked library
 
    const bool has_c99_array;                    // does the target support C99's variable length arrays?
 

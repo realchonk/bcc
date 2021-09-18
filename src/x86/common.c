@@ -22,6 +22,7 @@
 #include "target.h"
 #include "config.h"
 #include "error.h"
+#include "bcc.h"
 
 struct machine_option mach_opts[] = {
    { "clean-asm", "Generate cleaned assembly", 0, .bVal = false },
@@ -56,3 +57,4 @@ char* get_ld_abi(void) {
 bool emit_prepare(void) {
    return true;
 }
+

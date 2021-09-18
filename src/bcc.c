@@ -52,6 +52,14 @@ bool ends_with(const char* str, const char* end) {
    const char* ending = strrchr(str, '.');
    return ending && !strcmp(ending + 1, end);
 }
+bool ends_with_one(const char* str, const char** ends) {
+   while (*ends) {
+      if (ends_with(str, *ends))
+         return true;
+      ++ends;
+   }
+   return false;
+}
 int get_mach_opt_vtype(const char* value) {
    if (!value) return 0;
    while (isdigit(*value)) ++value;
@@ -128,8 +136,8 @@ const char* create_output_name(const char* source, enum compilation_level level)
    case LEVEL_PREPROCESS:  return "-";
    case LEVEL_PARSE:       return "-";
    case LEVEL_IRGEN:       return replace_ending(source, "ir");
-   case LEVEL_GEN:         return replace_ending(source, target_info.fend_asm);
-   case LEVEL_ASSEMBLE:    return replace_ending(source, target_info.fend_obj);
+   case LEVEL_GEN:         return replace_ending(source, target_info.fend_asm[0]);
+   case LEVEL_ASSEMBLE:    return replace_ending(source, target_info.fend_obj[0]);
    case LEVEL_LINK:        return "a.out";
    default:                panic("unreachable reached");
    }
@@ -148,7 +156,7 @@ static void close_file(FILE* file) {
 }
 
 int process_file(const char* source_name, const char* output_name, enum compilation_level level) {
-   if (ends_with(source_name, target_info.fend_asm)) {
+   if (ends_with_one(source_name, target_info.fend_asm)) {
       return level >= LEVEL_ASSEMBLE ? assemble(source_name, output_name) : 0;
    }
    FILE* source = run_cpp(source_name);

@@ -185,9 +185,9 @@ int main(int argc, char* argv[]) {
    for (; optind < argc; ++optind) {
       const char* source_name = argv[optind];
       const char* output_name2;
-      if (ends_with(source_name, target_info.fend_obj)
-         || ends_with(source_name, target_info.fend_archive)
-         || ends_with(source_name, target_info.fend_dll)) {
+      if (ends_with_one(source_name, target_info.fend_obj)
+         || ends_with_one(source_name, target_info.fend_archive)
+         || ends_with_one(source_name, target_info.fend_dll)) {
          buf_push(objects, source_name);
          continue;
       } else if (level == LEVEL_LINK) {

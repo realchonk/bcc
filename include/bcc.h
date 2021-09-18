@@ -39,6 +39,7 @@ unsigned popcnt(uintmax_t);
 
 istr_t replace_ending(const char* s, const char* end);
 bool ends_with(const char* s, const char* end);
+bool ends_with_one(const char* s, const char** end);
 int get_mach_opt_vtype(const char*);
 bool parse_mach_opt(char*);
 const char* create_output_name(const char*, enum compilation_level);
