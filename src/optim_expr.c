@@ -18,7 +18,7 @@
 #include "error.h"
 #include "bcc.h"
 
-struct expression* optim_expr(struct expression* e) {
+struct expression* optim_expr(struct expression* e, struct scope* scope) {
    if (optim_level < 1) return e;
    if (e->type == EXPR_INT || e->type == EXPR_UINT
     || e->type == EXPR_STRING 
@@ -28,7 +28,7 @@ struct expression* optim_expr(struct expression* e) {
     || e->type == EXPR_CHAR || optim_level < 1)
       return e;
    struct value result;
-   if (try_eval_expr(e, &result)) {
+   if (try_eval_expr(e, &result, scope)) {
       free_expr(e);
       e = new_expr();
       switch (result.type->type) {

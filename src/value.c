@@ -14,6 +14,7 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <string.h>
+#include "target.h"
 #include "value.h"
 #include "error.h"
 #include "optim.h"
@@ -63,14 +64,14 @@
       return false; \
    }
 
-bool try_eval_expr(struct expression* e, struct value* val) {
+bool try_eval_expr(struct expression* e, struct value* val, struct scope* scope) {
    if (val) {
       val->begin = e->begin;
       val->end = e->end;
    }
    switch (e->type) {
    case EXPR_PAREN:
-      return try_eval_expr(e->expr, val);
+      return try_eval_expr(e->expr, val, scope);
    case EXPR_INT:
       val->type = copy_value_type(get_value_type(NULL, e));
       val->iVal = e->iVal;
@@ -88,7 +89,8 @@ bool try_eval_expr(struct expression* e, struct value* val) {
    case EXPR_BINARY:
    {
       struct value left, right, result;
-      if (!try_eval_expr(e->binary.left, &left) || !try_eval_expr(e->binary.right, &right)) return false;
+      if (!try_eval_expr(e->binary.left, &left, scope)
+            || !try_eval_expr(e->binary.right, &right, scope)) return false;
       result.type = common_value_type_free(left.type, right.type, false); // TODO: convert to common
 
       switch (e->binary.op.type) {
@@ -146,7 +148,8 @@ bool try_eval_expr(struct expression* e, struct value* val) {
    case EXPR_UNARY:
    {
       struct value right, result;
-      if (!try_eval_expr(e->unary.expr, &right)) return false;
+      if (!try_eval_expr(e->unary.expr, &right, scope))
+         return false;
       result.type = right.type;
       right.type = NULL;
 
@@ -188,27 +191,66 @@ bool try_eval_expr(struct expression* e, struct value* val) {
       while (i < (buf_len(e->comma) - 1)) {
          struct expression* sub = e->comma[i];
          struct value val;
-         if (try_eval_expr(sub, &val)) {
+         if (try_eval_expr(sub, &val, scope)) {
             buf_remove(e->comma, i, 1);
             free_expr(sub);
          } else ++i;
       }
-      optim_expr(e->comma[buf_len(e->comma) - 1]);
+      optim_expr(e->comma[buf_len(e->comma) - 1], scope);
       if (buf_len(e->comma) == 1) {
          struct expression* sub = e->comma[0];
          struct value result;
-         if (try_eval_expr(sub, &result)) {
+         if (try_eval_expr(sub, &result, scope)) {
             *val = result;
             return true;
          }
       }
       return false;
    }
+   case EXPR_SIZEOF:
+   {
+      const struct value_type* vt;
+      if (e->szof.has_expr) {
+         // TODO: add `struct scope* scope` as an argument
+         return false;
+      } else {
+         vt = e->szof.type;
+      }
+      if (vt_is_vla(vt))
+         return false;
+      const size_t sz = sizeof_value(vt, false);
+      val->type = make_int(target_info.size_type, true);
+      val->begin = e->begin;
+      val->end = e->end;
+      val->uVal = sz;
+      return true;
+   }
+   case EXPR_ARRAYLEN:
+   {
+      const struct value_type* vt;
+      if (scope) {
+         vt = get_value_type(scope, e->expr);
+      } else {
+         vt = e->expr->vtype;
+      }
+      if (!vt)
+         return false;
+      if (!vt_is_const_array(vt))
+         return false;
+      if (!vt->pointer.array.has_const_size)
+         return false;
+      const size_t len = vt->pointer.array.size;
+      val->type = make_int(target_info.size_type, true);
+      val->begin = e->begin;
+      val->end = e->end;
+      val->uVal = len;
+      return true;
+   }
    default:
       return false;
    }
 }
-bool try_eval_array(struct expression* e, struct value* v, const struct value_type* vt) {
+bool try_eval_array(struct expression* e, struct value* v, const struct value_type* vt, struct scope* scope) {
    v->type = copy_value_type(vt);
    v->begin = e->begin;
    v->end = e->end;
@@ -229,7 +271,7 @@ bool try_eval_array(struct expression* e, struct value* v, const struct value_ty
    } else if (e->type == EXPR_COMMA) {
       for (size_t i = 0; i < buf_len(e->comma); ++i) {
          struct value sub;
-         if (!try_eval_expr(e->comma[i], &sub))
+         if (!try_eval_expr(e->comma[i], &sub, scope))
             return false;
          buf_push(v->array, sub);
       }
@@ -239,7 +281,7 @@ bool try_eval_array(struct expression* e, struct value* v, const struct value_ty
 bool var_is_declared(istr_t name, struct scope* scope) {
    return (scope && scope_find_var(scope, name)) || unit_get_var(name) || unit_get_func(name);
 }
-void eval_expr(struct expression* e, struct value* v) {
-   if (!try_eval_expr(e, v))
+void eval_expr(struct expression* e, struct value* v, struct scope* scope) {
+   if (!try_eval_expr(e, v, scope))
       parse_error(&e->begin, "expected constant-expression");
 }

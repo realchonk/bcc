@@ -285,13 +285,13 @@ bool value_type_equal(const struct value_type*, const struct value_type*);
 /// compile-time evaluation
 
 // try to evaluate an expression at compile-time
-bool try_eval_expr(struct expression*, struct value*);
+bool try_eval_expr(struct expression*, struct value*, struct scope*);
 
 // evaluate an expression at compile, or error
-void eval_expr(struct expression*, struct value*);
+void eval_expr(struct expression*, struct value*, struct scope*);
 
 // try to evaluate an array initialization at compile-time
-bool try_eval_array(struct expression*, struct value*, const struct value_type*);
+bool try_eval_array(struct expression*, struct value*, const struct value_type*, struct scope*);
 
 /// uncategorized
 
@@ -315,6 +315,12 @@ struct value_type* common_value_type_free(struct value_type*, struct value_type*
 
 // checks if `vt` is an array
 #define vt_is_array(vt) (((vt)->type == VAL_POINTER) && ((vt)->pointer.is_array))
+
+// checks if `vt` is an array that has compile-time defined size
+#define vt_is_const_array(vt) (vt_is_array(vt) && ((vt)->pointer.array.has_const_size))
+
+// checks if `vt` is an array that has runtime defined size
+#define vt_is_vla(vt) (vt_is_array(vt) && (!(vt)->pointer.array.has_const_size))
 
 // checks if `vt` is a pointer and is restrict
 #define vt_is_restrict(vt) (((vt)->type == VAL_POINTER) && ((vt)->pointer.is_restrict))

@@ -165,7 +165,7 @@ static struct expression* expr_prim(void) {
          tmp->fcall.params = NULL;
          if (!lexer_matches(TK_RPAREN)) {
             do {
-               buf_push(tmp->fcall.params, optim_expr(expr_assign()));
+               buf_push(tmp->fcall.params, optim_expr(expr_assign(), scope));
             } while (lexer_match(TK_COMMA));
          }
          tmp->end = lexer_expect(TK_RPAREN).end;
@@ -177,7 +177,7 @@ static struct expression* expr_prim(void) {
          add->type = EXPR_BINARY;
          add->binary.op.type = TK_PLUS;
          add->binary.left = expr;
-         add->binary.right = optim_expr(expr_comma());
+         add->binary.right = optim_expr(expr_comma(), scope);
          add->begin = expr->begin;
          add->end = lexer_expect(TK_RBRACK).end;
          
@@ -237,7 +237,7 @@ static struct expression* expr_prim(void) {
       expr = tmp;
    }
 
-   return optim_expr(expr);
+   return optim_expr(expr, scope);
 }
 
 static struct expression* expr_unary(void) {
@@ -506,13 +506,13 @@ struct expression* parse_expr(struct scope* s) {
    scope = s;
    struct expression* e = expr_comma();
    get_value_type(s, e);
-   return optim_expr(e);
+   return optim_expr(e, s);
 }
 struct expression* parse_expr_no_comma(struct scope* s) {
    scope = s;
    struct expression* e = expr_assign();
    get_value_type(s, e);
-   return optim_expr(e);
+   return optim_expr(e, s);
 }
 
 
@@ -698,10 +698,10 @@ bool expr_is_lvalue(const struct expression* e) {
    default:          return false;
    }
 }
-struct value parse_const_expr(void) {
-   struct expression* expr = parse_expr(NULL);
+struct value parse_const_expr(struct scope* scope) {
+   struct expression* expr = parse_expr(scope);
    struct value val;
-   if (!try_eval_expr(expr, &val))
+   if (!try_eval_expr(expr, &val, scope))
       parse_error(&expr->begin, "expected constant expression");
    free_expr(expr);
    return val;

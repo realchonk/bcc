@@ -121,7 +121,7 @@ void free_expr(struct expression*);
 bool expr_is_lvalue(const struct expression*);
 bool expr_is_pure(const struct expression*);
 
-struct value parse_const_expr(void);
+struct value parse_const_expr(struct scope*);
 
 struct scope;
 struct expression* parse_expr_list(struct scope*, const struct value_type*);

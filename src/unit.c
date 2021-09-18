@@ -202,7 +202,7 @@ void parse_unit(bool gen_ir) {
                } else {
                   struct expression* expr = parse_expr(NULL);
                   struct value val;
-                  if (!try_eval_expr(expr, &val))
+                  if (!try_eval_expr(expr, &val, NULL))
                      parse_error(&expr->begin, "global VLAs are not allowed.");
                   else if (val.type->type != VAL_INT)
                      parse_error(&expr->begin, "size of array must be an integer.");
@@ -221,8 +221,8 @@ void parse_unit(bool gen_ir) {
                   parse_error(&var.init->begin, "cannot initialize extern variable");
                bool s;
                if (vt_is_array(var.type))
-                  s = try_eval_array(var.init, &var.const_init, var.type);
-               else s = try_eval_expr(var.init, &var.const_init);
+                  s = try_eval_array(var.init, &var.const_init, var.type, NULL);
+               else s = try_eval_expr(var.init, &var.const_init, NULL);
                if (!s)
                   parse_error(&var.init->begin, "global variables may only be initialized with a constant value");
                if (!is_castable(var.type, var.type, true))

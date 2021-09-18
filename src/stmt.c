@@ -318,7 +318,7 @@ struct statement* parse_stmt(struct scope* scope) {
             e.cs.expr = parse_expr(scope);
             if (get_value_type(scope, e.cs.expr)->type != VAL_INT)
                parse_error(&e.cs.expr->begin, "expected integral expression");
-            eval_expr(e.cs.expr, &e.cs.value);
+            eval_expr(e.cs.expr, &e.cs.value, scope);
             e.end = lexer_expect(TK_COLON).end;
          } else if (lexer_matches(KW_DEFAULT)) {
             e.type = SWITCH_DEFAULT;
@@ -340,7 +340,7 @@ struct statement* parse_stmt(struct scope* scope) {
       stmt->type = STMT_NOP;
       lexer_skip();
       lexer_expect(TK_LPAREN);
-      struct value val = parse_const_expr();
+      struct value val = parse_const_expr(scope);
       const char* msg = NULL;
       if (lexer_match(TK_COMMA)) {
          msg = lexer_expect(TK_STRING).str;
@@ -394,7 +394,7 @@ struct statement* parse_stmt(struct scope* scope) {
                }
                struct expression* expr = parse_expr(scope);
                struct value val;
-               if (try_eval_expr(expr, &val)) {
+               if (try_eval_expr(expr, &val, scope)) {
                   if (val.type->type != VAL_INT)
                      parse_error(&expr->begin, "expected integer size");
                   else if (!val.type->integer.is_unsigned && val.iVal < 0)

@@ -19,7 +19,7 @@
 #include "stmt.h"
 #include "ir.h"
 
-struct expression* optim_expr(struct expression*);
+struct expression* optim_expr(struct expression*, struct scope*);
 struct statement* optim_stmt(struct statement*);
 struct ir_node* optim_ir_nodes(struct ir_node*);
 

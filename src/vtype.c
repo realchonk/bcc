@@ -284,7 +284,7 @@ struct value_type* parse_value_type(struct scope* scope) {
             struct enum_entry e;
             e.name = lexer_expect(TK_NAME).str;
             if (lexer_match(TK_EQ)) {
-               struct value val = parse_const_expr();
+               struct value val = parse_const_expr(scope);
                if (val.type->type != VAL_INT)
                   parse_error(&val.begin, "expected integer value");
                e.value = val.iVal;

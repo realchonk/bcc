@@ -40,12 +40,12 @@ struct statement* optim_stmt(struct statement* s) {
    case STMT_EXPR:
    case STMT_RETURN:
       if (s->expr)
-         s->expr = optim_expr(s->expr);
+         s->expr = optim_expr(s->expr, s->parent);
       break;
    case STMT_IF:
    {
       struct value val;
-      if (try_eval_expr(s->ifstmt.cond, &val)) {
+      if (try_eval_expr(s->ifstmt.cond, &val, s->parent)) {
          bool cond;
          switch (val.type->type) {
          case VAL_INT:     cond = val.iVal != 0; break;
@@ -72,7 +72,7 @@ end_if:
    {
       if (optim_level < 2) break;
       struct value val;
-      if (!try_eval_expr(s->sw.expr, &val)) break;
+      if (!try_eval_expr(s->sw.expr, &val, s->parent)) break;
       size_t def_lbl = SIZE_MAX;
       struct statement* new_st = new_stmt();
       new_st->type = STMT_SCOPE;
@@ -119,10 +119,10 @@ end_switch:
    }
    case STMT_WHILE:
    case STMT_DO_WHILE:
-      s->whileloop.cond = optim_expr(s->whileloop.cond);
+      s->whileloop.cond = optim_expr(s->whileloop.cond, s->parent);
       s->whileloop.stmt = optim_stmt(s->whileloop.stmt);
       if (s->whileloop.end)
-         s->whileloop.end = optim_expr(s->whileloop.end);
+         s->whileloop.end = optim_expr(s->whileloop.end, s->parent);
    default:
       break;
    }
