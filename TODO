@@ -34,9 +34,8 @@ General:
 - passing/returning structs/unions
 
 x86:
-- XXX fix function calls
-- fix nasm warning for indirect function calls (64bit)
 - optimize function calls
+- add VLAs
 
 riscv:
 - more simple optimizations
@@ -57,11 +56,13 @@ riscv:
 - replace `builtin functions` with `inlinable intrinsics`
 - find & fix reason for random crashes
 - document the code & add comments
-- options: -g, --sysroot=
+- options: -g, --sysroot=, -fuse-ld= -fuse-as=, -fuse-cpp=
 - <stdarg.h> header
 - auto-detection of --with-cpu= & --with-abi=
 - add zsh-completions
 - retire the preliminary bcl wrapper
+- implement is_assembly_file() function
+- update the man pages
 
 # Helpful Resources/Websites
 - POSIX C99 compiler    - https://pubs.opengroup.org/onlinepubs/9699919799/utilities/c99.html

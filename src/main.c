@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
          printf("Compiled on %s for %s\n", __DATE__, BCC_TARGET);
          return 0;
       case 'm':
-         if (!parse_mach_opt(optarg)) return false;
+         if (!parse_mach_opt(optarg)) return 1;
          break;
       case 'I':
       case 'D':

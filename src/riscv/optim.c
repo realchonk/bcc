@@ -63,37 +63,37 @@ static bool mul_to_func(ir_node_t** n) {
 
       ir_node_t fc;
       fc.type = IR_IFCALL;
-      fc.ifcall.name = strint(name);
-      fc.ifcall.dest = cur->binary.dest;
-      fc.ifcall.params = NULL;
+      fc.call.name = strint(name);
+      fc.call.dest = cur->binary.dest;
+      fc.call.params = NULL;
 
       ir_node_t* tmp = new_node(IR_NOP);
       if (cur->binary.a.type == IRT_REG) {
          tmp->type = IR_MOVE;
-         tmp->move.dest = fc.ifcall.dest;
+         tmp->move.dest = fc.call.dest;
          tmp->move.src = cur->binary.a.reg;
          tmp->move.size = cur->binary.size;
       } else if (cur->binary.a.type == IRT_UINT) {
          tmp->type = IR_LOAD;
-         tmp->load.dest = fc.ifcall.dest;
+         tmp->load.dest = fc.call.dest;
          tmp->load.size = cur->binary.size;
          tmp->load.value = cur->binary.a.uVal;
       } else panic("unreachable reached");
-      buf_push(fc.ifcall.params, tmp);
+      buf_push(fc.call.params, tmp);
 
       tmp = new_node(IR_NOP);
       if (cur->binary.b.type == IRT_REG) {
          tmp->type = IR_MOVE;
-         tmp->move.dest = fc.ifcall.dest;
+         tmp->move.dest = fc.call.dest;
          tmp->move.src = cur->binary.b.reg;
          tmp->move.size = cur->binary.size;
       } else if (cur->binary.b.type == IRT_UINT) {
          tmp->type = IR_LOAD;
-         tmp->load.dest = fc.ifcall.dest;
+         tmp->load.dest = fc.call.dest;
          tmp->load.size = cur->binary.size;
          tmp->load.value = cur->binary.b.uVal;
       } else panic("unreachable reached");
-      buf_push(fc.ifcall.params, tmp);
+      buf_push(fc.call.params, tmp);
 
       *cur = fc;
       success = true;
@@ -112,27 +112,27 @@ static bool copy_to_memcpy(ir_node_t** n) {
       fcall.next = cur->next;
       fcall.func = cur->func;
 
-      fcall.ifcall.name = strint("__builtin_memcpy");
-      fcall.ifcall.dest = cur->copy.dest;
-      fcall.ifcall.params = NULL;
+      fcall.call.name = strint("__builtin_memcpy");
+      fcall.call.dest = cur->copy.dest;
+      fcall.call.params = NULL;
       
       ir_node_t* param = new_node(IR_MOVE);
-      param->move.dest = fcall.ifcall.dest;
+      param->move.dest = fcall.call.dest;
       param->move.src  = cur->copy.dest;
       param->move.size = IRS_PTR;
-      buf_push(fcall.ifcall.params, param);
+      buf_push(fcall.call.params, param);
 
       param = new_node(IR_MOVE);
-      param->move.dest = fcall.ifcall.dest;
+      param->move.dest = fcall.call.dest;
       param->move.src  = cur->copy.src;
       param->move.size = IRS_PTR;
-      buf_push(fcall.ifcall.params, param);
+      buf_push(fcall.call.params, param);
 
       param = new_node(IR_LOAD);
-      param->load.dest = fcall.ifcall.dest;
+      param->load.dest = fcall.call.dest;
       param->load.value = cur->copy.len;
-      param->load.value = IRS_PTR;
-      buf_push(fcall.ifcall.params, param);
+      param->load.size = IRS_PTR;
+      buf_push(fcall.call.params, param);
       *cur = fcall;
       success = true;
    }

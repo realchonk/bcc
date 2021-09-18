@@ -441,8 +441,8 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    case IR_FCALL:
    {
    ir_call:;
-      ir_reg_t dest = flag ? n->rcall.dest : n->ifcall.dest;
-      struct ir_node** params = flag ? n->rcall.params : n->ifcall.params;
+      const ir_reg_t dest = n->call.dest;
+      struct ir_node** params = n->call.params;
       const size_t np = buf_len(params);
       uintreg_t n_stack = ((flag2 ? dest : 0) + np) * REGSIZE;
       const uintreg_t saved_sp = n_stack;
@@ -452,8 +452,8 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       emit("addi sp, sp, -%zu", n_stack);
 
       if (flag2) {
-         if (is_builtin_func(n->ifcall.name))
-            request_builtin(n->ifcall.name);
+         if (is_builtin_func(n->call.name))
+            request_builtin(n->call.name);
          for (size_t i = 0; i < dest; ++i) {
             emit(SW " %s, %zu(sp)", reg_op(i), sp -= REGSIZE);
          }
@@ -475,7 +475,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       }
 
       if (flag) {
-         ir_node_t* tmp = n->rcall.addr;
+         ir_node_t* tmp = n->call.addr;
          while ((tmp = emit_ir(tmp)) != NULL);
          emit("mv t0, a0");
       }
@@ -487,7 +487,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       if (flag) {
          emit("jalr t0");
       } else {
-         emit("call %s", n->ifcall.name);
+         emit("call %s", n->call.name);
       }
       if (flag2 && dest != 0) {
          emit("mv %s, a0", reg_op(dest));

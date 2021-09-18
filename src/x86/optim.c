@@ -16,6 +16,7 @@
 #include "target.h"
 #include "optim.h"
 #include "error.h"
+#include "ir.h"
 
 static ir_node_t* val_to_node(const struct ir_value* val, const ir_reg_t dest, const enum ir_value_size irs) {
    ir_node_t* n;
@@ -75,26 +76,62 @@ static bool mul_to_func(ir_node_t** n) {
       snprintf(name, sizeof(name), "__%s%ci%zu", type, sign, irs2sz(cur->binary.size) * 8);
       ir_node_t func;
       func.type = IR_IFCALL;
-      func.ifcall.name = strint(name);
-      func.ifcall.dest = dest;
-      func.ifcall.params = NULL;
-      buf_push(func.ifcall.params, val_to_node(&cur->binary.a, dest, cur->binary.size));
-      buf_push(func.ifcall.params, val_to_node(&cur->binary.b, dest, cur->binary.size));
+      func.call.name = strint(name);
+      func.call.dest = dest;
+      func.call.params = NULL;
+      buf_push(func.call.params, val_to_node(&cur->binary.a, dest, cur->binary.size));
+      buf_push(func.call.params, val_to_node(&cur->binary.b, dest, cur->binary.size));
       *cur = func;
       success = true;
    }
    return success;
 }
-
-// TODO: implement target-specific IR optimizations
-bool target_optim_ir(struct ir_node** n) {
-   return false;
-}
-
-bool target_post_optim_ir(struct ir_node** n) {
+static bool copy_to_memcpy(ir_node_t** n) {
    bool success = false;
-   while (mul_to_func(n))
+   for (ir_node_t* cur = *n; cur; cur = cur->next) {
+      if (cur->type != IR_COPY)
+         continue;
+      ir_node_t fcall;
+      fcall.type = IR_IFCALL;
+      fcall.prev = cur->prev;
+      fcall.next = cur->next;
+      fcall.func = cur->func;
+
+      fcall.call.name = strint("__builtin_memcpy");
+      fcall.call.dest = cur->copy.dest;
+      fcall.call.params = NULL;
+      
+      ir_node_t* param = new_node(IR_MOVE);
+      param->move.dest = fcall.call.dest;
+      param->move.src  = cur->copy.dest;
+      param->move.size = IRS_PTR;
+      buf_push(fcall.call.params, param);
+
+      param = new_node(IR_MOVE);
+      param->move.dest = fcall.call.dest;
+      param->move.src  = cur->copy.src;
+      param->move.size = IRS_PTR;
+      buf_push(fcall.call.params, param);
+
+      param = new_node(IR_LOAD);
+      param->load.dest = fcall.call.dest;
+      param->load.value = cur->copy.len;
+      param->load.size = IRS_PTR;
+      buf_push(fcall.call.params, param);
+      *cur = fcall;
       success = true;
+   }
    return success;
 }
 
+bool target_optim_ir(ir_node_t** n) {
+   (void)n;
+   return false;
+}
+bool target_post_optim_ir(ir_node_t** n) {
+   bool success = false;
+   while (mul_to_func(n)
+         || copy_to_memcpy(n))
+      success = true;
+   return success;
+}

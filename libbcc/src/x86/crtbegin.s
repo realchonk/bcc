@@ -12,14 +12,6 @@
 #  
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#
-#  Searches for the NASM assembler (only x86)
 
-AC_DEFUN([AX_FIND_NASM], [
-AC_PATH_PROG([ac_NASM], [nasm], [no])
-if test x${ac_NASM} = xno; then
-   AC_MSG_ERROR([NASM assembler not found])
-else
-   AC_DEFINE_UNQUOTED([NASM], ["${ac_NASM}"], [Path to the NASM assembler])
-fi
-])
+
+
