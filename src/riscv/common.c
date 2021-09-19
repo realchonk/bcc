@@ -12,6 +12,9 @@
 //  
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+//  SEE ALSO:
+//  - https://github.com/gcc-mirror/gcc/blob/16e2427f50c208dfe07d07f18009969502c25dc8/gcc/config/riscv/linux.h
 
 #include <sys/types.h>
 #include <sys/wait.h>
