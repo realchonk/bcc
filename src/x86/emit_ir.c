@@ -343,13 +343,13 @@ ir_node_t* emit_ir(ir_node_t* n) {
       if (!flag && is_builtin_func(n->call.name))
          request_builtin(n->call.name);
 
-      size_t n_stack = 0;
+      size_t n_stack = 1;
       n_stack += dest;
       n_stack += np;
       n_stack = align_stack_size(n_stack * REGSIZE);
       alloc_stack(n_stack);
 
-      uintreg_t sp = n_stack;
+      uintreg_t sp = n_stack - REGSIZE;
 
       for (size_t i = 0; i < dest; ++i) {
          emit("mov %s PTR [%s + %ju], %s", as_size(IRS_PTR), REG_SP, (uintmax_t)sp, reg(i));
@@ -396,7 +396,7 @@ ir_node_t* emit_ir(ir_node_t* n) {
       if (dest != 0)
          emit("mov %s, %s", reg(dest), reg(0));
 
-      sp = n_stack;
+      sp = n_stack - REGSIZE;
       for (size_t i = 0; i < dest; ++i) {
          emit("mov %s, %s PTR [%s + %ju]", reg(i), as_size(IRS_PTR), REG_SP, (uintmax_t)sp);
          sp -= REGSIZE;
