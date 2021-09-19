@@ -56,6 +56,14 @@ static const char* colors[] = {
    /* BOLD YELLOW    */ "\033[1;33m",
 };
 
+static void trim_leading_nl(char** buf) {
+   const size_t len = buf_len(*buf);
+   if (len < 2)
+      return;
+   if ((*buf)[len - 2] == '\n')
+      buf_remove(*buf, len - 2, 1);
+}
+
 static void print(int v, int c, const char* fmt, ...) {
    va_list ap;
    if (v > verbosity)
@@ -253,6 +261,7 @@ static bool run_test(const struct test_case* c) {
       print(1, 4, "TEST '%s': failed to invoke compiler: %s", c->name, output);
       exit(1);
    case 254:
+      trim_leading_nl(&output);
       print(1, 4, "TEST '%s': %s\n", c->name, output);
       return false;
    default:
@@ -270,6 +279,7 @@ static bool run_test(const struct test_case* c) {
    }
 
    if (ec == 254) {
+      trim_leading_nl(&output);
       print(1, 4, "TEST '%s': %s\n", c->name, output);
       return false;
    }
