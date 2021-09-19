@@ -101,7 +101,7 @@ FILE* run_cpp(const char* source_name) {
       } else {
          fprintf(stderr, "bcc: bcpp failed by undetermined cause\n");
       }
-      return NULL;
+      exit(254);
    }
 
 }

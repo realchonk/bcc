@@ -415,7 +415,7 @@ struct statement* parse_stmt(struct scope* scope) {
                vtype->end = lexer_expect(TK_RBRACK).end;
 
                // check if array has size
-               if (!vtype->pointer.array.has_const_size && !vtype->pointer.array.dsize) {
+               if (vt_is_unsized_array(vtype)) {
                   parse_error(&pos_lbrack, "expected size for array");
                }
 
@@ -448,9 +448,14 @@ struct statement* parse_stmt(struct scope* scope) {
     
             if (!var.init && vtype->is_const && !vt_is_array(vtype))
                parse_error(&var.end, "expected init value for const variable");
+
+            if (vt_is_unsized_array(vtype))
+               parse_error(&var.end, "array size missing");
             
             if (scope_add_var(scope, &var) == SIZE_MAX)
                parse_error(&var.begin, "variable '%s' is already declared.", var.name);
+
+
             ++stmt->var_decl.num;
          } while (lexer_match(TK_COMMA));
          stmt->end = lexer_expect(TK_SEMICOLON).end;

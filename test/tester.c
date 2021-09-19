@@ -90,7 +90,7 @@ static int do_wait(const pid_t pid, char** text, const char* what) {
       buf_puts(*text, "failed by undetermined cause");
    }
    buf_push(*text, '\0');
-   return 256;
+   return 254;
 }
 
 static int run_compiler(const char* source, char** output) {
@@ -247,7 +247,7 @@ static bool run_test(const struct test_case* c) {
    case 255:
       print(1, 4, "TEST '%s': failed to invoke compiler: %s", c->name, output);
       exit(1);
-   case 256:
+   case 254:
       print(1, 4, "TEST '%s': %s\n", c->name, output);
       return false;
    default:

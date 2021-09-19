@@ -320,7 +320,12 @@ struct value_type* common_value_type_free(struct value_type*, struct value_type*
 #define vt_is_const_array(vt) (vt_is_array(vt) && ((vt)->pointer.array.has_const_size))
 
 // checks if `vt` is an array that has runtime defined size
-#define vt_is_vla(vt) (vt_is_array(vt) && (!(vt)->pointer.array.has_const_size))
+#define vt_is_vla(vt) (vt_is_array(vt) && (!(vt)->pointer.array.has_const_size) && (vt)->pointer.array.dsize)
+
+// checks if `vt` has no size
+#define vt_is_unsized_array(vt) (vt_is_array(vt) \
+      && (!(vt)->pointer.array.has_const_size) \
+      && !(vt)->pointer.array.dsize)
 
 // checks if `vt` is a pointer and is restrict
 #define vt_is_restrict(vt) (((vt)->type == VAL_POINTER) && ((vt)->pointer.is_restrict))
