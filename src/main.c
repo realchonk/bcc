@@ -128,11 +128,9 @@ int main(int argc, char* argv[]) {
          if (!strcmp(optarg, "ave-temps")) {
             save_temps = true;
          } else if (!strcmp(optarg, "tatic")) {
-            // is implied
+            linker_mode = 0;
          } else if (!strcmp(optarg, "hared")) {
-            // TODO: implement shared libraries
-            fputs("bcc: dynamic linking is not supported.\n", stderr);
-            return 1;
+            linker_mode = 1;
          } else {
             fprintf(stderr, "bcc: invalid option '-s%s'\n", optarg);
             return 1;

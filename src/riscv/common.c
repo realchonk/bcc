@@ -31,7 +31,6 @@ struct machine_option mach_opts[] = {
 };
 
 const size_t num_mach_opts = arraylen(mach_opts);
-extern const char* gnu_as;
 
 // TODO: add -mas=... option
 int assemble(const char* source, const char* output) {
@@ -53,12 +52,4 @@ int assemble(const char* source, const char* output) {
       if (WIFEXITED(wstatus)) return WEXITSTATUS(wstatus);
       panic("failed to wait for assembler");
    }
-}
-
-char* get_ld_abi(void) {
-   char* abi = malloc(100);
-   if (!abi)
-      panic("failed to malloc()");
-   snprintf(abi, 100, "-melf%dlriscv_%s", BITS, get_mach_opt("abi")->sVal);
-   return abi;
 }

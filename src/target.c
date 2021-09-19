@@ -17,6 +17,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "target.h"
+#include "config.h"
 #include "error.h"
 #include "strdb.h"
 #include "cpp.h"
@@ -192,4 +193,12 @@ void emit_strdb(void) {
       }
    }
    emit("\"");
+}
+
+bool is_abi(const char* s) {
+   return !strcmp(s, get_mach_opt("abi")->sVal);
+}
+
+bool is_libc(const char* s) {
+   return !strcmp(s, LIBC_NAME);
 }

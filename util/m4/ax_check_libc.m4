@@ -12,13 +12,26 @@
 #  
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+#  Sets the predefined macros
 
+AC_DEFUN([AX_CHECK_LIBC], [
+AC_MSG_CHECKING([for C library])
 
-bcc_SOURCES	+= src/x86/target.c		\
-					src/x86/common.c		\
-					src/x86/optim.c		\
-					src/x86/builtins.c	\
-					src/x86/gen.c			\
-					src/x86/emit_ir.c		\
-					src/x86/config.c
+case ${target_os} in
+linux|linux-gnu)
+   ac_libc="glibc"
+   ;;
+linux-musl)
+   ac_libc="musl"
+   ;;
+*)
+   AC_MSG_ERROR([unsupported combination of OS and C library, please look into util/m4/ax_check_libc.m4])
+   ;;
+esac
 
+AC_MSG_RESULT([${ac_libc}])
+
+AC_DEFINE_UNQUOTED([LIBC_NAME], ["${ac_libc}"], [Name of the C library])
+
+])

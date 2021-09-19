@@ -157,6 +157,12 @@ const struct machine_option* get_mach_opt(const char* name);
 // emit the contents of the string database
 void emit_strdb(void);
 
+// checks if the specified ABI matches the ABI specified by -mabi=
+bool is_abi(const char*);
+
+// checks if the given C library is equal to LIBC_NAME
+bool is_libc(const char*);
+
 
 /// global variables that must be defined by the target
 
@@ -191,5 +197,8 @@ char* get_ld_abi(void);
 
 // assemble an assembly file
 int assemble(const char* source, const char* output);
+
+// return the path to the dynamic linker (eg. /lib/ld-linux.so.2)
+char* get_interpreter(void);
 
 #endif /* FILE_TARGET_H */

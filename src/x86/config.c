@@ -13,15 +13,32 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef FILE_LINKER_H
-#define FILE_LINKER_H
-#include "cmdline.h"
+#include <string.h>
+#include "target.h"
+#include "config.h"
 
-extern const char* linker_path;
-extern struct cmdline_arg* linker_args;
-extern bool nostartfiles, nolibc, nobccobjs;
-extern bool linker_mode; // 0=static 1=shared
+char* get_ld_abi(void) {
+#if BITS == 32
+   return strdup("-melf_i386");
+#else
+   return strdup("-melf_x86_64");
+#endif
+}
 
-int run_linker(const char* output, const char** objects);
+char* get_interpreter(void) {
+#if !HAS_LIBC
+   panic("trying to get interpreter from a target that does not support dynamic linking");
+#endif
 
-#endif /* FILE_LINKER_H */
+   if (is_libc("glibc")) {
+#if BITS == 32
+      return strdup("/lib/ld-linux.so.2");
+#else
+      return strdup("/lib64/ld-linux-x86-64.so.2");
+#endif
+   } else if (is_libc("musl")) {
+      return strdup("/lib/ld-musl-" BCC_FULL_ARCH ".so.1");
+   } else {
+      panic("unsupported C library");
+   }
+}

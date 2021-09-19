@@ -66,5 +66,9 @@ esac
 AC_DEFINE_UNQUOTED([CPP_MACROS], ["${ac_macros}"], [Predefined macros for the pre-processor])
 AC_DEFINE_UNQUOTED([HAS_LIBC], [${ac_has_libc}], [Does the operating system have a C library?])
 
+if test x$ac_has_libc = x1; then
+   AX_CHECK_LIBC
+fi
+
 ])
 

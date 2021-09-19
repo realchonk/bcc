@@ -46,14 +46,6 @@ int assemble(const char* source, const char* output) {
    }
 }
 
-char* get_ld_abi(void) {
-#if BITS == 32
-   return strdup("-melf_i386");
-#else
-   return strdup("-melf_x86_64");
-#endif
-}
-
 bool emit_prepare(void) {
    return true;
 }

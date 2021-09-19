@@ -6,4 +6,5 @@ bcc_SOURCES += src/riscv/builtins.c		\
 				 	src/riscv/gen.c			\
 				 	src/riscv/optim.c			\
 				 	src/riscv/regs.c			\
-				 	src/riscv/target.c
+				 	src/riscv/target.c		\
+					src/riscv/config.c

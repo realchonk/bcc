@@ -27,6 +27,7 @@
 const char* linker_path = GNU_LD;
 struct cmdline_arg* linker_args = NULL;
 bool nostartfiles = false, nolibc = false, nobccobjs = false;
+bool linker_mode = 1; // 0=static 1=shared
 
 // compiler-specific libraries/startfiles
 #define bcc_crt(c)   COMPILERDIR "/crt" c ".o"
@@ -35,7 +36,7 @@ bool nostartfiles = false, nolibc = false, nobccobjs = false;
 // system libraries/startfiles
 #define SYSLIBSDIR   TARGETDIR "/lib"
 #define libc_crt(c)  SYSLIBSDIR  "/crt" c ".o"
-#define libc         SYSLIBSDIR  "/libc.a"
+#define libc         SYSLIBSDIR  "/libc.so"
 
 // TODO: figure out which option disables -lbcc
 
@@ -43,7 +44,6 @@ bool nostartfiles = false, nolibc = false, nobccobjs = false;
 // crti.o      : libc
 // crtbegin.o  : libbcc
 // ...
-// libbcc.a    : libbcc
 // libc.a      : libc
 // crtend.o    : libbcc
 // crtn.o      : libc
@@ -74,20 +74,24 @@ int run_linker(const char* output_name, const char** objects) {
    for (size_t i = 0; i < buf_len(objects); ++i) {
       buf_push(args, strdup(objects[i]));
    }
- 
+#if HAS_LIBBCC
+      buf_push(args, "-lbcc");
+#endif
+
 #if HAS_LIBC
-   if (!nolibc) {
-      buf_push(args, libc);
+   if (linker_mode == 1) {
+      buf_push(args, "-I");
+      buf_push(args, get_interpreter());
+   } else {
+      buf_push(args, "-static");
    }
+   buf_push(args, "-lc");
 #endif
 
    if (!nostartfiles) {
       if (!nobccobjs)
          buf_push(args, bcc_crt("end"));
       buf_push(args, libc_crt("n"));
-#if HAS_LIBBCC
-      buf_push(args, "-lbcc");
-#endif
    }
 
    for (size_t i = 0; i < buf_len(linker_args); ++i) {

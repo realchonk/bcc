@@ -32,6 +32,7 @@ static char* path_bcpp = "../cpp/bcpp";
 static char* path_test = "./test";
 static char* path_startfiles = "../libbcc";
 static bool no_colors = false;
+static char** extra_args = NULL;
 
 struct test_case {
    const char* name;
@@ -151,6 +152,10 @@ static int run_compiler(const char* source, char** output) {
       buf_push(b, '\0');
 
       buf_push(args, b);
+
+      for (size_t i = 0; i < buf_len(extra_args); ++i)
+         buf_push(args, extra_args[i]);
+
       buf_push(args, NULL);
 
       execv(path_bcc, args);
@@ -290,7 +295,7 @@ int main(int argc, char* argv[]) {
    bool always0 = false;
    int option;
 
-   while ((option = getopt(argc, argv, ":vshc:e:t:f:k0C")) != -1) {
+   while ((option = getopt(argc, argv, ":vshc:e:t:f:k0CX:")) != -1) {
       switch (option) {
       case 'v':
          verbosity = 2;
@@ -319,6 +324,9 @@ int main(int argc, char* argv[]) {
       case 'C':
          no_colors = true;
          break;
+      case 'X':
+         buf_push(extra_args, optarg);
+         break;
 
       case 'h':
          puts("Usage: tester [Options] [test...]");
@@ -333,6 +341,7 @@ int main(int argc, char* argv[]) {
          puts(" -e path_bcpp              Path to the pre-processor");
          puts(" -t path_test              Path to the test executable");
          puts(" -f path_startfiles        Path to the startfiles directory");
+         puts(" -X option                 Pass option to bcc");
          return 0;
       case ':':
          fprintf(stderr, "tester: missing argument for -%c\n", optopt);
