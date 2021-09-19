@@ -103,13 +103,13 @@ static bool copy_to_memcpy(ir_node_t** n) {
       fcall.call.params = NULL;
       
       ir_node_t* param = new_node(IR_MOVE);
-      param->move.dest = fcall.call.dest;
+      param->move.dest = cur->copy.dest;
       param->move.src  = cur->copy.dest;
       param->move.size = IRS_PTR;
       buf_push(fcall.call.params, param);
 
       param = new_node(IR_MOVE);
-      param->move.dest = fcall.call.dest;
+      param->move.dest = cur->copy.src;
       param->move.src  = cur->copy.src;
       param->move.size = IRS_PTR;
       buf_push(fcall.call.params, param);
