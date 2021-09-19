@@ -20,9 +20,9 @@
 .global __modui32
 .type __modui32, @function
 __modui32:
-mov eax, dword ptr [esp + 8]
+mov eax, dword ptr [esp  + 4]
 xor edx, edx
-div eax, dword ptr [esp + 4]
+div eax, dword ptr [esp + 8]
 mov eax, edx
 ret
 .size __modui32, .-__modui32
@@ -31,9 +31,9 @@ ret
 .type __modui16, @function
 __modui16:
 xor eax, eax
-mov ax, word ptr [esp + 8]
+mov ax, word ptr [esp  + 4]
 xor edx, edx
-div ax, word ptr [esp + 4]
+div ax, word ptr [esp + 8]
 mov eax, edx
 ret
 .size __modui16, .-__modui16
@@ -42,9 +42,9 @@ ret
 .type __modui8, @function
 __modui8:
 xor eax, eax
-mov al, byte ptr [esp + 8]
+mov al, byte ptr [esp  + 4]
 xor edx, edx
-div al, byte ptr [esp + 4]
+div al, byte ptr [esp + 8]
 mov eax, edx
 ret
 .size __modui8, .-__modui8
@@ -54,9 +54,9 @@ ret
 .global __modsi32
 .type __modsi32, @function
 __modsi32:
-mov eax, dword ptr [esp + 8]
+mov eax, dword ptr [esp  + 4]
 xor edx, edx
-idiv eax, dword ptr [esp + 4]
+idiv eax, dword ptr [esp + 8]
 mov eax, edx
 ret
 .size __modsi32, .-__modsi32
@@ -65,9 +65,9 @@ ret
 .type __modsi16, @function
 __modsi16:
 xor eax, eax
-mov ax, word ptr [esp + 8]
+mov ax, word ptr [esp  + 4]
 xor edx, edx
-idiv ax, word ptr [esp + 4]
+idiv ax, word ptr [esp + 8]
 mov eax, edx
 ret
 .size __modsi16, .-__modsi16
@@ -76,9 +76,9 @@ ret
 .type __modsi8, @function
 __modsi8:
 xor eax, eax
-mov al, byte ptr [esp + 8]
+mov al, byte ptr [esp  + 4]
 xor edx, edx
-idiv al, byte ptr [esp + 4]
+idiv al, byte ptr [esp + 8]
 mov eax, edx
 ret
 .size __modsi8, .-__modsi8
