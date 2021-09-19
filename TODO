@@ -36,6 +36,7 @@ General:
 x86:
 - optimize function calls
 - add VLAs back
+- i386: add more registers
 
 riscv:
 - more simple optimizations

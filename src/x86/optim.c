@@ -115,7 +115,7 @@ static bool copy_to_memcpy(ir_node_t** n) {
       buf_push(fcall.call.params, param);
 
       param = new_node(IR_LOAD);
-      param->load.dest = fcall.call.dest;
+      param->load.dest = fcall.call.dest + 2;
       param->load.value = cur->copy.len;
       param->load.size = IRS_PTR;
       buf_push(fcall.call.params, param);

@@ -311,6 +311,7 @@ ir_reg_t ir_get_target(const ir_node_t* n) {
       return n->call.dest;
    case IR_LSTR:
    case IR_FLOOKUP:
+   case IR_GLOOKUP:
       return n->lstr.reg;
    case IR_LOOKUP:
    case IR_ARRAYLEN:

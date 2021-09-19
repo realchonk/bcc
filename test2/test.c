@@ -2,8 +2,14 @@
 
 int printf(const char*, ...);
 
+struct S {
+   int a;
+};
+
+char str[] = "Hello World";
+char str2[] = "Hello";
+
 int main(void) {
-   int a = 3;
-   int b = 2;
-   return a * b;
+   printf("%s\n", str);
+   return 0;
 }

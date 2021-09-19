@@ -260,14 +260,19 @@ bool try_eval_array(struct expression* e, struct value* v, const struct value_ty
          parse_error(&e->begin, "string literals can only be assigned to char arrays");
       const char* s = e->str;
       struct value val;
-      do {
+      while (*s) {
          val.begin = e->begin;
          val.end = e->end;
          val.type = copy_value_type(vt->pointer.type);
          val.uVal = *s;
          buf_push(v->array, val);
          ++s;
-      } while (*s);
+      }
+      val.begin = e->begin;
+      val.end = e->end;
+      val.type = copy_value_type(vt->pointer.type);
+      val.uVal = 0;
+      buf_push(v->array, val);
    } else if (e->type == EXPR_COMMA) {
       for (size_t i = 0; i < buf_len(e->comma); ++i) {
          struct value sub;
