@@ -78,17 +78,30 @@ FILE* run_cpp(const char* source_name) {
    } else {
       close(pipes[1]);
       FILE* file = fdopen(pipes[0], "r");
+
+      if (!file)
+         panic("failed to open pipes[0]");
       
       int wstatus;
       waitpid(pid, &wstatus, 0);
-      if (!WIFEXITED(pid) || WEXITSTATUS(wstatus) != 0) {
-         if (WEXITSTATUS(wstatus) == 139)
-            fputs("bcc: bcpp crashed.\n", stderr);
-         return fclose(file), NULL;
+      if (WIFEXITED(wstatus)) {
+         const int ec = WEXITSTATUS(wstatus);
+         if (ec == 0) {
+            return file;
+         } else {
+            fprintf(stderr, "bcc: bcpp exited with code %d\n", ec);
+            return NULL;
+         }
+      } else if (WIFSIGNALED(wstatus)) {
+         fprintf(stderr, "bcc: bcpp killed by signal %d\n", WTERMSIG(wstatus));
+      } else if (WIFSTOPPED(wstatus)) {
+         fprintf(stderr, "bcc: bcpp stopped by signal %d\n", WSTOPSIG(wstatus));
+      } else if (WIFCONTINUED(wstatus)) {
+         fprintf(stderr, "bcc: bcpp continued\n");
+      } else {
+         fprintf(stderr, "bcc: bcpp failed by undetermined cause\n");
       }
-
-      if (!file) panic("failed to open pipes[0]");
-      else return file;
+      return NULL;
    }
 
 }
