@@ -20,9 +20,9 @@
 .global __divui32
 .type __divui32, @function
 __divui32:
-mov eax, dword [esp + 8]
+mov eax, dword ptr [esp + 8]
 xor edx, edx
-div eax, dword [esp + 4]
+div eax, dword ptr [esp + 4]
 ret
 .size __divui32, .-__divui32
 
@@ -30,9 +30,9 @@ ret
 .type __divui16, @function
 __divui16:
 xor edx, edx
-mov ax, word [esp + 6]
+mov ax, word ptr [esp + 8]
 xor edx, edx
-div ax, word [esp + 4]
+div ax, word ptr [esp + 4]
 ret
 .size __divui16, .-__divui16
 
@@ -40,9 +40,9 @@ ret
 .type __divui8, @function
 __divui8:
 xor edx, edx
-mov al, byte [esp + 5]
+mov al, byte ptr [esp + 8]
 xor edx, edx
-div al, byte [esp + 4]
+div al, byte ptr [esp + 4]
 ret
 .size __divui8, .-__divui8
 
@@ -51,9 +51,9 @@ ret
 .global __divsi32
 .type __divsi32, @function
 __divsi32:
-mov eax, dword [esp + 8]
+mov eax, dword ptr [esp + 8]
 xor edx, edx
-idiv eax, dword [esp + 4]
+idiv eax, dword ptr [esp + 4]
 ret
 .size __divsi32, .-__divsi32
 
@@ -61,9 +61,9 @@ ret
 .type __divsi16, @function
 __divsi16:
 xor edx, edx
-mov ax, word [esp + 6]
+mov ax, word ptr [esp + 8]
 xor edx, edx
-idiv ax, word [esp + 4]
+idiv ax, word ptr [esp + 4]
 ret
 .size __divsi16, .-__divsi16
 
@@ -71,8 +71,8 @@ ret
 .type __divsi8, @function
 __divsi8:
 xor edx, edx
-mov al, byte [esp + 5]
+mov al, byte ptr [esp + 8]
 xor edx, edx
-idiv al, byte [esp + 4]
+idiv al, byte ptr [esp + 4]
 ret
 .size __divsi8, .-__divsi8
