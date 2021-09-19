@@ -1,6 +1,3 @@
-
-
-
 # Major things
 - floating-point support
 - libbcc
@@ -8,21 +5,21 @@
 
 # Linking support
 - support for shared libraries
-- fix ordering of object files & libraries
 
 
 # libbcc
 - crtbegin.o, crtend.o
 - libbcc.a
-- move some compiler builtins to libbcc
 
 
 # Language
 - proper switch/case
 - labels & goto
+- allow support for old C-style (function) pointers
 - add configure option to disable extensions
 - add support for strings containing '\0' values
-- allow support for old C-style (function) pointers
+- implement constant propagation
+- <stdarg.h> header
 
 
 # IR-generation
@@ -32,11 +29,12 @@
 # Architecture-specific related
 General:
 - passing/returning structs/unions
+- replace `builtin functions` with `inlinable intrinsics`
+- auto-detection of --with-cpu= & --with-abi=
 
 x86:
 - optimize function calls
 - add VLAs back
-- i386: add more registers
 
 riscv:
 - more simple optimizations
@@ -55,16 +53,13 @@ riscv:
 
 
 # Other
-- replace `builtin functions` with `inlinable intrinsics`
+- find and fix/document bugs
 - document the code & add comments
 - options: -g, --sysroot=, -fuse-gcc
-- <stdarg.h> header
-- auto-detection of --with-cpu= & --with-abi=
 - add zsh-completions
-- retire the preliminary bcl wrapper (depends on shared linking support)
-- update the man pages
-- implement constant propagation
 - remove legacy options: -e
+- update the man pages
+- retire the preliminary bcl wrapper
 
 # Helpful Resources/Websites
 - POSIX C99 compiler    - https://pubs.opengroup.org/onlinepubs/9699919799/utilities/c99.html
