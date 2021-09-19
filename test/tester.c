@@ -56,12 +56,14 @@ static const char* colors[] = {
    /* BOLD YELLOW    */ "\033[1;33m",
 };
 
-static void trim_leading_nl(char** buf) {
-   const size_t len = buf_len(*buf);
+static void trim_leading_nl(char** str) {
+   const size_t len = strlen(*str);
    if (len < 2)
       return;
-   if ((*buf)[len - 2] == '\n')
-      buf_remove(*buf, len - 2, 1);
+   if ((*str)[len - 1] == '\n') {
+      (*str)[len - 1] = '\0';
+      trim_leading_nl(str);
+   }
 }
 
 static void print(int v, int c, const char* fmt, ...) {
