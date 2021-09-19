@@ -30,6 +30,7 @@ struct function {
    struct ir_node* ir_code;         // optional
    bool variadic;
    unsigned attrs;
+   unsigned max_reg;
 };
 
 void parse_func_part(struct function*);

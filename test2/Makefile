@@ -24,7 +24,7 @@ endif
 BCC_ARCH ?= $(shell $(BCC) -dumparch)
 BCC_MACH ?= $(shell $(BCC) -dumpmachine)
 
-BCCFLAGS+=-O2 -e $(BCPP) -I ../bcc-include -L ../libbcc -nobccobjs
+BCCFLAGS+=-O2 -fpath-cpp=$(BCPP) -I ../bcc-include -L ../libbcc -nobccobjs
 
 ifeq ($(BCC_ARCH),x86_64)
 BITS=64

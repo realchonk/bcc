@@ -2,14 +2,17 @@
 
 int printf(const char*, ...);
 
+int add(int a, int b) {
+   return a + b;
+}
+
 struct S {
    int a;
 };
 
-char str[] = "Hello World";
-char str2[] = "Hello";
-
 int main(void) {
-   printf("%s\n", str);
-   return 0;
+   struct S a;
+   a.a = 42;
+   struct S b = a;
+   return 1 + (b.a + (2 * add(4, add(1, 4 * add(4, 1)))));
 }

@@ -136,7 +136,9 @@ ir_node_t* emit_ir(ir_node_t* n) {
 
    case IR_PROLOGUE:
    {
+      const ir_reg_t max_reg = n->func->max_reg;
       emit("");
+      emit("# ir_max_reg(%s)=%u\n", n->func->name, (unsigned)max_reg);
       if (func_is_global(n->func))
          emit(".global %s", n->func->name);
       if (!get_mach_opt("clean-asm")->bVal)
@@ -150,7 +152,11 @@ ir_node_t* emit_ir(ir_node_t* n) {
       // stack allocation
       size_t nrp;
 #if BITS == 32
-      nrp = 0;
+      if (max_reg >= 3) {
+         nrp = max_reg - 2;
+      } else {
+         nrp = 0;
+      }
 #else
       nrp = my_min(arraylen(param_regs), buf_len(n->func->params));
 #endif
@@ -161,10 +167,15 @@ ir_node_t* emit_ir(ir_node_t* n) {
       alloc_stack(size_stack);
 
       size_t sp = 0;
-#if BITS == 64
+#if BITS == 32
       for (size_t i = 0; i < nrp; ++i) {
          sp += REGSIZE;
-         emit("mov QWORD PTR [rbp - %zu], %s", sp, regs[param_regs[i]]);
+         emit("mov DWORD PTR [ebp - %zu], %s", sp, reg(i + 3));
+      }
+#else
+      for (size_t i = 0; i < nrp; ++i) {
+         sp += REGSIZE;
+         emit("mov QWORD PTR [rbp - %zu], %s", sp, reg(param_regs[i]));
       }
 #endif
 
@@ -191,6 +202,17 @@ ir_node_t* emit_ir(ir_node_t* n) {
    case IR_EPILOGUE:
       emit_clear(REG_AX);
       emit("%s.ret:", n->func->name);
+#if BITS == 32
+      {
+         size_t sp = 0;
+         if (n->func->max_reg >= 3) {
+            for (size_t i = 3; i <= n->func->max_reg; ++i) {
+               sp += REGSIZE;
+               emit("mov %s, DWORD PTR [ebp - %zu]", reg(i), sp);
+            }
+         }
+      }
+#endif
       emit("leave");
       emit("ret");
       if (!get_mach_opt("clean-asm")->bVal)

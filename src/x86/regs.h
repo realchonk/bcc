@@ -26,10 +26,10 @@
 #if BITS == 32
 
 typedef uint32_t uintreg_t;
-static const char* regs[] = { "eax", "ecx", "edx" };
+static const char* regs[] = { "eax", "ecx", "edx", "esi", "edi", "ebx" };
 
-static const char* regs8[]  = { "al", "cl", "dl" };
-static const char* regs16[] = { "ax", "cx", "dx" };
+static const char* regs8[]  = { "al", "cl", "dl", "si", "di", "bx" };
+static const char* regs16[] = { "ax", "cx", "dx", "sil", "dil", "bl" };
 #define regs32 regs
 static const char* gas_sizes[] = { "BYTE", "BYTE", "WORD", "DWORD", "DWORD", "DWORD" };
 

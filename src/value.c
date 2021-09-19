@@ -211,7 +211,6 @@ bool try_eval_expr(struct expression* e, struct value* val, struct scope* scope)
    {
       const struct value_type* vt;
       if (e->szof.has_expr) {
-         // TODO: add `struct scope* scope` as an argument
          return false;
       } else {
          vt = e->szof.type;

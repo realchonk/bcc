@@ -162,7 +162,10 @@ void parse_unit(bool gen_ir) {
          if (func->scope) {
             if (func->attrs & ATTR_EXTERN)
                parse_warn(&begin, "function definition shall not be extern");
-            if (gen_ir) func->ir_code = optim_ir_nodes(irgen_func(func));
+            if (gen_ir) {
+               func->ir_code = optim_ir_nodes(irgen_func(func));
+               func->max_reg = ir_max_reg(func->ir_code);
+            }
          }
       } else {
          bool first = true;

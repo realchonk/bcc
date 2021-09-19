@@ -278,4 +278,11 @@ bool ir_is_used(const ir_node_t*, ir_reg_t);
 // returns the size in bytes of an irs
 size_t sizeof_irs(enum ir_value_size);
 
+// compute the maximum IR register from a series for nodes
+ir_reg_t ir_max_reg(const ir_node_t*);
+
+
+#define ir_is_func(n) (((n)->type == IR_IFCALL) || ((n)->type == IR_FCALL) \
+                     ||((n)->type == IR_IRCALL) || ((n)->type == IR_RCALL))
+
 #endif /* FILE_IR_H */

@@ -400,3 +400,22 @@ size_t sizeof_irs(enum ir_value_size sz) {
    default:          panic("invalid IR value size");
    }
 }
+
+// TODO: make sure that source registers are somehow checked
+ir_reg_t ir_max_reg(const ir_node_t* n) {
+   ir_reg_t r = 0;
+   while (n) {
+      if (ir_is_func(n)) {
+         for (size_t i = 0; i < buf_len(n->call.params); ++i) {
+            const ir_reg_t tmp = ir_max_reg(n->call.params[i]);
+            if (tmp != IRR_NONSENSE && tmp > r)
+               r = tmp;
+         }
+      }
+      const ir_reg_t tmp = ir_get_target(n);
+      if (tmp != IRR_NONSENSE && tmp > r)
+         r = tmp;
+      n = n->next;
+   }
+   return r;
+}
