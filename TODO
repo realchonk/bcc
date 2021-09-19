@@ -35,7 +35,7 @@ General:
 
 x86:
 - optimize function calls
-- add VLAs
+- add VLAs back
 
 riscv:
 - more simple optimizations
@@ -48,19 +48,19 @@ riscv:
 
 
 # Test suite
-- simplify
-- fix bugs (fix -v)
+
+
+# Known bugs
 
 
 # Other
 - replace `builtin functions` with `inlinable intrinsics`
-- find & fix reason for random crashes
 - document the code & add comments
 - options: -g, --sysroot=, -fuse-ld= -fuse-as=, -fuse-cpp=
 - <stdarg.h> header
 - auto-detection of --with-cpu= & --with-abi=
 - add zsh-completions
-- retire the preliminary bcl wrapper
+- retire the preliminary bcl wrapper (depends on shared linking support)
 - update the man pages
 - implement constant propagation
 
