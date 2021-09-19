@@ -30,9 +30,9 @@ void emit_unit(void) {
    emit(".section .text");
 
    for (size_t i = 0; i < buf_len(cunit.funcs); ++i) {
-      const struct function* f = cunit.funcs[i];
+      struct function* f = cunit.funcs[i];
       if (f->ir_code) {
-         const ir_node_t* n = f->ir_code;
+         ir_node_t* n = f->ir_code;
          while ((n = emit_ir(n)) != NULL);
       }
    }

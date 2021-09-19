@@ -269,6 +269,10 @@ static bool run_test(const struct test_case* c) {
       print(2, 0, "%s", output);
    }
 
+   if (ec == 254) {
+      print(1, 4, "TEST '%s': %s\n", c->name, output);
+      return false;
+   }
    if (ec != c->ret_val) {
       print(1, 4, "TEST '%s': invalid exit code '%d'\n", c->name, ec);
       return false;
