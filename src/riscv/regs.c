@@ -14,4 +14,4 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-const char* regs[15] = { "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "t0", "t1", "t2", "t3", "t4", "t5", "t6" };
+const char* regs[14] = { "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "t0", "t1", "t2", "t3", "t4", "t5" };

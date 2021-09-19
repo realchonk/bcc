@@ -33,8 +33,10 @@ typedef int64_t intreg_t;
 #define SW "sd"
 #endif
 
+#define REG_TMP "t6"
 
-extern const char* regs[15];
+
+extern const char* regs[14];
 
 #define reg(r) ((const char*)((r) < arraylen(regs) ? regs[r] : (panic("register out of range"), NULL)))
 

@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <string.h>
 #include <stdio.h>
 #include "cmdline.h"
 #include "target.h"
@@ -35,7 +36,6 @@ struct flag_option mach_opts[] = {
 
 const size_t num_mach_opts = arraylen(mach_opts);
 
-// TODO: add -mas=... option
 int assemble(const char* source, const char* output) {
    const pid_t pid = fork();
    if (pid < 0) panic("failed to fork()");

@@ -2,17 +2,29 @@
 
 int printf(const char*, ...);
 
-int add(int a, int b) {
+// int add(int a, int b) {
+//    return a + b;
+// }
+
+int fib(int n) {
+   printf("fib(%d);\n", n);
+   if (n <= 1) {
+      return n;
+   }
+   const int a = fib(n - 1);
+   const int b = fib(n - 2);
    return a + b;
 }
 
-struct S {
-   int a;
-};
+//int radd(int a, int b) {
+//   printf("radd(%d, %d);\n", a, b);
+//   if (b == 0) {
+//      return a;
+//   } else {
+//      return radd(a + 1, b - 1);
+//   }
+//}
 
 int main(void) {
-   struct S a;
-   a.a = 42;
-   struct S b = a;
-   return 1 + (b.a + (2 * add(4, add(1, 4 * add(4, 1)))));
+   return fib(10);
 }

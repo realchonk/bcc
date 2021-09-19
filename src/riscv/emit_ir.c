@@ -92,6 +92,10 @@ ir_node_t* emit_ir(const ir_node_t* n) {
             a,
             reg(bv.reg));
       } else {
+         if (!strcmp(instr, "sub")) {
+            instr = "add";
+            bv.sVal = -bv.sVal;
+         }
          emit("%si %s, %s, %jd", instr,
             reg(n->binary.dest),
             a,
@@ -352,7 +356,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       if (av.type == IRT_REG) {
          a = reg(av.reg);
       } else {
-         a = dest;
+         a = REG_TMP;
          emit("li %s, %jd", a, av.sVal);
       }
       if (bv.type == IRT_REG) {
@@ -382,7 +386,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       if (av.type == IRT_REG) {
          a = reg(av.reg);
       } else {
-         a = dest;
+         a = REG_TMP;
          emit("li %s, %jd", a, av.sVal);
       }
       if (bv.type == IRT_REG) {
@@ -546,7 +550,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       if (av.type == IRT_REG) {
          a = reg(av.reg);
       } else {
-         a = dest;
+         a = REG_TMP;
          emit("li %s, %jd", a, av.sVal);
       }
 
