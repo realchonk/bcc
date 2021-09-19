@@ -294,7 +294,7 @@ bool ir_isv(ir_node_t* n, ...) {
    return success;
 }
 
-ir_reg_t get_target(const ir_node_t* n) {
+ir_reg_t ir_get_target(const ir_node_t* n) {
    if (ir_is_binary(n->type))
       return n->binary.dest;
 
@@ -382,7 +382,7 @@ bool ir_is_used(const ir_node_t* n, ir_reg_t r) {
    while (n) {
       if (ir_is_source(n, r))
          return true;
-      else if (get_target(n) == r)
+      else if (ir_get_target(n) == r)
          return false;
       n = n->next;
    }

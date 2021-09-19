@@ -21,7 +21,7 @@
 
 static void emit_global_init(const struct value_type*, const struct value*);
 
-const ir_node_t* emit_ir(const ir_node_t*);
+ir_node_t* emit_ir(ir_node_t*);
 
 void emit_unit(void) {
    strdb_init();

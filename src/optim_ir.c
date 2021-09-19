@@ -22,8 +22,10 @@
 // remove NOPs
 static bool remove_nops(ir_node_t** n) {
    bool success = false;
+   if (!*n)
+      return false;
    ir_node_t* next;
-   while ((*n)->type == IR_NOP) {
+   while (*n && (*n)->type == IR_NOP) {
       next = (*n)->next;
       free_ir_node(*n);
       *n = next;
@@ -333,6 +335,18 @@ static bool fuse_load_iicast(ir_node_t** n) {
    return success;
 }
 
+// (move R0, R0) -> (nop)
+static bool useless_move(ir_node_t** n) {
+   bool success = false;
+   for (ir_node_t* cur = *n; cur; cur = cur->next) {
+      if (cur->type == IR_MOVE && cur->move.dest == cur->move.src) {
+         cur->type = IR_NOP;
+         success = true;
+      }
+   }
+   return success;
+}
+
 ir_node_t* optim_ir_nodes(ir_node_t* n) {
    if (optim_level < 1) {
       while (target_optim_ir(&n));
@@ -350,6 +364,7 @@ ir_node_t* optim_ir_nodes(ir_node_t* n) {
       || mod_to_and(&n)
       || fuse_load_iicast(&n)
       || target_optim_ir(&n)
+      || useless_move(&n)
    );
    while (target_post_optim_ir(&n));
    return n;

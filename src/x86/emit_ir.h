@@ -17,9 +17,12 @@
 #include "target.h"
 #include "value.h"
 #include "scope.h"
+#include "optim.h"
 #include "regs.h"
 #include "bcc.h"
 #include "ir.h"
+
+ir_node_t* emit_ir(ir_node_t*);
 
 static void emit_clear(const char* r) {
    if (optim_level > 0) {
@@ -81,4 +84,17 @@ static void assign_scope(struct scope* scope, size_t* sp) {
       if (tmp_sp > *sp)
          *sp = tmp_sp;
    }
+}
+
+static void fcall_helper(ir_node_t** params, const ir_reg_t dest, uintreg_t* sp) {
+   ir_reg_t target = ir_get_target(ir_end(*params));
+   if (target == IRR_NONSENSE) {
+      puts("NONSENSE"); // DEBUG
+      target = dest;
+   }
+   *params = optim_ir_nodes(*params);
+   if (*params)
+      while ((*params = emit_ir(*params)) != NULL);
+   emit("mov %s PTR [%s + %ju], %s", as_size(IRS_PTR), REG_SP, (uintmax_t)*sp, reg(target));
+   *sp -= REGSIZE;
 }

@@ -23,7 +23,7 @@ static ir_node_t* val_to_node(const struct ir_value* val, const ir_reg_t dest, c
    switch (val->type) {
    case IRT_REG:
       n = new_node(IR_MOVE);
-      n->move.dest = dest;
+      n->move.dest = val->reg;
       n->move.src = val->reg;
       n->move.size = irs;
       break;

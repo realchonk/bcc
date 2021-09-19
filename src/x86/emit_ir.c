@@ -28,7 +28,7 @@ static const struct function* cur_func;
 #define free_stack(n) ((n) && optim_level >= 1 ? emit("add %s, %zu", REG_SP, (n)) : 0)
 
 
-const ir_node_t* emit_ir(const ir_node_t* n) {
+ir_node_t* emit_ir(ir_node_t* n) {
    const char* instr;
    bool flag = false, flag2 = false;
    switch (n->type) {
@@ -361,28 +361,19 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
       sp = REGSIZE * (np - 1);
 #if BITS == 32
       for (size_t i = np; i != 0; --i) {
-         const ir_node_t* tmp = params[i - 1];
-         while ((tmp = emit_ir(tmp)) != NULL);
-         emit("mov %s PTR [%s + %ju], %s", as_size(IRS_PTR), REG_SP, (uintmax_t)sp, reg(dest));
-         sp -= REGSIZE;
+         fcall_helper(&params[i - 1], dest, &sp);
       }
 #else
       for (size_t i = 0; i < my_min(np, arraylen(param_regs)); ++i) {
-         const ir_node_t* tmp = params[i];
-         while ((tmp = emit_ir(tmp)) != NULL);
-         emit("mov %s PTR [%s + %ju], %s", as_size(IRS_PTR), REG_SP, (uintmax_t)sp, reg(dest));
-         sp -= REGSIZE;
+         fcall_helper(&params[i], dest, &sp);
       }
       for (size_t i = np; i > arraylen(param_regs); --i) {
-         const ir_node_t* tmp = params[i - 1];
-         while ((tmp = emit_ir(tmp)) != NULL);
-         emit("mov %s PTR [%s + %ju], %s", as_size(IRS_PTR), REG_SP, (uintmax_t)sp, reg(dest));
-         sp -= REGSIZE;
+         fcall_helper(&params[i - 1], dest, &sp);
       }
 #endif
 
       if (flag) {
-         const ir_node_t* tmp = n->call.addr;
+         ir_node_t* tmp = n->call.addr;
          while ((tmp = emit_ir(tmp)) != NULL);
          emit("mov %s, %s", REG_AX, reg(n->call.dest));
       }

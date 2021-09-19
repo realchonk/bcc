@@ -3,5 +3,7 @@
 int printf(const char*, ...);
 
 int main(void) {
-   printf("Hello World\n");
+   int a = 3;
+   int b = 2;
+   return a * b;
 }
