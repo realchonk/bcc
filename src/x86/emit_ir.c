@@ -345,9 +345,7 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
 
       size_t n_stack = 0;
       n_stack += dest;
-#if BITS == 64
       n_stack += np;
-#endif
       n_stack = align_stack_size(n_stack * REGSIZE);
       alloc_stack(n_stack);
 
@@ -418,6 +416,9 @@ const ir_node_t* emit_ir(const ir_node_t* n) {
 
       return n->next;
    }
+   case IR_ASM:
+      emit("%s", n->str);
+      return n->next;
 
    default:
       panic("unimplemented ir_node type '%s'", ir_node_type_str[n->type]);

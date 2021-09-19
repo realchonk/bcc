@@ -79,6 +79,7 @@ enum ir_node_type {
    IR_RCALL,         // .call       | indirect function call w/o return value
    IR_FLOOKUP,       // .lstr       | function lookup
    IR_SRET,          // .sret       | return struct/union
+   IR_ASM,           // .str        | line of inline assembly
 
    NUM_IR_NODES,
 };

@@ -567,6 +567,9 @@ ir_node_t* emit_ir(const ir_node_t* n) {
 
       return n->next;
    }
+   case IR_ASM:
+      emit("%s", n->str);
+      return n->next;
 
 
    default:

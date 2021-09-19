@@ -79,6 +79,7 @@ static bool mul_to_func(ir_node_t** n) {
       func.call.name = strint(name);
       func.call.dest = dest;
       func.call.params = NULL;
+      
       buf_push(func.call.params, val_to_node(&cur->binary.a, dest, cur->binary.size));
       buf_push(func.call.params, val_to_node(&cur->binary.b, dest, cur->binary.size));
       *cur = func;

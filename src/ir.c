@@ -86,6 +86,7 @@ const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_RCALL]        = "rcall",
    [IR_FLOOKUP]      = "flookup",
    [IR_SRET]         = "sret",
+   [IR_ASM]          = "asm",
 };
 const char* ir_value_type_str[NUM_IR_VALUES] = {
    [IRT_REG]         = "register",
@@ -233,6 +234,9 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
       break;
    case IR_COPY:
       fprintf(file, " R%u, R%u, %ju", n->copy.dest, n->copy.src, n->copy.len);
+      break;
+   case IR_ASM:
+      fprintf(file, " %s", n->str);
       break;
    }
    fputc('\n', file);
