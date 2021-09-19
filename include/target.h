@@ -16,6 +16,7 @@
 #ifndef FILE_TARGET_H
 #define FILE_TARGET_H
 #include <stdio.h>
+#include "cmdline.h"
 #include "value.h"
 #include "error.h"
 #include "ir.h"
@@ -79,17 +80,6 @@ struct builtin_func {
    bool requested;
 };
 
-struct machine_option {
-   const char* name;
-   const char* description;
-   int type; // 0=bool, 1=int, 2=string
-   union {
-      bool bVal;
-      int iVal;
-      const char* sVal;
-   };
-};
-
 extern unsigned asm_indent;
 struct function;
 
@@ -151,9 +141,6 @@ uintmax_t target_get_umax(enum ir_value_size irs);
 // returns the size in bytes of `irs`
 size_t irs2sz(enum ir_value_size irs);
 
-// returns an existing machine-option; or NULL
-const struct machine_option* get_mach_opt(const char* name);
-
 // emit the contents of the string database
 void emit_strdb(void);
 
@@ -170,7 +157,7 @@ bool is_libc(const char*);
 extern const struct target_info target_info;
 
 // the available machine options
-extern struct machine_option mach_opts[];
+extern struct flag_option mach_opts[];
 
 // should be defined as `arraylen(mach_opts)`
 extern const size_t num_mach_opts;

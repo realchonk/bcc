@@ -155,14 +155,6 @@ struct builtin_func* get_builtin_func(const char* name) {
    }
    return NULL;
 }
-const struct machine_option* get_mach_opt(const char* name) {
-   for (size_t i = 0; i < num_mach_opts; ++i) {
-      const struct machine_option* opt = &mach_opts[i];
-      if (!strcmp(name, opt->name))
-         return opt;
-   }
-   return NULL;
-}
 void define_ctarget_macros(void) {
    define_macro2("__bcc_char_signed", target_info.unsigned_char ? "0" : "1");
    define_macro2i("__bcc_min_schar", target_info.min_char);

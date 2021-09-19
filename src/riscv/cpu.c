@@ -75,7 +75,7 @@ bool parse_cpu(const char* s, struct riscv_cpu* cpu) {
 }
 
 bool emit_prepare(void) {
-   const struct machine_option* opt = get_mach_opt("cpu");
+   const struct flag_option* opt = get_mach_opt("cpu");
    assert(opt != NULL);
    return parse_cpu(opt->sVal, &riscv_cpu);
 }

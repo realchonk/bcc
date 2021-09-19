@@ -16,6 +16,7 @@
 #ifndef FILE_CMDLINE_H
 #define FILE_CMDLINE_H
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 
 struct cmdline_arg {
@@ -23,12 +24,44 @@ struct cmdline_arg {
    const char* arg;
 };
 
+// options specified with -f and -m
+enum flag_option_type {
+   FLAG_BOOL,
+   FLAG_INT,
+   FLAG_STRING,
+};
+
+struct flag_option {
+   const char* name;
+   const char* description;
+   enum flag_option_type type;
+   union {
+      bool bVal;
+      int32_t iVal;
+      const char* sVal;
+   };
+};
+
 extern bool verbose;
+extern struct flag_option flag_opts[];
+extern const size_t num_flag_opts;
 
 #define verbose_execl(prog, arg0, ...) \
    vexecl_print(prog, __VA_ARGS__); \
    execlp(prog, arg0, __VA_ARGS__)
 
 void vexecl_print(const char* name, ...);
+
+// returns an existing (-m) machine-option; or panic
+struct flag_option* get_mach_opt(const char* name);
+
+// returns an existing (-f) flag-option; or panic
+struct flag_option* get_flag_opt(const char* name);
+
+// parse a machine options
+bool parse_mach_opt(char*);
+
+// parse a flag option
+bool parse_flag_opt(char*);
 
 #endif /* FILE_CMDLINE_H */

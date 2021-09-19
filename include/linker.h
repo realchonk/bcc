@@ -17,7 +17,6 @@
 #define FILE_LINKER_H
 #include "cmdline.h"
 
-extern const char* linker_path;
 extern struct cmdline_arg* linker_args;
 extern bool nostartfiles, nolibc, nobccobjs;
 extern bool linker_mode; // 0=static 1=shared

@@ -31,13 +31,20 @@
 
 bool verbose = false;
 
+struct flag_option flag_opts[] = {
+   { "path-ld",      "Path to the LD linker",         FLAG_STRING, .sVal = GNU_LD },
+   { "path-as",      "Path to the AS assembler",      FLAG_STRING, .sVal = GNU_AS },
+   { "path-cpp",     "Path to the C preprocessor",    FLAG_STRING, .sVal = BCPP_PATH },
+};
+const size_t num_flag_opts = arraylen(flag_opts);
+
 int main(int argc, char* argv[]) {
    bool dumpmacros = false;
    struct cmdline_arg cmd_arg;
    const char* output_name = NULL;
    enum compilation_level level = LEVEL_LINK;
    int option;
-   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:CD:U:L:l:s:n:v")) != -1) {
+   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:CD:U:L:l:s:n:vf:")) != -1) {
       switch (option) {
       case 'h':
          printf("Usage: bcc [options] file...\nOptions:\n%s", help_options);
@@ -93,7 +100,8 @@ int main(int argc, char* argv[]) {
          break;
       }
       case 'e':
-         cpp_path = optarg;
+         fputs("bcc: option '-e' is deprecated.\n", stderr);
+         get_flag_opt("path-cpp")->sVal = optarg;
          break;
       case 'V':
          printf("bcc %s\nCopyleft Benjamin Stürz.\n"
@@ -107,6 +115,9 @@ int main(int argc, char* argv[]) {
          return 0;
       case 'm':
          if (!parse_mach_opt(optarg)) return 1;
+         break;
+      case 'f':
+         if (!parse_flag_opt(optarg)) return 1;
          break;
       case 'I':
       case 'D':

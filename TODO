@@ -57,13 +57,14 @@ riscv:
 # Other
 - replace `builtin functions` with `inlinable intrinsics`
 - document the code & add comments
-- options: -g, --sysroot=, -fuse-ld= -fuse-as=, -fuse-cpp=
+- options: -g, --sysroot=, -fuse-gcc
 - <stdarg.h> header
 - auto-detection of --with-cpu= & --with-abi=
 - add zsh-completions
 - retire the preliminary bcl wrapper (depends on shared linking support)
 - update the man pages
 - implement constant propagation
+- remove legacy options: -e
 
 # Helpful Resources/Websites
 - POSIX C99 compiler    - https://pubs.opengroup.org/onlinepubs/9699919799/utilities/c99.html

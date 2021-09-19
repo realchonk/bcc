@@ -19,7 +19,6 @@
 #include <stdio.h>
 #include "cmdline.h"
 
-extern const char* cpp_path;
 extern struct cmdline_arg* cpp_args;
 extern bool nostdinc;
 

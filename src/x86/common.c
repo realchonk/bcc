@@ -24,7 +24,7 @@
 #include "error.h"
 #include "bcc.h"
 
-struct machine_option mach_opts[] = {
+struct flag_option mach_opts[] = {
    { "clean-asm", "Generate cleaned assembly", 0, .bVal = false },
    { "stack-check", "Check the stack on every function entry", 0, .bVal = false }, // stub
 };
@@ -34,7 +34,8 @@ int assemble(const char* source, const char* output) {
    const pid_t pid = fork();
    assert(pid >= 0);
    if (pid == 0) {
-      verbose_execl(GNU_AS, GNU_AS, "-msyntax=intel", "-o", output, source, NULL);
+      char* path_as = strdup(get_flag_opt("path-as")->sVal);
+      verbose_execl(path_as, path_as, "-msyntax=intel", "-o", output, source, NULL);
       perror("bcc: failed to invoke assembler");
       _exit(1);
    } else {

@@ -25,7 +25,6 @@
 #include "bcc.h"
 #include "buf.h"
 
-const char* cpp_path = BCPP_PATH;
 struct cmdline_arg* cpp_args = NULL;
 bool nostdinc = false;
 
@@ -37,7 +36,8 @@ FILE* run_cpp(const char* source_name) {
       panic("failed to create pipes");
 
    char** args = NULL;
-   buf_push(args, strdup(cpp_path));
+   char* cpp_path = strdup(get_flag_opt("path-cpp")->sVal);
+   buf_push(args, cpp_path);
    if (!console_colors)
       buf_push(args, strdup("-C"));
    buf_push(args, strdup("-E"));

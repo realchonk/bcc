@@ -24,7 +24,7 @@
 #include "regs.h"
 #include "cpu.h"
 
-struct machine_option mach_opts[] = {
+struct flag_option mach_opts[] = {
    { "cpu", "The target CPU (default: " DEF_CPU ")", 2, .sVal = DEF_CPU },
    { "abi", "The target ABI (default: " DEF_ABI ")", 2, .sVal = DEF_ABI },
    { "stack-check", "Check the stack for alignment", 0, .bVal = false },
@@ -43,7 +43,8 @@ int assemble(const char* source, const char* output) {
          _exit(1);
       }
       snprintf(mabi, 100, "-mabi=%s", get_mach_opt("abi")->sVal);
-      verbose_execl(GNU_AS, GNU_AS, mabi, "-o", output, source, NULL);
+      char* path_as = strdup(get_flag_opt("path-as")->sVal);
+      verbose_execl(path_as, path_as, mabi, "-o", output, source, NULL);
       perror("bcc: failed to invoke assembler");
       _exit(1);
    } else {

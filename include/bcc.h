@@ -17,6 +17,7 @@
 #define FILE_BCC_H
 #include <stdbool.h>
 #include <stdint.h>
+#include "cmdline.h"
 #include "strint.h"
 
 extern bool enable_warnings;
@@ -40,8 +41,7 @@ unsigned popcnt(uintmax_t);
 istr_t replace_ending(const char* s, const char* end);
 bool ends_with(const char* s, const char* end);
 bool ends_with_one(const char* s, const char** end);
-int get_mach_opt_vtype(const char*);
-bool parse_mach_opt(char*);
+enum flag_option_type get_mach_opt_type(const char*);
 const char* create_output_name(const char*, enum compilation_level);
 int process_file(const char* source, const char* output, enum compilation_level);
 

@@ -24,7 +24,6 @@
 #include "error.h"
 #include "buf.h"
 
-const char* linker_path = GNU_LD;
 struct cmdline_arg* linker_args = NULL;
 bool nostartfiles = false, nolibc = false, nobccobjs = false;
 bool linker_mode = 1; // 0=static 1=shared
@@ -55,6 +54,7 @@ int run_linker(const char* output_name, const char** objects) {
 
    // ACTUAL LINKING PART
    char** args = NULL;
+   char* linker_path = strdup(get_flag_opt("path-ld")->sVal);
    buf_push(args, strdup(linker_path));
    // TODO: fixme
    //buf_push(args, "--no-warn-search-mismatch");
