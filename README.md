@@ -67,7 +67,15 @@ Alternative names for processor architectures can be added [here](https://github
 | elf | A standalone environment. An implementation of memcpy must be provided by the program. |
 
 Support for operating systems can be added [here](https://github.com/Benni3D/bcc/blob/master/util/m4/ax_set_predef_macros.m4#L28).
-  
+ 
+### Supported C standard-libraries
+| libc | Notes |
+|------|-------|
+| glibc | |
+| musl | |
+
+Support for libc's can be added [here](https://github.com/Benni3D/bcc/blob/master/util/m4/ax_check_libc.m4#L21) and in the ```src/%arch/config.c``` files. 
+
 ## Contributing
 Feel free to create an [Issue](https://github.com/Benni3D/bcc/issues) or a [Pull Request](https://github.com/Benni3D/bcc/pulls).<br>
 Patches can also be send directly to <benni@stuerz.xyz>.<br>
