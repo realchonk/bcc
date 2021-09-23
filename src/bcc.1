@@ -1,4 +1,4 @@
-.TH bcc 1 "2021-09-16" "bcc-VERSION"
+.TH bcc 1 "2021-09-24" "bcc-VERSION"
 
 .SH NAME
 bcc - brainlet C compiler
@@ -182,7 +182,7 @@ Don't delete the generated temporary files.
 .B -e \fIpath\fR
 .RE
 .RS 5
-Specify the path to the preprocessor.
+Specify the path to the preprocessor. (deprecated)
 .RE
 .B -C
 .RE
@@ -217,6 +217,22 @@ to the search paths of the linker.
 .RS 5
 Tell the linker to link the executable against \fIlibrary\fR.
 .RE
+.B -fpath-ld=\fILD\fR
+.RE
+.RS 5
+Specify the path to the linker.
+.RE
+.B -fpath-as=\fIAS\fR
+.RE
+.RS 5
+Specify the path to the assembler.
+.RE
+.B -fpath-cpp=\fICPP\fR
+.RE
+.RS 5
+Specify the path to the pre-processor.
+.RE
+
 
 .SH OPERANDS
 .I output
