@@ -134,8 +134,12 @@ static int run_compiler(const char* source, char** output) {
       char** args = NULL;
       buf_push(args, path_bcc);
       buf_push(args, "-otest");
-      buf_push(args, "-e");
-      buf_push(args, path_bcpp);
+
+      const size_t len_bcpp = 15 + strlen(path_bcpp);
+      char* bcpp = malloc(len_bcpp);
+      snprintf(bcpp, len_bcpp, "-fpath-cpp=%s", path_bcpp);
+      buf_push(args, bcpp);
+
       buf_push(args, "-L../libbcc");
       buf_push(args, "-I../bcc-include");
       buf_push(args, "-O2");
