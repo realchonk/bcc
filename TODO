@@ -44,13 +44,19 @@ riscv:
 # Pre-processor
 - more test cases for macro expansion
 - support for variadic macros
+- #pragma
 
 
 # Test suite
 
 
 # Known bugs
-
+- not working test cases:
+   - 'arraylen(VLA)'
+   - 'sizeof(VLA)'
+   - 'return struct'
+   - 'pass struct'
+- multi-core `make` may be broken
 
 # Other
 - find and fix/document bugs
