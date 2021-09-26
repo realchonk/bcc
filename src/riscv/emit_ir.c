@@ -400,11 +400,15 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    {
       const char* dest = reg(n->iicast.dest);
       const char* src = reg(n->iicast.src);
-      if (n->iicast.ds == n->iicast.ss) {
+      const enum ir_value_size ds = n->iicast.ds;
+      const enum ir_value_size ss = n->iicast.ss;
+      const size_t size_ds = sizeof_irs(ds);
+      const size_t size_ss = sizeof_irs(ss);
+      if (size_ds == size_ss) {
          if (n->iicast.dest != n->iicast.src)
             emit("mv %s, %s", dest, src);
-      } else if (n->iicast.ds < n->iicast.ss) {
-         switch (n->iicast.ds) {
+      } else if (size_ds < size_ss) {
+         switch (ds) {
          case IRS_BYTE:
          case IRS_CHAR:
             emit("andi %s, %s, 255", dest, src);
@@ -420,7 +424,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
             break;
 #endif
          default:
-            panic("unreachable reached, ds=%s, ss=%s", ir_size_str[n->iicast.ds], ir_size_str[n->iicast.ss]);
+            panic("unreachable reached, ds=%s, ss=%s", ir_size_str[ds], ir_size_str[ss]);
          }
       } else {
          if (n->iicast.sign_extend) {
