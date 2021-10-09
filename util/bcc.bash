@@ -5,7 +5,7 @@ _bcc() {
    _init_completion -s || return
    
    case $prev in
-   -o|-e)
+   -o)
       _filedir
       return
       ;;
@@ -24,6 +24,9 @@ _bcc() {
          return
       elif [[ $cur == -m* ]]; then
          COMPREPLY=(-mhelp $(compgen -W '$(_parse_help "$1" -mhelp)' -- "$cur"))
+         return
+      elif [[ $cur == -f* ]]; then
+         COMPREPLY=(-fhelp $(compgen -W '$(_parse_help "$1" -fhelp)' -- "$cur"))
          return
       elif [[ $cur == -D* ]]; then
          COMPREPLY=(-D)

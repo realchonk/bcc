@@ -1,4 +1,4 @@
-.TH bcc 1 "2021-09-24" "bcc-VERSION"
+.TH bcc 1 "2021-10-09" "bcc-VERSION"
 
 .SH NAME
 bcc - brainlet C compiler
@@ -7,7 +7,6 @@ bcc - brainlet C compiler
 .SY bcc
 .OP -c\fR|\fB-i\fR|\fB-A\fR|\fB-S\fR|\fB-E\fR
 .OP -svwC
-.OP -e \fIpath\fR
 .OP -O \fIolevel\fR
 .OP -o \fIoutput\fR
 .OP -m \fImach_opt\fR
@@ -178,11 +177,6 @@ Link the program with the shared libc. (unimplemented)
 .RE
 .RS 5
 Don't delete the generated temporary files.
-.RE
-.B -e \fIpath\fR
-.RE
-.RS 5
-Specify the path to the preprocessor. (deprecated)
 .RE
 .B -C
 .RE

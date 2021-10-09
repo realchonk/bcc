@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
    const char* output_name = NULL;
    enum compilation_level level = LEVEL_LINK;
    int option;
-   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:Ee:I:CD:U:L:l:s:n:vf:")) != -1) {
+   while ((option = getopt(argc, argv, ":d:hm:VO:wciSAo:EI:CD:U:L:l:s:n:vf:")) != -1) {
       switch (option) {
       case 'h':
          printf("Usage: bcc [options] file...\nOptions:\n%s", help_options);
@@ -99,10 +99,6 @@ int main(int argc, char* argv[]) {
          }
          break;
       }
-      case 'e':
-         fputs("bcc: option '-e' is deprecated.\n", stderr);
-         get_flag_opt("path-cpp")->sVal = optarg;
-         break;
       case 'V':
          printf("bcc %s\nCopyleft Benjamin Stürz.\n"
                "This software is distributed under the terms of the GPLv3\n", VERSION);
