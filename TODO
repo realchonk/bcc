@@ -26,14 +26,13 @@
 # IR-generation
 - more advanced optimization techniques
 - support for 64bit integers on 32bit systems
-- fix loading of large immediate values (eg. >2^20 on riscv)
 
 
 # Architecture-specific related
 General:
 - passing/returning structs/unions
 - replace `builtin functions` with `inlinable intrinsics`
-- auto-detection of --with-cpu= & --with-abi=
+- merge code for global variable initialization (x86 & riscv)
 
 x86:
 - optimize function calls
@@ -42,6 +41,7 @@ x86:
 riscv:
 - more simple optimizations
 - add VLAs
+- check detect_sys.sh
 
 
 # Pre-processor

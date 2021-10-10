@@ -90,16 +90,26 @@ AC_ARG_ENABLE(bash-completions,
               ENABLE_BASHCOMP=1)
 AC_SUBST([ENABLE_BASHCOMP])
 
+def_cpu_abi=$(sh ./src/${ARCH}/detect_sys.sh ${FULL_ARCH} ${target_cpu})
+if test x${def_cpu_abi} = x; then
+   AC_MSG_ERROR([failed to determine default CPU and ABI])
+fi
 
 # --with-cpu=
 AC_ARG_WITH([cpu],
             [AS_HELP_STRING([--with-cpu=CPU], [select the default target processor])],
-            [AC_DEFINE_UNQUOTED([DEF_CPU], ["$withval"], [Default processor])])
+            [DEF_CPU=$withval],
+            [DEF_CPU=$(echo ${def_cpu_abi} | cut -d',' -f1)])
+
+AC_DEFINE_UNQUOTED([DEF_CPU], ["${DEF_CPU}"], [Default processor])
 
 # --with-abi=
 AC_ARG_WITH([abi],
             [AS_HELP_STRING([--with-abi=ABI], [select the default target ABI])],
-            [AC_DEFINE_UNQUOTED([DEF_ABI], ["$withval"], [Default application binary interface])])
+            [DEF_ABI=$withval],
+            [DEF_ABI=$(echo ${def_cpu_abi} | cut -d',' -f2)])
+
+AC_DEFINE_UNQUOTED([DEF_ABI], ["${DEF_ABI}"], [Default ABI])
 
 # Patch bcc.1
 sed "s/VERSION/$VERSION/g" ${srcdir}/src/bcc.1 >bcc.1 || AC_MSG_ERROR([failed to patch bcc.1])

@@ -192,5 +192,9 @@ bool is_abi(const char* s) {
 }
 
 bool is_libc(const char* s) {
+#ifdef LIBC_NAME
    return !strcmp(s, LIBC_NAME);
+#else
+   return false;
+#endif
 }
