@@ -31,6 +31,7 @@ struct function {
    bool variadic;
    unsigned attrs;
    unsigned max_reg;
+   struct ir_big_iload* big_iloads;
 };
 
 void parse_func_part(struct function*);

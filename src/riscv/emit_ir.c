@@ -23,6 +23,8 @@
 
 static uintreg_t size_stack;
 
+void emit_init_int(enum ir_value_size irs, intmax_t val, bool is_unsigned);
+
 ir_node_t* emit_ir(const ir_node_t* n) {
    const char* instr;
    bool flag = false, flag2 = false;
@@ -208,6 +210,16 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       emit(LW "   ra, %ju(sp)", (uintmax_t)(size_stack - 2*REGSIZE));
       emit("addi sp, sp, %ju",     (uintmax_t)size_stack);
       emit("ret");
+      
+      // emit large constants
+      if (n->func->big_iloads) {
+         emit("\n# large constants for %s", n->func->name);
+         for (size_t i = 0; i < buf_len(n->func->big_iloads); ++i) {
+            const struct ir_big_iload* bi = &n->func->big_iloads[i];
+            emit("%s:", bi->label);
+            emit_init_int(bi->size, bi->val, bi->is_unsigned);
+         }
+      }
       return n->next;
 
    case IR_IRET:

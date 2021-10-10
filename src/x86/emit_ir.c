@@ -27,6 +27,7 @@ static const struct function* cur_func;
 #define alloc_stack(n) ((n) && optim_level >= 1 ? emit("sub %s, %zu", REG_SP, (n)) : 0)
 #define free_stack(n) ((n) && optim_level >= 1 ? emit("add %s, %zu", REG_SP, (n)) : 0)
 
+void emit_init_int(enum ir_value_size irs, intmax_t val, bool is_unsigned);
 
 ir_node_t* emit_ir(ir_node_t* n) {
    const char* instr;
@@ -215,6 +216,16 @@ ir_node_t* emit_ir(ir_node_t* n) {
 #endif
       emit("leave");
       emit("ret");
+
+      // emit large constants
+      if (n->func->big_iloads) {
+         emit("\n# large constants for %s", n->func->name);
+         for (size_t i = 0; i < buf_len(n->func->big_iloads); ++i) {
+            const struct ir_big_iload* bi = &n->func->big_iloads[i];
+            emit("%s:", bi->label);
+            emit_init_int(bi->size, bi->val, bi->is_unsigned);
+         }
+      }
       if (!get_mach_opt("clean-asm")->bVal)
          emit(".size %s, .-%s", n->func->name, n->func->name);
       emit("");

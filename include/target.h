@@ -72,6 +72,8 @@ struct target_info {
 
    intmax_t max_immed;                          // the signed maximum value of an immediate value
    intmax_t min_immed;                          // the signed minimum value of an immediate value
+   intmax_t max_iload;                          // the signed maximum value for IR_LOAD
+   intmax_t min_iload;                          // the signed minimum value for IR_LOAD
 };
 
 struct builtin_func {

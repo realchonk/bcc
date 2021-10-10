@@ -139,7 +139,7 @@ void parse_unit(bool gen_ir) {
       if (!has_begin) begin = type->begin;
       
       if (lexer_matches(TK_LPAREN)) {
-         struct function* func = malloc(sizeof(struct function));
+         struct function* func = calloc(1, sizeof(struct function));
          if (!func) panic("failed to allocate function");
          func->name = name;
          func->type = type;

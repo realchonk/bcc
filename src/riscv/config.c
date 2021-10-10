@@ -50,7 +50,7 @@ char* get_interpreter(void) {
       return strdup(interp);
    } else if (is_libc("musl")) {
       char interp[] = "/lib/ld-musl-riscv__-___.so.1";
-      snprintf(interp, sizeof(interp), "/lib/ld-musl-riscv%d-%s.so.1", BITS, get_musl_suffix());
+      snprintf(interp, sizeof(interp), "/lib/ld-musl-riscv%d%s.so.1", BITS, get_musl_suffix());
       return strdup(interp);
    } else {
       panic("unsupported C library");

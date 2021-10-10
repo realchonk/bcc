@@ -74,33 +74,36 @@ void emit_unit(void) {
    }
    emit_end();
 }
+void emit_init_int(enum ir_value_size irs, intmax_t val, bool is_unsigned) {
+   switch (irs) {
+   case INT_BYTE:
+   case INT_CHAR:
+      emitraw(".byte ");
+      break;
+   case INT_SHORT:
+      emitraw(".half ");
+      break;
+   case INT_LONG:
+#if BITS == 64
+      emitraw(".dword ");
+      break;
+#endif
+   case INT_INT:
+      emitraw(".word ");
+      break;
+   default:
+      panic("invalid IR integer size");
+   }
+   if (is_unsigned) {
+      emit("%ju", val);
+   } else {
+      emit("%jd", val);
+   }
+}
 static void emit_global_init(const struct value_type* vt, const struct value* val) {
    switch (vt->type) {
    case VAL_INT:
-      switch (vt->integer.size) {
-      case INT_BYTE:
-      case INT_CHAR:
-         emitraw(".byte ");
-         break;
-      case INT_SHORT:
-         emitraw(".half ");
-         break;
-      case INT_LONG:
-#if BITS == 64
-         emitraw(".dword ");
-         break;
-#endif
-      case INT_INT:
-         emitraw(".word ");
-         break;
-      default:
-         panic("invalid IR integer size");
-      }
-      if (val) {
-         if (vt->integer.is_unsigned)
-            emit("%ju", val->uVal);
-         else emit("%jd", val->iVal);
-      } else emit("0");
+      emit_init_int(vt2irs(vt), val ? val->iVal : 0, vt->integer.is_unsigned);
       break;
 #if ENABLE_FP
       case VAL_FLOAT:

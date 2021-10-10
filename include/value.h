@@ -337,4 +337,8 @@ struct value_type* common_value_type_free(struct value_type*, struct value_type*
 #define vt_is_string(vt)   (((vt)->type == VAL_POINTER) && ((vt)->pointer.type->type == VAL_INT) \
                            && ((vt)->pointer.type->integer.size = INT_CHAR))
 
+// checks if `vt` is a pointer or an integer and unsigned
+#define vt_is_unsigned(vt) (((vt)->type == VAL_POINTER) \
+      || (((vt)->type == VAL_INT) && ((vt)->integer.is_unsigned)))
+
 #endif /* FILE_VALUE_H */

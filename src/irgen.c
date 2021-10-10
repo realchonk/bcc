@@ -19,9 +19,10 @@
 #include "target.h"
 #include "error.h"
 #include "optim.h"
+#include "func.h"
 #include "ir.h"
 
-static const struct function* cur_func = NULL;
+static struct function* cur_func = NULL;
 
 ir_node_t* new_node(enum ir_node_type t) {
    ir_node_t* n = calloc(1, sizeof(ir_node_t));
@@ -46,8 +47,13 @@ static bool is_cmp(const enum token_type t) {
    }
 }
 
+// current register
 static ir_reg_t creg = 0;
+
+// current label
 static size_t clbl = 0;
+
+// label of begin and end of current loop
 static istr_t begin_loop = NULL, end_loop = NULL;
 
 static istr_t make_label(size_t i) {
@@ -58,6 +64,41 @@ static istr_t make_label(size_t i) {
    snprintf(buffer, len, ".L%zu", i);
    buffer[len] = '\0';
    return strint(buffer);
+}
+
+static ir_node_t* make_iload(ir_reg_t reg, intmax_t val, enum ir_value_size irs, bool is_unsigned) {
+   ir_node_t* n = new_node(IR_LOAD);
+   if (val < target_info.min_iload || val > target_info.max_iload) {
+      // add the constant to big_iloads
+      struct ir_big_iload bi;
+      bi.label = make_label(clbl++);
+      bi.size = irs;
+      bi.val = val;
+      bi.is_unsigned = is_unsigned;
+      buf_push(cur_func->big_iloads, bi);
+
+      // lookup the constant
+      n->type = IR_GLOOKUP;
+      n->lstr.str = bi.label;
+      n->lstr.reg = reg;
+
+      // read the value
+      ir_node_t* tmp = new_node(IR_READ);
+      tmp->read.dest = reg;
+      tmp->read.src = reg;
+      tmp->read.size = irs;
+      tmp->read.sign_extend = !is_unsigned;
+      tmp->read.is_volatile = false;
+
+      // append tmp to n
+      tmp->prev = n;
+      n->next = tmp;
+   } else {
+      n->load.dest = reg;
+      n->load.value = val;
+      n->load.size = irs;
+   }
+   return n;
 }
 
 enum ir_value_size vt2irs(const struct value_type* vt) {
@@ -113,10 +154,7 @@ static ir_node_t* ir_lvalue(struct scope* scope, const struct expression* e, boo
                   break;
                }
                case SYM_CONST:
-                  n->type = IR_LOAD;
-                  n->load.dest = creg++;
-                  n->load.value = cunit.constants[sym.idx].value;
-                  n->load.size = IRS_INT;
+                  n = make_iload(creg++, cunit.constants[sym.idx].value, IRS_INT, true);
                   *is_lv = false;
                   break;
                case SYM_FUNC:
@@ -182,16 +220,10 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    case EXPR_PAREN:  return ir_expr(scope, e->expr);
    case EXPR_UINT:
    case EXPR_INT:
-      n = new_node(IR_LOAD);
-      n->load.dest = creg++;
-      n->load.value = e->uVal;
-      n->load.size = vt2irs(vt);
+      n = make_iload(creg++, e->uVal, vt2irs(vt), vt_is_unsigned(vt));
       break;
    case EXPR_CHAR:
-      n = new_node(IR_LOAD);
-      n->load.dest = creg++;
-      n->load.value = e->uVal;
-      n->load.size = IRS_CHAR;
+      n = make_iload(creg++, e->uVal, IRS_CHAR, false);
       break;
    case EXPR_BINARY:
    {
@@ -215,10 +247,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          tmp->cjmp.size = vt2irs(vr);
          ir_append(n, tmp);
 
-         tmp = new_node(IR_LOAD);
-         tmp->load.dest = creg - 1;
-         tmp->load.value = 1;
-         tmp->load.size = irs;
+         tmp = make_iload(creg - 1, 1, irs, true);
          ir_append(n, tmp);
 
          tmp = new_node(IR_LABEL);
@@ -247,10 +276,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          tmp->str = lbl_1;
          ir_append(n, tmp);
 
-         tmp = new_node(IR_LOAD);
-         tmp->load.dest = creg - 1;
-         tmp->load.value = 1;
-         tmp->load.size = irs;
+         tmp = make_iload(creg - 1, 1, irs, true);
          ir_append(n, tmp);
 
          tmp = new_node(IR_LABEL);
@@ -523,10 +549,8 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       if (!is_lv) parse_error(&e->unary.expr->begin, "expected lvalue");
       --creg;
       if (vt->type == VAL_BOOL) {
-         tmp = new_node(IR_LOAD);
-         tmp->load.dest = creg - 1;
-         tmp->load.value = e->unary.op.type == TK_PLPL ? 1 : 0;
-         tmp->load.size = IRS_BYTE;
+         const int v = e->unary.op.type == TK_PLPL ? 1 : 0;
+         tmp = make_iload(creg - 1, v, IRS_BYTE, true);
          ir_append(n, tmp);
 
          tmp = new_node(IR_WRITE);
@@ -582,10 +606,8 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       ir_append(n, tmp);
 
       if (vt->type == VAL_BOOL) {
-         tmp = new_node(IR_LOAD);
-         tmp->load.dest = creg + 1;
-         tmp->load.value = e->unary.op.type == TK_PLPL ? 1 : 0;
-         tmp->load.size = IRS_BYTE;
+         const int v = e->unary.op.type == TK_PLPL ? 1 : 0;
+         tmp = make_iload(creg + 1, v, IRS_BYTE, true);
          ir_append(n, tmp);
 
          tmp = new_node(IR_WRITE);
@@ -666,8 +688,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
    }
    case EXPR_SIZEOF:
    {
-      n = new_node(IR_LOAD);
-      n->load.dest = creg++;
+      n = new_node(IR_NOP);
       if (e->szof.has_expr) {
          const struct value_type* nvt = get_value_type(scope, e->szof.expr);
          if (nvt->type == VAL_POINTER && nvt->pointer.is_array && !nvt->pointer.array.has_const_size) {
@@ -676,13 +697,15 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
             if (t->type != EXPR_NAME)
                parse_error(&t->begin, "expected array");
             n = new_node(IR_ARRAYLEN);
-            n->lookup.reg = creg - 1;
+            n->lookup.reg = creg++;
             if ((n->lookup.var_idx = scope_find_var_idx(scope, &n->lookup.scope, t->str)) == SIZE_MAX)
                parse_error(&t->begin, "array '%s' not found", t->str);
-            break;
-         } else n->load.value = sizeof_value(nvt, false);
-      } else n->load.value = sizeof_value(e->szof.type, false);
-      n->load.size = IRS_INT;
+         } else {
+            n = make_iload(creg++, sizeof_value(nvt, false), IRS_INT, true);
+         }
+      } else {
+         n = make_iload(creg++, sizeof_value(e->szof.type, false), IRS_INT, true);
+      }
       break;
    }
    case EXPR_TYPEOF:
@@ -732,10 +755,7 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          tmp->binary.b.uVal = sizeof_value(nvt->pointer.type, false);
          ir_append(n, tmp);
       } else {
-         n = new_node(IR_LOAD);
-         n->load.dest = creg++;
-         n->load.value = nvt->pointer.array.size;
-         n->load.size = IRS_INT;
+         n = make_iload(creg++, nvt->pointer.array.size, IRS_INT, true);
       }
       break;
    }
@@ -911,10 +931,7 @@ ir_node_t* irgen_stmt(const struct statement* s) {
                      --creg;
                   }
                   if (i < var->type->pointer.array.size) {
-                     tmp = new_node(IR_LOAD);
-                     tmp->load.dest = creg;
-                     tmp->load.value = 0;
-                     tmp->load.size = sz_evt;
+                     tmp = make_iload(creg, 0, sz_evt, true);
                      ir_append(cur, tmp);
                      for (; i < var->type->pointer.array.size; ++i) {
                         tmp = new_node(IR_WRITE);
@@ -1158,7 +1175,7 @@ ir_node_t* irgen_stmt(const struct statement* s) {
    panic("reached unreachable");
 }
 
-ir_node_t* irgen_func(const struct function* f) {
+ir_node_t* irgen_func(struct function* f) {
    cur_func = f;
    ir_node_t* tmp;
    ir_node_t* n = new_node(IR_PROLOGUE);

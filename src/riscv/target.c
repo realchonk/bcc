@@ -75,6 +75,8 @@ const struct target_info target_info = {
    .size_int32 = INT_INT,
    .size_int64 = INT_LONG,
 
-   .max_immed = 2047,
+   .max_immed =  2047,
    .min_immed = -2048,
+   .max_iload =  524287,
+   .min_iload = -524288,
 };

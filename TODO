@@ -66,7 +66,6 @@ riscv:
 - document the code & add comments
 - options: -g, --sysroot=, -fuse-gcc
 - add zsh-completions
-- remove legacy options: -e
 - update the man pages
 - retire the preliminary bcl wrapper
 

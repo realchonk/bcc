@@ -115,6 +115,13 @@ struct ir_value {
    };
 };
 
+struct ir_big_iload {
+   const char* label;
+   enum ir_value_size size;
+   intmax_t val;
+   bool is_unsigned;
+};
+
 #define irv_reg(r) ((struct ir_value){ .type = IRT_REG, .reg = (r) })
 #define irv_uint(v) ((struct ir_value){ .type = IRT_UINT, .uVal = (v) })
 
@@ -209,7 +216,7 @@ typedef struct ir_node {
 
 ir_node_t* irgen_expr(struct scope*, const struct expression*);
 ir_node_t* irgen_stmt(const struct statement*);
-ir_node_t* irgen_func(const struct function*);
+ir_node_t* irgen_func(struct function*);
 
 
 

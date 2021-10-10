@@ -41,7 +41,11 @@ const struct target_info target_info = {
    gen_minmax(char,  8),
    gen_minmax(short, 16),
    gen_minmax(int,   32),
-   //gen_minmax(long,  BITS),
+#if BITS == 32
+   gen_minmax(long, 32),
+#else
+   gen_minmax(long, 64),
+#endif
 
    .unsigned_char = false,
 
@@ -65,5 +69,9 @@ const struct target_info target_info = {
 
    .min_immed     = INT32_MIN,
    .max_immed     = INT32_MAX,
+   .min_iload     = INT32_MIN,
+   .max_iload     = INT32_MAX,
+   //.min_iload     = 0,
+   //.max_iload     = 7,
 };
 
