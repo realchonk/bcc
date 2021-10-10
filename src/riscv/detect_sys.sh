@@ -4,10 +4,10 @@ arch="$1"
 cpu="$2"
 
 # determine the CPU by looking at /proc/cpuinfo
-out_cpu="$(grep 'isa\s*:\s*rv' /proc/cpuinfo    \ # get the `isa` field from cpuinfo
-         | head -n1                             \ # get only the first field
-         | sed 's/^.*:\s*\(.*\)$/\1/'           \ # extract the CPU
-         | sed 's/s[a-z]//')"                     # remove supervisor extensions
+out_cpu="$(grep 'isa\s*:\s*rv' /proc/cpuinfo    \
+         | head -n1                             \
+         | sed 's/^.*:\s*\(.*\)$/\1/'           \
+         | sed 's/s[a-z]//')"
 
 
 # determine the floating-pont ABI by looking at the Flags entry in the libc.so.6 file
