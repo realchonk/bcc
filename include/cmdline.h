@@ -42,10 +42,16 @@ struct flag_option {
    };
 };
 
+// print debug information to standard error
 extern bool verbose;
+
+// '-f' options
 extern struct flag_option flag_opts[];
+
+// arraylen(flag_opts)
 extern const size_t num_flag_opts;
 
+// verbose version of execl()
 #define verbose_execl(prog, arg0, ...) \
    vexecl_print(prog, __VA_ARGS__); \
    execlp(prog, arg0, __VA_ARGS__)

@@ -40,9 +40,15 @@
 #endif
 
 noreturn void panic_impl(const char*, const char*, ...) PRINTF_FMT_WARN(2, 3);
+
+// print an error and exit
 noreturn void parse_error(const struct source_pos*, const char*, ...) PRINTF_FMT_WARN(2, 3);
+
+// print a warning
 void parse_warn(const struct source_pos*, const char*, ...) PRINTF_FMT_WARN(2, 3);
 
+// crash with a message should be called in exceptional circumstances
+// eg. unimplemented edge-cases
 #define panic(...) panic_impl(__func__, __VA_ARGS__)
 
 #endif /* FILE_ERROR_H */
