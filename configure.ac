@@ -111,6 +111,11 @@ AC_ARG_WITH([abi],
 
 AC_DEFINE_UNQUOTED([DEF_ABI], ["${DEF_ABI}"], [Default ABI])
 
+# --with-dl=
+AC_ARG_WITH([dl],
+            [AS_HELP_STRING([--with-dl=PATH], [overwrite the default path to the dynamic linker])],
+            [AC_DEFINE_UNQUOTED([PATH_DL], ["${withval}"], [path to the dynamic linker])])
+
 # Patch bcc.1
 sed "s/VERSION/$VERSION/g" ${srcdir}/src/bcc.1 >bcc.1 || AC_MSG_ERROR([failed to patch bcc.1])
 

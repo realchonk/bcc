@@ -24,6 +24,7 @@ Common configure options:<br>
 | --disable-target-libbcc | don't build & install the compiler-support library |
 | --with-cpu=CPU | select the default target CPU |
 | --with-abi=ABI | select the default target ABI |
+| --with-dl=PATH | overwrite the default path to the dynamic linker |
 | --disable-bash-completions | disable the installation of bash-completions |
 
 For debug builds use:<br>

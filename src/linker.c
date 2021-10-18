@@ -81,7 +81,11 @@ int run_linker(const char* output_name, const char** objects) {
 #if HAS_LIBC
    if (linker_mode == 1) {
       buf_push(args, "-I");
+#ifdef PATH_DL
+      buf_push(args, PATH_DL);
+#else
       buf_push(args, get_interpreter());
+#endif
    } else {
       buf_push(args, "-static");
    }
