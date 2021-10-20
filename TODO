@@ -26,6 +26,7 @@
 # IR-generation
 - more advanced optimization techniques
 - support for 64bit integers on 32bit systems
+- fix remove_unreferenced() for function call arguments
 
 
 # Architecture-specific related
