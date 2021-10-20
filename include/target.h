@@ -15,6 +15,7 @@
 
 #ifndef FILE_TARGET_H
 #define FILE_TARGET_H
+#include <stdarg.h>
 #include <stdio.h>
 #include "cmdline.h"
 #include "value.h"
@@ -64,16 +65,21 @@ struct target_info {
 
    const enum integer_size ptrdiff_type;        // the underlying integer type of __builtin_ptrdiff_t
    const enum integer_size size_type;           // the underlying integer type of __builtin_size_t
-   enum integer_size size_int8;                 // the underlying integer type of __builtin_[u]int8_t
-   enum integer_size size_int16;                // the underlying integer type of __builtin_[u]int16_t
-   enum integer_size size_int32;                // the underlying integer type of __builtin_[u]int32_t
-   enum integer_size size_int64;                // the underlying integer type of __builtin_[u]int64_t 
+   const enum integer_size size_int8;           // the underlying integer type of __builtin_[u]int8_t
+   const enum integer_size size_int16;          // the underlying integer type of __builtin_[u]int16_t
+   const enum integer_size size_int32;          // the underlying integer type of __builtin_[u]int32_t
+   const enum integer_size size_int64;          // the underlying integer type of __builtin_[u]int64_t 
                                                 //     (or NUM_INTS, if not available)
 
-   intmax_t max_immed;                          // the signed maximum value of an immediate value
-   intmax_t min_immed;                          // the signed minimum value of an immediate value
-   intmax_t max_iload;                          // the signed maximum value for IR_LOAD
-   intmax_t min_iload;                          // the signed minimum value for IR_LOAD
+   const intmax_t max_immed;                    // the signed maximum value of an immediate value
+   const intmax_t min_immed;                    // the signed minimum value of an immediate value
+   const intmax_t max_iload;                    // the signed maximum value for IR_LOAD
+   const intmax_t min_iload;                    // the signed minimum value for IR_LOAD
+
+   // IR optimization settings
+   const bool fuse_fp_rw;                       // enable fusion of IR_FPARAM    & (IR_READ|IR_WRITE)
+   const bool fuse_gl_rw;                       // enable fusion of IR_GLOOKUP   & (IR_READ|IR_WRITE)
+   const bool fuse_lu_rw;                       // enable fusion of IR_LOOKUP    & (IR_READ|IR_WRITE)
 };
 
 struct builtin_func {
@@ -103,6 +109,9 @@ void emit(const char*, ...) PRINTF_FMT_WARN(1, 2);
 
 // line emit(), but doesn't print a newline
 void emitraw(const char*, ...) PRINTF_FMT_WARN(1, 2);
+
+// like emitraw()
+void vemitraw(const char*, va_list);
 
 // defines compiler-specific macros
 void define_ctarget_macros(void);

@@ -345,8 +345,13 @@ int main(int argc, char* argv[]) {
          no_colors = true;
          break;
       case 'X':
-         buf_push(extra_args, optarg);
+      {
+         const size_t len = strlen(optarg) + 2;
+         char* buf = malloc(len);
+         snprintf(buf, len, "-%s", optarg);
+         buf_push(extra_args, buf);
          break;
+      }
 
       case 'h':
          puts("Usage: tester [Options] [test...]");

@@ -29,6 +29,35 @@ static const struct function* cur_func;
 
 void emit_init_int(enum ir_value_size irs, intmax_t val, bool is_unsigned);
 
+static void emit_read(ir_reg_t d, enum ir_value_size irs, bool se, const char* addr, ...) {
+   va_list ap;
+   va_start(ap, addr);
+
+   const char* dest = reg(d);
+   const char* suffix = "";
+
+#if BITS == 32
+   if (irs < INT_INT) {
+#else
+   if (irs < INT_LONG) {
+#endif
+      if (se) {
+         suffix = "sx";
+      } else if (irs == INT_INT) {
+         // only in 64bit
+         dest = regs32[d];
+      } else {
+         suffix = "zx";
+      }
+   }
+
+   emitraw("mov%s %s, %s PTR [", suffix, dest, as_size(irs));
+   vemitraw(addr, ap);
+   emit("]");
+
+   va_end(ap);
+}
+
 ir_node_t* emit_ir(ir_node_t* n) {
    const char* instr;
    bool flag = false, flag2 = false;
@@ -111,25 +140,7 @@ ir_node_t* emit_ir(ir_node_t* n) {
       return n->next;
    
    case IR_READ:
-#if BITS == 32
-      if (n->read.size < INT_INT) {
-#elif BITS == 64
-      if (n->read.size < INT_LONG) {
-#endif
-         const char* suffix;
-         const char* dest = reg(n->read.dest);
-         if (n->read.sign_extend) {
-            suffix = "sx";
-         } else if (n->read.size == INT_INT) {
-            suffix = "";
-            dest = regs32[n->read.dest];
-         } else {
-            suffix = "zx";
-         }
-         emit("mov%s %s, %s PTR [%s]", suffix, dest, as_size(n->move.size), reg(n->read.src));
-      } else {
-         emit("mov %s, %s PTR [%s]", reg(n->read.dest), as_size(n->read.size), reg(n->read.src));
-      }
+      emit_read(n->rw.dest, n->rw.size, n->rw.sign_extend, "%s", reg(n->rw.src));
       return n->next;
    case IR_WRITE:
       emit("mov %s PTR [%s], %s", as_size(n->move.size), reg(n->move.dest), reg_wsz(n->move.src, n->move.size));
@@ -185,15 +196,7 @@ ir_node_t* emit_ir(ir_node_t* n) {
       return n->next;
    }
    case IR_FPARAM:
-#if BITS == 32
-      emit("lea %s, [ebp + %zu]", reg(n->fparam.reg), 8 + (REGSIZE * n->fparam.idx));
-#else
-      if (n->fparam.idx < arraylen(param_regs)) {
-         emit("lea %s, [rbp - %zu]", reg(n->fparam.reg), REGSIZE * (n->fparam.idx + 1));
-      } else {
-         emit("lea %s, [rbp + %zu]", reg(n->fparam.reg), 16 + (REGSIZE * (n->fparam.idx - arraylen(param_regs))));
-      }
-#endif
+      emit("lea %s, [%s %+d]", reg(n->fparam.reg), REG_BP, calc_fp_addr(n->fparam.idx));
       return n->next;
 
    case IR_LOOKUP:
@@ -442,6 +445,32 @@ ir_node_t* emit_ir(ir_node_t* n) {
    }
    case IR_ASM:
       emit("%s", n->str);
+      return n->next;
+
+   case IR_FFPWR:
+      emit("mov %s PTR [%s %+d], %s", as_size(n->ffprw.size), REG_BP, calc_fp_addr(n->ffprw.idx), reg_wsz(n->ffprw.reg, n->ffprw.size));
+      return n->next;
+
+   case IR_FFPRD:
+      emit_read(n->ffprw.reg, n->ffprw.size, n->ffprw.sign_extend, "%s %+d", REG_BP, calc_fp_addr(n->ffprw.idx));
+      return n->next;
+
+   case IR_FGLWR:
+      emit("mov %s PTR [%s], %s", as_size(n->fglrw.size), n->fglrw.name, reg_wsz(n->fglrw.reg, n->fglrw.size));
+      return n->next;
+
+   case IR_FGLRD:
+      emit_read(n->fglrw.reg, n->fglrw.size, n->fglrw.sign_extend, "%s", n->fglrw.name);
+      return n->next;
+
+   case IR_FLUWR:
+      emit("mov %s PTR [%s - %zu], %s", as_size(n->flurw.size), REG_BP,
+            n->lookup.scope->vars[n->lookup.var_idx].addr, reg_wsz(n->flurw.reg, n->flurw.size));
+      return n->next;
+
+   case IR_FLURD:
+      emit_read(n->flurw.reg, n->flurw.size, n->flurw.sign_extend, "%s - %zu", REG_BP,
+            n->lookup.scope->vars[n->lookup.var_idx].addr);
       return n->next;
 
    default:

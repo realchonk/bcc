@@ -24,7 +24,9 @@ endif
 BCC_ARCH ?= $(shell $(BCC) -dumparch)
 BCC_MACH ?= $(shell $(BCC) -dumpmachine)
 
-BCCFLAGS+=-O2 -fpath-cpp=$(BCPP) -I ../bcc-include -L ../libbcc -nobccobjs
+BCCFLAGS ?= -O2
+
+BCC_FLAGS := $(BCCFLAGS) -fpath-cpp=$(BCPP) -I ../bcc-include -L ../libbcc -nobccobjs
 
 ifeq ($(BCC_ARCH),x86_64)
 BITS=64
@@ -36,24 +38,24 @@ else ifeq ($(BCC_ARCH),riscv32)
 BITS=32
 ARCH=riscv
 QLP=/usr/$(BCC_MACH)/
-BCCFLAGS+=-mabi=ilp32d
+BCC_FLAGS := $(BCC_FLAGS) -mabi=ilp32d
 else ifeq ($(BCC_ARCH),riscv64)
 BITS=64
 ARCH=riscv
 QLP=/usr/$(BCC_MACH)/
-BCCFLAGS+=-mabi=lp64
+BCC_FLAGS := $(BCC_FLAGS) -mabi=lp64
 endif
 
 all: test
 
 test.ir: test.c $(BCC)
-	$(BCC) -i -o $@ $< $(BCCFLAGS)
+	$(BCC) -i -o $@ $< $(BCC_FLAGS)
 
 test: test.s
-	$(BCC) -o $@ $< $(BCCFLAGS)
+	$(BCC) -o $@ $< $(BCC_FLAGS)
 
 test.s: test.c $(BCC)
-	$(BCC) -S -o $@ $< $(BCCFLAGS)
+	$(BCC) -S -o $@ $< $(BCC_FLAGS)
 
 clean:
 	rm -f *.s *.asm *.o test *.ir

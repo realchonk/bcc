@@ -79,4 +79,8 @@ const struct target_info target_info = {
    .min_immed = -2048,
    .max_iload =  524287,
    .min_iload = -524288,
+
+   .fuse_fp_rw = false,
+   .fuse_gl_rw = false,
+   .fuse_lu_rw = false,
 };

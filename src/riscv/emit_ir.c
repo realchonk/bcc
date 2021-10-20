@@ -115,38 +115,38 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    {
    ir_read:;
       ir_node_t* next = n->next;
-      ir_reg_t dest = n->read.dest;
+      ir_reg_t dest = n->rw.dest;
       if (optim_level >= 1
          && ir_is(next, IR_IICAST)
-         && n->read.dest == next->iicast.src) {
+         && n->rw.dest == next->iicast.src) {
          dest = next->iicast.dest;
          next = next->next;
       }
       switch (n->move.size) {
       case IRS_BYTE:
-      case IRS_CHAR:    instr = n->read.sign_extend ? "lb  " : "lbu "; break;
-      case IRS_SHORT:   instr = n->read.sign_extend ? "lh  " : "lhu "; break;
+      case IRS_CHAR:    instr = n->rw.sign_extend ? "lb  " : "lbu "; break;
+      case IRS_SHORT:   instr = n->rw.sign_extend ? "lh  " : "lhu "; break;
 #if BITS == 32
       case IRS_PTR:
       case IRS_INT:
       case IRS_LONG:    instr = "lw  "; break;
 #else
-      case IRS_INT:     instr = n->read.sign_extend ? "lw  " : "lwu "; break;
+      case IRS_INT:     instr = n->rw.sign_extend ? "lw  " : "lwu "; break;
       case IRS_LONG:
       case IRS_PTR:     instr = "ld  "; break;
 #endif
-      default:          panic("unsupported operand size '%s'", ir_size_str[n->read.size]);
+      default:          panic("unsupported operand size '%s'", ir_size_str[n->rw.size]);
       }
       if (flag) {
          emit("%s %s, %jd(fp)", instr, reg(dest), (intmax_t)off);
       } else {
-         emit("%s %s, 0(%s)", instr, reg(dest), reg(n->read.src));
+         emit("%s %s, 0(%s)", instr, reg(dest), reg(n->rw.src));
       }
       return next;
    }
    case IR_WRITE:
    ir_write:;
-      switch (n->write.size) {
+      switch (n->rw.size) {
       case IRS_BYTE:
       case IRS_CHAR:    instr = "sb  "; break;
       case IRS_SHORT:   instr = "sh  "; break;
@@ -159,12 +159,12 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       case IRS_LONG:
       case IRS_PTR:     instr = "sd  "; break;
 #endif
-      default:          panic("unsupported operand size '%s'", ir_size_str[n->write.size]);
+      default:          panic("unsupported operand size '%s'", ir_size_str[n->rw.size]);
       }
       if (flag) {
-         emit("%s %s, %jd(fp)", instr, reg(n->write.src), (intmax_t)off);
+         emit("%s %s, %jd(fp)", instr, reg(n->rw.src), (intmax_t)off);
       } else {
-         emit("%s %s, 0(%s)", instr, reg(n->write.src), reg(n->write.dest));
+         emit("%s %s, 0(%s)", instr, reg(n->rw.src), reg(n->rw.dest));
       }
       return n->next;
    case IR_PROLOGUE:
@@ -255,8 +255,8 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       const ir_reg_t reg = n->lookup.reg;
       if (optim_level >= 2
          && n->next
-         && ((n->next->type == IR_READ && n->next->read.src == reg)
-         || (n->next->type == IR_WRITE && n->next->write.dest == reg))) {
+         && ((n->next->type == IR_READ && n->next->rw.src == reg)
+         || (n->next->type == IR_WRITE && n->next->rw.dest == reg))) {
          flag = true;
          off = -(intreg_t)addr;
          n = n->next;
@@ -288,8 +288,8 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          const ir_reg_t reg = n->lookup.reg;
          if (optim_level >= 2
             && n->next
-            && ((n->next->type == IR_READ && n->next->read.src == reg)
-            || (n->next->type == IR_WRITE && n->next->write.dest == reg))) {
+            && ((n->next->type == IR_READ && n->next->rw.src == reg)
+            || (n->next->type == IR_WRITE && n->next->rw.dest == reg))) {
             flag = true;
             off = -(intreg_t)addr;
             n = n->next;

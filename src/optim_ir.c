@@ -246,8 +246,8 @@ static bool add_zero(ir_node_t** n) {
 static bool remove_unreferenced(ir_node_t** n) {
    if (optim_level < 3) return false; // XXX: experimental
    bool success = false;
-   for (ir_node_t* cur = *n; cur; cur = cur->next) {
-      if (cur->type == IR_READ && !ir_is_used(cur->next, cur->read.dest)) {
+   for (ir_node_t* cur = *n; cur && cur->next; cur = cur->next) {
+      if (cur->type == IR_READ && !ir_is_used(cur->next, cur->rw.dest)) {
          cur->type = IR_NOP;
          success = true;
       }
@@ -347,6 +347,118 @@ static bool useless_move(ir_node_t** n) {
    return success;
 }
 
+#define is_rw(t) (((t) == IR_READ) || ((t) == IR_WRITE))
+#define get_memreg(n) (((n)->type == IR_READ) ? (n)->rw.src : (n)->rw.dest)
+#define get_datreg(n) (((n)->type == IR_READ) ? (n)->rw.dest : (n)->rw.src)
+
+static bool check_if_used(ir_node_t* cur, ir_reg_t r) {
+   ir_node_t* next = cur->next;
+   if (next->type == IR_READ && next->rw.dest == next->rw.src)
+      return false;
+
+   return ir_is_used(next->next, r);
+}
+
+// (fparam R0, 0; read R0, R0) -> (ffprd R0, 0)
+static bool fuse_fp_rw(ir_node_t** n) {
+   bool success = false;
+   for (ir_node_t* cur = *n; cur && cur->next; cur = cur->next) {
+      ir_node_t* next = cur->next;
+      if (cur->type == IR_FPARAM && is_rw(next->type) && cur->fparam.reg == get_memreg(next)) {
+         if (check_if_used(cur, get_memreg(next)))
+            continue;
+         ir_node_t tmp;
+         tmp.type = next->type == IR_READ ? IR_FFPRD : IR_FFPWR;
+         tmp.prev = cur->prev;
+         tmp.next = next->next;
+         tmp.func = cur->func;
+         tmp.ffprw.reg = get_datreg(next);
+         tmp.ffprw.idx = cur->fparam.idx;
+         tmp.ffprw.size = next->rw.size;
+         tmp.ffprw.sign_extend = next->rw.sign_extend;
+         tmp.ffprw.is_volatile = next->rw.is_volatile;
+
+         ir_remove(next);
+         *cur = tmp;
+         success = true;
+      }
+   }
+   return success;
+}
+
+// (glookup R0, name; write R0, R1) -> (fglwr name, R1)
+static bool fuse_gl_rw(ir_node_t** n) {
+   bool success = false;
+   for (ir_node_t* cur = *n; cur && cur->next; cur = cur->next) {
+      ir_node_t* next = cur->next;
+      if (cur->type == IR_GLOOKUP && is_rw(next->type) && cur->lstr.reg == get_memreg(next)) {
+         if (check_if_used(cur, get_memreg(next)))
+            continue;
+         ir_node_t tmp;
+         tmp.type = next->type == IR_READ ? IR_FGLRD : IR_FGLWR;
+         tmp.prev = cur->prev;
+         tmp.next = next->next;
+         tmp.func = cur->func;
+         tmp.fglrw.reg = get_datreg(next);
+         tmp.fglrw.name = cur->lstr.str;
+         tmp.fglrw.size = next->rw.size;
+         tmp.fglrw.sign_extend = next->rw.sign_extend;
+         tmp.fglrw.is_volatile = next->rw.is_volatile;
+
+         ir_remove(next);
+         *cur = tmp;
+         success = true;
+      }
+   }
+   return success;
+}
+
+// (lookup R0, ...; read R1, R0) -> (flurd R1, ...)
+static bool fuse_lu_rw(ir_node_t** n) {
+   bool success = false;
+   for (ir_node_t* cur = *n; cur && cur->next; cur = cur->next) {
+      ir_node_t* next = cur->next;
+      if (cur->type == IR_LOOKUP && is_rw(next->type) && cur->lookup.reg == get_memreg(next)) {
+         if (check_if_used(cur, get_memreg(next)))
+            continue;
+         ir_node_t tmp;
+         tmp.type = next->type == IR_READ ? IR_FLURD : IR_FLUWR;
+         tmp.prev = cur->prev;
+         tmp.next = next->next;
+         tmp.func = cur->func;
+         tmp.flurw.reg = get_datreg(next);
+         tmp.flurw.scope = cur->lookup.scope;
+         tmp.flurw.var_idx = cur->lookup.var_idx;
+         tmp.flurw.size = next->rw.size;
+         tmp.flurw.sign_extend = next->rw.sign_extend;
+         tmp.flurw.is_volatile = next->rw.is_volatile;
+         
+         ir_remove(next);
+         *cur = tmp;
+         success = true;
+      }
+   }
+   return success;
+}
+
+// Fuse memory-nodes (experimental)
+static bool fuse_memops(ir_node_t** n) {
+   if (optim_level < 3)
+      return false;
+   bool success = false;
+
+   if (target_info.fuse_fp_rw)
+      success |= fuse_fp_rw(n);
+
+   if (target_info.fuse_gl_rw)
+      success |= fuse_gl_rw(n);
+
+   if (target_info.fuse_lu_rw)
+      success |= fuse_lu_rw(n);
+
+   return success;
+}
+
 ir_node_t* optim_ir_nodes(ir_node_t* n) {
    if (optim_level < 1) {
       while (target_optim_ir(&n));
@@ -355,11 +467,12 @@ ir_node_t* optim_ir_nodes(ir_node_t* n) {
    }
    while (remove_nops(&n)
       || direct_val(&n)
+      || fuse_memops(&n)
       || unmuldiv(&n)
       || fold(&n)
       || reorder_params(&n)
       || add_zero(&n)
-      || remove_unreferenced(&n)
+      //|| remove_unreferenced(&n)
       || direct_call(&n)
       || mod_to_and(&n)
       || fuse_load_iicast(&n)

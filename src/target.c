@@ -64,14 +64,15 @@ void emit_free(void) {
    file = NULL;
 }
 
-void emitraw(const char* fmt, ...) {
-   va_list ap;
-   va_start(ap, fmt);
-
+void vemitraw(const char* fmt, va_list ap) {
    for (unsigned i = 0; i < asm_indent; ++i)
       fputc(ASM_INDENT, file);
    vfprintf(file, fmt, ap);
-
+}
+void emitraw(const char* fmt, ...) {
+   va_list ap;
+   va_start(ap, fmt);
+   vemitraw(fmt, ap);
    va_end(ap);
 }
 void emit(const char* fmt, ...) {

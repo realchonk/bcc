@@ -84,11 +84,11 @@ static ir_node_t* make_iload(ir_reg_t reg, intmax_t val, enum ir_value_size irs,
 
       // read the value
       ir_node_t* tmp = new_node(IR_READ);
-      tmp->read.dest = reg;
-      tmp->read.src = reg;
-      tmp->read.size = irs;
-      tmp->read.sign_extend = !is_unsigned;
-      tmp->read.is_volatile = false;
+      tmp->rw.dest = reg;
+      tmp->rw.src = reg;
+      tmp->rw.size = irs;
+      tmp->rw.sign_extend = !is_unsigned;
+      tmp->rw.is_volatile = false;
 
       // append tmp to n
       tmp->prev = n;
@@ -388,9 +388,9 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       n = ir_lvalue(scope, e, &is_lv);
       if (is_lv && !is_struct(vt->type) && !vt_is_array(vt)) {
          tmp = new_node(IR_READ);
-         tmp->read.dest = tmp->read.src = creg - 1;
-         tmp->read.size = vt2irsb(vt);
-         tmp->read.sign_extend = vt_is_signed(vt);
+         tmp->rw.dest = tmp->rw.src = creg - 1;
+         tmp->rw.size = vt2irsb(vt);
+         tmp->rw.sign_extend = vt_is_signed(vt);
          ir_append(n, tmp);
       }
       break;
@@ -401,9 +401,9 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       n = ir_lvalue(scope, e, &is_lv);
       if (!is_lv) parse_error(&e->begin, "expected lvalue");
       tmp = new_node(IR_READ);
-      tmp->read.dest = tmp->read.src = creg - 1;
-      tmp->read.size = vt2irsb(vt);
-      tmp->read.sign_extend = vt_is_signed(vt);
+      tmp->rw.dest = tmp->rw.src = creg - 1;
+      tmp->rw.size = vt2irsb(vt);
+      tmp->rw.sign_extend = vt_is_signed(vt);
       ir_append(n, tmp);
       break;
    }
@@ -433,10 +433,10 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
             ir_append(n, tmp);
          }
          tmp = new_node(IR_WRITE);
-         tmp->write.size = vt2irsb(vt);
-         tmp->write.dest = creg - 1;
-         tmp->write.src = creg - 2;
-         tmp->write.is_volatile = vt_is_volatile(vt);
+         tmp->rw.size = vt2irsb(vt);
+         tmp->rw.dest = creg - 1;
+         tmp->rw.src = creg - 2;
+         tmp->rw.is_volatile = vt_is_volatile(vt);
       }
       ir_append(n, tmp);
       --creg;
@@ -554,21 +554,21 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          ir_append(n, tmp);
 
          tmp = new_node(IR_WRITE);
-         tmp->write.dest = creg;
-         tmp->write.src = creg - 1;
-         tmp->write.size = IRS_BYTE;
-         tmp->write.is_volatile = vt_is_volatile(vt);
+         tmp->rw.dest = creg;
+         tmp->rw.src = creg - 1;
+         tmp->rw.size = IRS_BYTE;
+         tmp->rw.is_volatile = vt_is_volatile(vt);
          ir_append(n, tmp);
          break;
       }
       const enum ir_value_size irs = vt2irs(vt);
 
       tmp = new_node(IR_READ);
-      tmp->read.dest = creg - 1;
-      tmp->read.src = creg;
-      tmp->read.size = irs;
-      tmp->read.sign_extend = false;
-      tmp->read.is_volatile = vt_is_volatile(vt);
+      tmp->rw.dest = creg - 1;
+      tmp->rw.src = creg;
+      tmp->rw.size = irs;
+      tmp->rw.sign_extend = false;
+      tmp->rw.is_volatile = vt_is_volatile(vt);
       ir_append(n, tmp);
 
       tmp = new_node(e->unary.op.type == TK_PLPL ? IR_IADD : IR_ISUB);
@@ -581,10 +581,10 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       ir_append(n, tmp);
 
       tmp = new_node(IR_WRITE);
-      tmp->write.dest = creg;
-      tmp->write.src = creg - 1;
-      tmp->write.size = irs;
-      tmp->write.is_volatile = vt_is_volatile(vt);
+      tmp->rw.dest = creg;
+      tmp->rw.src = creg - 1;
+      tmp->rw.size = irs;
+      tmp->rw.is_volatile = vt_is_volatile(vt);
       ir_append(n, tmp);
       break;
    }
@@ -599,10 +599,10 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       const enum ir_value_size irs = vt2irsb(vt);
 
       tmp = new_node(IR_READ);
-      tmp->read.dest = creg - 1;
-      tmp->read.src = creg;
-      tmp->read.size = irs;
-      tmp->read.sign_extend = false;
+      tmp->rw.dest = creg - 1;
+      tmp->rw.src = creg;
+      tmp->rw.size = irs;
+      tmp->rw.sign_extend = false;
       ir_append(n, tmp);
 
       if (vt->type == VAL_BOOL) {
@@ -611,10 +611,10 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
          ir_append(n, tmp);
 
          tmp = new_node(IR_WRITE);
-         tmp->write.dest = creg;
-         tmp->write.src = creg + 1;
-         tmp->write.size = IRS_BYTE;
-         tmp->write.is_volatile = vt_is_volatile(vt);
+         tmp->rw.dest = creg;
+         tmp->rw.src = creg + 1;
+         tmp->rw.size = IRS_BYTE;
+         tmp->rw.is_volatile = vt_is_volatile(vt);
          ir_append(n, tmp);
          break;
       }
@@ -629,10 +629,10 @@ static ir_node_t* ir_expr(struct scope* scope, const struct expression* e) {
       ir_append(n, tmp);
 
       tmp = new_node(IR_WRITE);
-      tmp->write.dest = creg;
-      tmp->write.src = creg - 1;
-      tmp->write.size = irs;
-      tmp->write.is_volatile = vt_is_volatile(vt);
+      tmp->rw.dest = creg;
+      tmp->rw.src = creg - 1;
+      tmp->rw.size = irs;
+      tmp->rw.is_volatile = vt_is_volatile(vt);
       ir_append(n, tmp);
       
       tmp = new_node(e->unary.op.type == TK_PLPL ? IR_ISUB : IR_IADD);
@@ -877,10 +877,10 @@ ir_node_t* irgen_stmt(const struct statement* s) {
                ir_append(cur, tmp);
 
                tmp = new_node(IR_WRITE);
-               tmp->write.dest = creg + 1;
-               tmp->write.src = creg;
-               tmp->write.size = IRS_PTR;
-               tmp->write.is_volatile = vt_is_volatile(type);
+               tmp->rw.dest = creg + 1;
+               tmp->rw.src = creg;
+               tmp->rw.size = IRS_PTR;
+               tmp->rw.is_volatile = vt_is_volatile(type);
                ir_append(cur, tmp);
             } else {
                if (var->init) {
@@ -915,10 +915,10 @@ ir_node_t* irgen_stmt(const struct statement* s) {
                      tmp = ir_expr(s->parent, list[i]);
                      ir_append(cur, tmp);
                      tmp = new_node(IR_WRITE);
-                     tmp->write.dest = creg - 2;
-                     tmp->write.src = creg  - 1;
-                     tmp->write.size = eirs;
-                     tmp->write.is_volatile = vt_is_volatile(evt);
+                     tmp->rw.dest = creg - 2;
+                     tmp->rw.src = creg  - 1;
+                     tmp->rw.size = eirs;
+                     tmp->rw.is_volatile = vt_is_volatile(evt);
                      ir_append(cur, tmp);
                      tmp = new_node(IR_IADD);
                      tmp->binary.dest = creg - 2;
@@ -935,10 +935,10 @@ ir_node_t* irgen_stmt(const struct statement* s) {
                      ir_append(cur, tmp);
                      for (; i < var->type->pointer.array.size; ++i) {
                         tmp = new_node(IR_WRITE);
-                        tmp->write.dest = creg - 1;
-                        tmp->write.src = creg;
-                        tmp->write.size = eirs;
-                        tmp->write.is_volatile = false;
+                        tmp->rw.dest = creg - 1;
+                        tmp->rw.src = creg;
+                        tmp->rw.size = eirs;
+                        tmp->rw.is_volatile = false;
                         ir_append(cur, tmp);
                         tmp = new_node(IR_IADD);
                         tmp->binary.dest = creg - 1;
@@ -980,10 +980,10 @@ ir_node_t* irgen_stmt(const struct statement* s) {
                   ir_append(cur, tmp);
                }
                tmp = new_node(IR_WRITE);
-               tmp->write.size = vt2irsb(var->type);
-               tmp->write.dest = creg;
-               tmp->write.src = creg - 1;
-               tmp->write.is_volatile = vt_is_volatile(var->type);
+               tmp->rw.size = vt2irsb(var->type);
+               tmp->rw.dest = creg;
+               tmp->rw.src = creg - 1;
+               tmp->rw.is_volatile = vt_is_volatile(var->type);
             }
             ir_append(cur, tmp);
             --creg;

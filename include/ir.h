@@ -48,8 +48,8 @@ enum ir_node_type {
    IR_LOOKUP,        // .lookup     | load address of variable
    IR_BEGIN_SCOPE,   // .scope      | beginning of a scope
    IR_END_SCOPE,     // .scope      | ending of a scope
-   IR_READ,          // .read       | read data from memory
-   IR_WRITE,         // .write      | write data to memory
+   IR_READ,          // .rw         | read data from memory
+   IR_WRITE,         // .rw         | write data to memory
    IR_PROLOGUE,      // .func       | beginning of a function
    IR_EPILOGUE,      // .func       | ending of a function
    IR_IICAST,        // .iicast     | integer-to-integer cast
@@ -80,6 +80,14 @@ enum ir_node_type {
    IR_FLOOKUP,       // .lstr       | function lookup
    IR_SRET,          // .sret       | return struct/union
    IR_ASM,           // .str        | line of inline assembly
+
+   // optional optimization-related IR nodes (-O3, SEE: fuse_memops()[optim_ir.c])
+   IR_FFPRD,         // .ffprw      | fused IR_FPARAM    + IR_READ
+   IR_FFPWR,         // .ffprw      | fused IR_FPARAM    + IR_WRITE 
+   IR_FGLRD,         // .fglrw      | fused IR_GLOOKUP   + IR_READ
+   IR_FGLWR,         // .fglrw      | fused IR_GLOOKUP   + IR_WRITE
+   IR_FLURD,         // .flurw      | fused IR_LOOKUP    + IR_READ
+   IR_FLUWR,         // .flurw      | fused IR_LOOKUP    + IR_WRITE
 
    NUM_IR_NODES,
 };
@@ -140,14 +148,9 @@ typedef struct ir_node {
       struct {
          ir_reg_t dest, src;
          enum ir_value_size size;
-         bool sign_extend;
+         bool sign_extend; // only for IR_READ
          bool is_volatile;
-      } read;
-      struct {
-         ir_reg_t dest, src;
-         enum ir_value_size size;
-         bool is_volatile;
-      } write;
+      } rw;
       struct {
          ir_reg_t dest;
          uintmax_t value;
@@ -208,6 +211,29 @@ typedef struct ir_node {
          ir_reg_t ptr;
          uintmax_t size;
       } sret;
+
+      struct {
+         ir_reg_t reg; // READ => dest; WRITE => src
+         size_t idx;
+         enum ir_value_size size;
+         bool sign_extend;
+         bool is_volatile;
+      } ffprw;
+      struct {
+         ir_reg_t reg;
+         istr_t name;
+         enum ir_value_size size;
+         bool sign_extend;
+         bool is_volatile;
+      } fglrw;
+      struct {
+         ir_reg_t reg;
+         struct scope* scope;
+         size_t var_idx;
+         enum ir_value_size size;
+         bool sign_extend;
+         bool is_volatile;
+      } flurw;
    };
 } ir_node_t;
 
@@ -236,7 +262,6 @@ size_t ir_length(const ir_node_t*);
 
 // removes the node `n`
 void ir_remove(ir_node_t* n);
-
 
 
 /// Printing stuff

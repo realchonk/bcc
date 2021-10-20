@@ -87,6 +87,12 @@ const char* ir_node_type_str[NUM_IR_NODES] = {
    [IR_FLOOKUP]      = "flookup",
    [IR_SRET]         = "sret",
    [IR_ASM]          = "asm",
+   [IR_FFPRD]        = "ffprd",
+   [IR_FFPWR]        = "ffpwr",
+   [IR_FGLRD]        = "fglrd",
+   [IR_FGLWR]        = "fglwr",
+   [IR_FLURD]        = "flurd",
+   [IR_FLUWR]        = "fluwr",
 };
 const char* ir_value_type_str[NUM_IR_VALUES] = {
    [IRT_REG]         = "register",
@@ -146,13 +152,13 @@ void print_ir_node(FILE* file, const ir_node_t* n) {
       fprintf(file, ".%s R%u, R%u", ir_size_str[n->move.size], n->move.dest, n->move.src);
       break;
    case IR_WRITE:
-      fprintf(file, ".%s%s R%u, R%u", ir_size_str[n->write.size],
-            n->write.is_volatile ? "v" : "", n->write.dest, n->write.src);
+      fprintf(file, ".%s%s R%u, R%u", ir_size_str[n->rw.size],
+            n->rw.is_volatile ? "v" : "", n->rw.dest, n->rw.src);
       break;
    case IR_READ:
-      fprintf(file, "%c.%s%s R%u, R%u", n->read.sign_extend ? 'u' : 's',
-            n->read.is_volatile ? "v" : "", ir_size_str[n->read.size],
-            n->read.dest, n->read.src);
+      fprintf(file, "%c.%s%s R%u, R%u", n->rw.sign_extend ? 'u' : 's',
+            n->rw.is_volatile ? "v" : "", ir_size_str[n->rw.size],
+            n->rw.dest, n->rw.src);
       break;
    case IR_LOAD:
       fprintf(file, ".%s R%u, %ju", ir_size_str[n->load.size], n->load.dest, n->load.value);

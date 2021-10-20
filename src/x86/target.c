@@ -73,5 +73,9 @@ const struct target_info target_info = {
    .max_iload     = INT32_MAX,
    //.min_iload     = 0,
    //.max_iload     = 7,
+   
+   .fuse_fp_rw    = true,
+   .fuse_gl_rw    = true,
+   .fuse_lu_rw    = true,
 };
 

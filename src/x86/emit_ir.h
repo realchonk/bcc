@@ -98,3 +98,16 @@ static void fcall_helper(ir_node_t** params, const ir_reg_t dest, uintreg_t* sp)
    emit("mov %s PTR [%s + %ju], %s", as_size(IRS_PTR), REG_SP, (uintmax_t)*sp, reg(target));
    *sp -= REGSIZE;
 }
+
+
+static int32_t calc_fp_addr(size_t idx) {
+#if BITS == 32
+   return 8 + (REGSIZE * idx);
+#else
+   if (idx < arraylen(param_regs)) {
+      return -(int32_t)(REGSIZE * (idx + 1)); 
+   } else {
+      return 16 + (REGSIZE * (idx - arraylen(param_regs)));
+   }
+#endif
+}

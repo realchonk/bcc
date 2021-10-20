@@ -1005,3 +1005,24 @@
       "}",
    .ret_val = 1,
 },
+{
+   .name = "local variable init/read",
+   .compiles = true,
+   .source =
+      "int main(void) {"
+      "  int a = 10;"
+      "  return a;"
+      "}",
+   .ret_val = 10,
+},
+{
+   .name = "local variable write/read",
+   .compiles = true,
+   .source =
+      "int main(void) {"
+      "  int a;"
+      "  a = 42;"
+      "  return a;"
+      "}",
+   .ret_val = 42,
+},
