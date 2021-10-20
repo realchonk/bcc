@@ -48,13 +48,11 @@ void free_scope(struct scope* scope) {
 }
 
 static void print_indent(FILE* file, unsigned num) {
-   //if (num >= 10) num = 10;
    for (unsigned i = 0; i < num; ++i) fputc(' ', file);
 }
 static unsigned calculate_indent(const struct scope* scope) {
    const struct scope* s = scope;
    unsigned indent = 0;
-   //s = s->parent;
    while (s) {
       s = s->parent;
       indent += INDENT;
