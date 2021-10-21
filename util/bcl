@@ -62,6 +62,10 @@ while true; do
    esac
 done
 
+echo "The use of this tool is deprecated!" >&2
+echo "It will be removed at some point since linking should hopefully work now." >&2
+echo "If not, please file a bug report." >&2
+
 [ -z "$1" ] && echo "Usage: ${target}bcl [options] file" >&2 && exit 1
 file="$1"
 
