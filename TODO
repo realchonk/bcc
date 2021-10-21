@@ -10,6 +10,7 @@
 # libbcc
 - crtbegin.o, crtend.o
 - libbcc.a
+- riscv32: software multiply seems broken
 
 
 # Language
@@ -43,7 +44,6 @@ riscv:
 - more simple optimizations
 - add VLAs
 - check detect_sys.sh
-- replace old memory-optimizations with new fused-way
 
 
 # Pre-processor

@@ -80,7 +80,7 @@ const struct target_info target_info = {
    .max_iload =  524287,
    .min_iload = -524288,
 
-   .fuse_fp_rw = false,
+   .fuse_fp_rw = true,
    .fuse_gl_rw = false,
-   .fuse_lu_rw = false,
+   .fuse_lu_rw = true,
 };

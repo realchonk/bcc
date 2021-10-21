@@ -25,6 +25,61 @@ static uintreg_t size_stack;
 
 void emit_init_int(enum ir_value_size irs, intmax_t val, bool is_unsigned);
 
+static int calc_fp_addr(size_t idx) {
+   if (idx < 8) {
+      return -((3 + idx) * REGSIZE);
+   } else {
+      panic("idx >= 8");
+   }
+}
+
+static void emit_rw(ir_reg_t dest, bool rw, enum ir_value_size irs, bool se, const char* addr, ...) {
+   va_list ap;
+   va_start(ap, addr);
+
+   const char* instr;
+
+   if (rw) {
+      switch (irs) {
+      case IRS_BYTE:
+      case IRS_CHAR:    instr = "sb  ";   break;
+      case IRS_SHORT:   instr = "sh  ";   break;
+#if BITS == 32
+      case IRS_PTR:
+      case IRS_INT:
+      case IRS_LONG:    instr = "sw  ";   break;
+#else
+      case IRS_INT:     instr = "sw  ";   break;
+      case IRS_LONG:
+      case IRS_PTR:     instr = "sd  ";   break;
+#endif
+      default:          panic("unsupported operand size '%s'", ir_size_str[irs]);
+      }
+   } else {
+      switch (irs) {
+      case IRS_BYTE:
+      case IRS_CHAR:    instr = se ? "lb  " : "lbu "; break;
+      case IRS_SHORT:   instr = se ? "lh  " : "lhu "; break;
+#if BITS == 32
+      case IRS_PTR:
+      case IRS_INT:
+      case IRS_LONG:    instr = "lw  "; break;
+#else
+      case IRS_INT:     instr = se ? "lw  " : "lwu "; break;
+      case IRS_LONG:
+      case IRS_PTR:     instr = "ld  "; break;
+#endif
+      default:          panic("unsupported operand size '%s'", ir_size_str[irs]);
+      }
+   }
+
+   emitraw("%s %s, ", instr, reg(dest));
+   vemitraw(addr, ap);
+   emit("");
+
+   va_end(ap);
+}
+
 ir_node_t* emit_ir(const ir_node_t* n) {
    const char* instr;
    bool flag = false, flag2 = false;
@@ -112,60 +167,10 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       emit("");
       return n->next;
    case IR_READ:
-   {
-   ir_read:;
-      ir_node_t* next = n->next;
-      ir_reg_t dest = n->rw.dest;
-      if (optim_level >= 1
-         && ir_is(next, IR_IICAST)
-         && n->rw.dest == next->iicast.src) {
-         dest = next->iicast.dest;
-         next = next->next;
-      }
-      switch (n->move.size) {
-      case IRS_BYTE:
-      case IRS_CHAR:    instr = n->rw.sign_extend ? "lb  " : "lbu "; break;
-      case IRS_SHORT:   instr = n->rw.sign_extend ? "lh  " : "lhu "; break;
-#if BITS == 32
-      case IRS_PTR:
-      case IRS_INT:
-      case IRS_LONG:    instr = "lw  "; break;
-#else
-      case IRS_INT:     instr = n->rw.sign_extend ? "lw  " : "lwu "; break;
-      case IRS_LONG:
-      case IRS_PTR:     instr = "ld  "; break;
-#endif
-      default:          panic("unsupported operand size '%s'", ir_size_str[n->rw.size]);
-      }
-      if (flag) {
-         emit("%s %s, %jd(fp)", instr, reg(dest), (intmax_t)off);
-      } else {
-         emit("%s %s, 0(%s)", instr, reg(dest), reg(n->rw.src));
-      }
-      return next;
-   }
+      emit_rw(n->rw.dest, false, n->rw.size, n->rw.sign_extend, "0(%s)", reg(n->rw.src));
+      return n->next;
    case IR_WRITE:
-   ir_write:;
-      switch (n->rw.size) {
-      case IRS_BYTE:
-      case IRS_CHAR:    instr = "sb  "; break;
-      case IRS_SHORT:   instr = "sh  "; break;
-#if BITS == 32
-      case IRS_PTR:
-      case IRS_INT:
-      case IRS_LONG:    instr = "sw  "; break;
-#else
-      case IRS_INT:     instr = "sw  "; break;
-      case IRS_LONG:
-      case IRS_PTR:     instr = "sd  "; break;
-#endif
-      default:          panic("unsupported operand size '%s'", ir_size_str[n->rw.size]);
-      }
-      if (flag) {
-         emit("%s %s, %jd(fp)", instr, reg(n->rw.src), (intmax_t)off);
-      } else {
-         emit("%s %s, 0(%s)", instr, reg(n->rw.src), reg(n->rw.dest));
-      }
+      emit_rw(n->rw.src, true, n->rw.size, false, "0(%s)", reg(n->rw.dest));
       return n->next;
    case IR_PROLOGUE:
    {
@@ -252,28 +257,9 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    {
       const char* dest = reg(n->lookup.reg);
       const size_t addr = n->lookup.scope->vars[n->lookup.var_idx].addr;
-      const ir_reg_t reg = n->lookup.reg;
-      if (optim_level >= 2
-         && n->next
-         && ((n->next->type == IR_READ && n->next->rw.src == reg)
-         || (n->next->type == IR_WRITE && n->next->rw.dest == reg))) {
-         flag = true;
-         off = -(intreg_t)addr;
-         n = n->next;
-         if (n->move.dest == reg || !ir_is_used(n->next, reg)) {
-            if (n->type == IR_READ) goto ir_read;
-            else goto ir_write;
-         }
-      }
       emit("addi %s, fp, -%zu", dest, addr);
-      if (flag) {
-         if (n->type == IR_READ) goto ir_read;
-         else goto ir_write;
-      }
       return n->next;
    }
-   case IR_ALLOCA:
-      return n->next;
    case IR_LSTR:
    {
       const struct strdb_ptr* ptr;
@@ -282,32 +268,17 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    }
    case IR_FPARAM:
+   {
+      const char* dest = reg(n->fparam.reg);
+      int addr;
       if (n->fparam.idx < 8) {
-         const char* dest = reg(n->fparam.reg);
-         const size_t addr = (3 + n->fparam.idx) * REGSIZE;
-         const ir_reg_t reg = n->lookup.reg;
-         if (optim_level >= 2
-            && n->next
-            && ((n->next->type == IR_READ && n->next->rw.src == reg)
-            || (n->next->type == IR_WRITE && n->next->rw.dest == reg))) {
-            flag = true;
-            off = -(intreg_t)addr;
-            n = n->next;
-            if (n->move.dest == reg || !ir_is_used(n->next, reg)) {
-               if (n->type == IR_READ) goto ir_read;
-               else goto ir_write;
-            }
-         }
-         emit("addi %s, fp, -%zu", dest, addr);
-         if (flag) {
-            if (n->type == IR_READ) goto ir_read;
-            else goto ir_write;
-         }
+         addr = -((3 + n->fparam.idx) * REGSIZE);
       } else {
-         // TODO: fix this
          panic("fparam.idx >= 8");
       }
+      emit("addi %s, fp, %d", dest, addr);
       return n->next;
+   }
    case IR_INEG:
       emit("sub %s, x0, %s", reg(n->unary.reg), reg(n->unary.reg));
       return n->next;
@@ -589,6 +560,18 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    }
    case IR_ASM:
       emit("%s", n->str);
+      return n->next;
+
+   case IR_FFPRD:
+   case IR_FFPWR:
+      emit_rw(n->ffprw.reg, n->type == IR_FFPWR, n->ffprw.size, n->ffprw.sign_extend, "%d(fp)",
+            calc_fp_addr(n->ffprw.idx));
+      return n->next;
+
+   case IR_FLURD:
+   case IR_FLUWR:
+      emit_rw(n->flurw.reg, n->type == IR_FLUWR, n->flurw.size, n->flurw.sign_extend, "-%zu(fp)",
+            n->flurw.scope->vars[n->flurw.var_idx].addr);
       return n->next;
 
 

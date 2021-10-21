@@ -19,6 +19,8 @@
 #include "optim.h"
 #include "bcc.h"
 
+static size_t depth = 0;
+
 // remove NOPs
 static bool remove_nops(ir_node_t** n) {
    bool success = false;
@@ -459,10 +461,14 @@ static bool fuse_memops(ir_node_t** n) {
    return success;
 }
 
+// TODO: add recursive optimization of IR_*CALL arguments
+
 ir_node_t* optim_ir_nodes(ir_node_t* n) {
+   ++depth;
    if (optim_level < 1) {
       while (target_optim_ir(&n));
       while (target_post_optim_ir(&n));
+      --depth;
       return n;
    }
    while (remove_nops(&n)
@@ -480,5 +486,6 @@ ir_node_t* optim_ir_nodes(ir_node_t* n) {
       || useless_move(&n)
    );
    while (target_post_optim_ir(&n));
+   --depth;
    return n;
 }
