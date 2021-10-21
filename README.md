@@ -50,6 +50,7 @@ If you have any issues, please paste the output.<br>
 
 ## Target architecture
 The target can be specified as: [cpu](#supported-processor-architectures)-vendor-[os](#supported-operating-systems)
+
 Note: Due to not being able to compile any libc,
 please build the C library of your choice with a working C compiler (such as gcc)
 or use your pre-installed one.
