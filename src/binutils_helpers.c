@@ -26,6 +26,10 @@
 #define check_flag(name) (get_mach_opt(name)->bVal)
 #define is_clean_asm() check_flag("clean-asm")
 
+
+static void emit_init_int(enum ir_value_size irs, intmax_t val, bool is_unsigned);
+static void emit_global_init(const struct value_type* vt, const struct value* val);
+
 static void emit_begin(void) {
    strdb_init();
 
@@ -162,7 +166,7 @@ void emit_unit(void) {
    emit_end();
 }
 
-void emit_init_int(enum ir_value_size irs, intmax_t val, bool is_unsigned) {
+static void emit_init_int(enum ir_value_size irs, intmax_t val, bool is_unsigned) {
    switch (irs) {
    case IRS_BYTE:    emitraw("%s ", binutils_info.init_byte);    break;
    case IRS_CHAR:    emitraw("%s ", binutils_info.init_char);    break;
@@ -182,7 +186,7 @@ static void emit_alloc(size_t sz) {
    emit("%s %zu", binutils_info.init_zero, sz);
 }
 
-void emit_global_init(const struct value_type* vt, const struct value* val) {
+static void emit_global_init(const struct value_type* vt, const struct value* val) {
    switch (vt->type) {
    case VAL_INT:
       if (val) {

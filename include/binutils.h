@@ -51,13 +51,6 @@ struct binutils_info {
 // Variables that must be defined by the target
 extern const struct binutils_info binutils_info;
 
-// Emit global integer initialization
-void emit_init_int(enum ir_value_size irs, intmax_t val, bool is_unsigned);
-
-// Emit global variable definition
-static void emit_global_init(const struct value_type* vt, const struct value* val);
-
-
 
 // Functions that must be implemented by the target.
 
