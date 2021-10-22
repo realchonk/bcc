@@ -72,7 +72,7 @@ Alternative names for processor architectures can be added [here](https://github
 | OS | Notes |
 |------|-------------|
 | linux* | Both [musl libc](https://www.musl-libc.org/) and [glibc](https://www.gnu.org/software/libc/) work with the above-mentioned work-around. |
-| elf | A standalone environment. An implementation of memcpy must be provided by the program. |
+| elf | A standalone environment. |
 
 Support for operating systems can be added [here](https://github.com/Benni3D/bcc/blob/master/util/m4/ax_set_predef_macros.m4#L28).
  
