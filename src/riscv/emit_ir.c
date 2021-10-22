@@ -174,10 +174,6 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    case IR_PROLOGUE:
    {
-      if (func_is_global(n->func))
-         emit(".global %s", n->func->name);
-      emit("%s:", n->func->name);
-
       if (get_mach_opt("stack-check")->bVal) {
          emit("addi sp, sp, -16");
          emit(SW " ra, %zu(sp)", (size_t)(16 - REGSIZE));
@@ -215,16 +211,6 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       emit(LW "   ra, %ju(sp)", (uintmax_t)(size_stack - 2*REGSIZE));
       emit("addi sp, sp, %ju",     (uintmax_t)size_stack);
       emit("ret");
-      
-      // emit large constants
-      if (n->func->big_iloads) {
-         emit("\n# large constants for %s", n->func->name);
-         for (size_t i = 0; i < buf_len(n->func->big_iloads); ++i) {
-            const struct ir_big_iload* bi = &n->func->big_iloads[i];
-            emit("%s:", bi->label);
-            emit_init_int(bi->size, bi->val, bi->is_unsigned);
-         }
-      }
       return n->next;
 
    case IR_IRET:

@@ -149,13 +149,7 @@ ir_node_t* emit_ir(ir_node_t* n) {
    case IR_PROLOGUE:
    {
       const ir_reg_t max_reg = n->func->max_reg;
-      emit("");
-      emit("# ir_max_reg(%s)=%u\n", n->func->name, (unsigned)max_reg);
-      if (func_is_global(n->func))
-         emit(".global %s", n->func->name);
-      if (!get_mach_opt("clean-asm")->bVal)
-         emit(".type %s, @function", n->func->name);
-      emit("%s:", n->func->name);
+      //emit("# ir_max_reg(%s)=%u\n", n->func->name, (unsigned)max_reg);
       emit("push %s", REG_BP);
       emit("mov %s, %s", REG_BP, REG_SP);
       cur_func = n->func;
@@ -219,19 +213,6 @@ ir_node_t* emit_ir(ir_node_t* n) {
 #endif
       emit("leave");
       emit("ret");
-
-      // emit large constants
-      if (n->func->big_iloads) {
-         emit("\n# large constants for %s", n->func->name);
-         for (size_t i = 0; i < buf_len(n->func->big_iloads); ++i) {
-            const struct ir_big_iload* bi = &n->func->big_iloads[i];
-            emit("%s:", bi->label);
-            emit_init_int(bi->size, bi->val, bi->is_unsigned);
-         }
-      }
-      if (!get_mach_opt("clean-asm")->bVal)
-         emit(".size %s, .-%s", n->func->name, n->func->name);
-      emit("");
       cur_func = NULL;
       return n->next;
    case IR_IRET:

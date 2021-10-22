@@ -21,6 +21,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>
+#include "binutils.h"
 #include "cmdline.h"
 #include "target.h"
 #include "config.h"
@@ -28,7 +29,7 @@
 #include "bcc.h"
 
 struct flag_option mach_opts[] = {
-   { "clean-asm", "Generate cleaned assembly", 0, .bVal = false },
+   BINUTILS_MACH_OPTS,
    { "stack-check", "Check the stack on every function entry", 0, .bVal = false }, // stub
 };
 const size_t num_mach_opts = arraylen(mach_opts);

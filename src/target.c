@@ -171,22 +171,6 @@ void define_ctarget_macros(void) {
    define_macro2i("__bcc_max_long", target_info.max_long);
    define_macro2i("__bcc_max_ulong", target_info.max_ulong);
 }
-void emit_strdb(void) {
-   if (!strdb)
-      return;
-   emit(".section .rodata");
-   emit("__strings:");
-   emitraw(".string \"");
-   for (size_t i = 0; i < buf_len(strdb); ++i) {
-      const char ch = strdb[i];
-      if (isprint(ch)) {
-         emitraw("%c", ch);
-      } else {
-         emitraw("\\%03o", ch);
-      }
-   }
-   emit("\"");
-}
 
 bool is_abi(const char* s) {
    return !strcmp(s, get_mach_opt("abi")->sVal);

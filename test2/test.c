@@ -2,8 +2,8 @@
 
 int printf(const char*, ...);
 
+int a[10], b;
+
 int main(void) {
-   int a = 2;
-   int b = 2;
-   return a * b;
+   return a[0];
 }

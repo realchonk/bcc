@@ -24,7 +24,7 @@ endif
 BCC_ARCH ?= $(shell $(BCC) -dumparch)
 BCC_MACH ?= $(shell $(BCC) -dumpmachine)
 
-BCCFLAGS ?= -O2
+BCCFLAGS ?= -O3
 
 BCC_FLAGS := $(BCCFLAGS) -fpath-cpp=$(BCPP) -I ../bcc-include -L ../libbcc -nobccobjs
 
@@ -61,6 +61,6 @@ clean:
 	rm -f *.s *.asm *.o test *.ir
 
 run: test
-	@QEMU_LD_PREFIX=$(QLP) ./test;
+	@QEMU_LD_PREFIX=$(QLP) ./test; echo "Exit code: $$?"
 
 .PHONY: all clean

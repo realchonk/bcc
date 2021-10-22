@@ -14,11 +14,13 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-bcc_SOURCES	+= src/x86/target.c		\
-					src/x86/common.c		\
-					src/x86/optim.c		\
-					src/x86/builtins.c	\
-					src/x86/gen.c			\
-					src/x86/emit_ir.c		\
-					src/x86/config.c
+bcc_SOURCES	+= src/x86/target.c			\
+					src/x86/common.c			\
+					src/x86/optim.c			\
+					src/x86/builtins.c		\
+					src/x86/gen.c				\
+					src/x86/emit_ir.c			\
+					src/x86/config.c			\
+					src/binutils_helpers.c
 
+bcc_CPPFLAGS += -DUSE_BINUTILS=1

@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include "binutils.h"
 #include "cmdline.h"
 #include "target.h"
 #include "error.h"
@@ -29,6 +30,7 @@
 #include "cpu.h"
 
 struct flag_option mach_opts[] = {
+   BINUTILS_MACH_OPTS,
    { "cpu", "The target CPU (default: " DEF_CPU ")", 2, .sVal = DEF_CPU },
    { "abi", "The target ABI (default: " DEF_ABI ")", 2, .sVal = DEF_ABI },
    { "stack-check", "Check the stack for alignment", 0, .bVal = false },

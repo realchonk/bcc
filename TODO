@@ -34,7 +34,6 @@
 General:
 - passing/returning structs/unions
 - replace `builtin functions` with `inlinable intrinsics`
-- merge code for global variable initialization (x86 & riscv)
 
 x86:
 - optimize function calls

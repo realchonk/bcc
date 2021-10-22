@@ -13,6 +13,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <stdint.h>
+#include "binutils.h"
 #include "target.h"
 #include "config.h"
 
@@ -79,3 +80,28 @@ const struct target_info target_info = {
    .fuse_lu_rw    = true,
 };
 
+const struct binutils_info binutils_info = {
+   .comment          = "#",
+
+   .section_text     = ".text",
+   .section_data     = ".data",
+   .section_rodata   = ".rodata",
+   .section_bss      = ".bss",
+   
+   .init_byte        = ".byte",
+   .init_char        = ".byte",
+   .init_short       = ".short",
+   .init_int         = ".long",
+#if BITS == 32
+   .init_long        = ".long",
+   .init_ptr         = ".long",
+#else
+   .init_long        = ".quad",
+   .init_ptr         = ".quad",
+#endif
+   .init_float       = ".long",
+   .init_double      = ".quad",
+   .init_bool        = ".byte",
+   .init_string      = ".string",
+   .init_zero        = ".zero",
+};
