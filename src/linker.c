@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include "config/base.h"
 #include "target.h"
 #include "linker.h"
 #include "config.h"
@@ -83,7 +84,7 @@ int run_linker(const char* output_name, const char** objects) {
       buf_push(args, "-I");
 #ifdef PATH_DL
       buf_push(args, PATH_DL);
-#else
+#elif HAS_INTERPRETER
       buf_push(args, get_interpreter());
 #endif
    } else {

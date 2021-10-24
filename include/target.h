@@ -158,9 +158,6 @@ void emit_strdb(void);
 // checks if the specified ABI matches the ABI specified by -mabi=
 bool is_abi(const char*);
 
-// checks if the given C library is equal to LIBC_NAME
-bool is_libc(const char*);
-
 
 /// global variables that must be defined by the target
 

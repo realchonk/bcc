@@ -176,10 +176,3 @@ bool is_abi(const char* s) {
    return !strcmp(s, get_mach_opt("abi")->sVal);
 }
 
-bool is_libc(const char* s) {
-#ifdef LIBC_NAME
-   return !strcmp(s, LIBC_NAME);
-#else
-   return false;
-#endif
-}

@@ -23,6 +23,7 @@ bcc_SOURCES = src/bcc.c src/cmdline.c src/cpp.c src/error.c src/expr.c src/func.
 
 bcc_CPPFLAGS = -DBCPP_PATH=\"$(bindir)/`echo bcpp | sed '$(transform)'`\" \
 					-D_XOPEN_SOURCE=700 -DPREFIX=\"${prefix}\" \
+					-DARCH_${ARCH}=1 -DOS_${OS}=1 -DLIBC_${LIBC}=1 \
 					-I$(top_srcdir)/include
 
 bcc_CFLAGS = -Wextra

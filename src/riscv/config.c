@@ -16,6 +16,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "config/base.h"
 #include "target.h"
 #include "config.h"
 
@@ -27,6 +28,7 @@ char* get_ld_abi(void) {
    return abi;
 }
 
+#if LIBC_musl
 static const char* get_musl_suffix(void) {
    if (is_abi("ilp32") || is_abi("lp64")) {
       return "-sf";
@@ -38,21 +40,22 @@ static const char* get_musl_suffix(void) {
       panic("unsupported ABI for musl");
    }
 }
+#endif
 
 char* get_interpreter(void) {
 #if !HAS_LIBC
    panic("trying to get interpreter from a target that does not support dynamic linking");
 #endif
 
-   if (is_libc("glibc")) {
+#if LIBC_glibc
       char interp[] = "/lib/ld-linux-riscv__-______.so.1";
       snprintf(interp, sizeof(interp), "/lib/ld-linux-riscv%d-%s.so.1", BITS, get_mach_opt("abi")->sVal);
       return strdup(interp);
-   } else if (is_libc("musl")) {
+#elif LIBC_musl
       char interp[] = "/lib/ld-musl-riscv__-___.so.1";
       snprintf(interp, sizeof(interp), "/lib/ld-musl-riscv%d%s.so.1", BITS, get_musl_suffix());
       return strdup(interp);
-   } else {
+#else
       panic("unsupported C library");
-   }
+#endif
 }

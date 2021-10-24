@@ -13,19 +13,14 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <string.h>
-#include "config/base.h"
-#include "target.h"
+#ifndef FILE_CONFIG_X86_ELF_H
+#define FILE_CONFIG_X86_ELF_H
 #include "config.h"
 
-char* get_ld_abi(void) {
-   return strdup(GNU_LD_EMULATION);
-}
-
-char* get_interpreter(void) {
-#if !HAS_LIBC || !defined(GNU_LD_INTERPRETER)
-   panic("trying to get interpreter for a target that does not have an interpreter");
+#if BITS == 32
+# define GNU_LD_EMULATION "-melf_i386"
+#else
+# define GNU_LD_EMULATION "-melf_x86_64"
 #endif
-   return strdup(GNU_LD_INTERPRETER);
-}
 
+#endif /* FILE_CONFIG_X86_ELF_H */

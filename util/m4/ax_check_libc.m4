@@ -20,18 +20,20 @@ AC_MSG_CHECKING([for C library])
 
 case ${target_os} in
 linux|linux-gnu)
-   ac_libc="glibc"
+   LIBC="glibc"
    ;;
 linux-musl)
-   ac_libc="musl"
+   LIBC="musl"
    ;;
 *)
    AC_MSG_ERROR([unsupported combination of OS and C library, please look into util/m4/ax_check_libc.m4])
    ;;
 esac
 
-AC_MSG_RESULT([${ac_libc}])
+AC_MSG_RESULT([${LIBC}])
 
-AC_DEFINE_UNQUOTED([LIBC_NAME], ["${ac_libc}"], [Name of the C library])
+AC_SUBST([LIBC])
+
+AC_DEFINE_UNQUOTED([LIBC_NAME], ["${LIBC}"], [Name of the C library])
 
 ])

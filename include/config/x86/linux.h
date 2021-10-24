@@ -13,19 +13,24 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <string.h>
-#include "config/base.h"
-#include "target.h"
-#include "config.h"
+#ifndef FILE_CONFIG_X86_LINUX_H
+#define FILE_CONFIG_X86_LINUX_H
+#include "config/x86/elf.h"
 
-char* get_ld_abi(void) {
-   return strdup(GNU_LD_EMULATION);
-}
+#define HAS_INTERPRETER 1
 
-char* get_interpreter(void) {
-#if !HAS_LIBC || !defined(GNU_LD_INTERPRETER)
-   panic("trying to get interpreter for a target that does not have an interpreter");
+#if LIBC_glibc
+# if BITS == 32
+#  define GNU_LD_INTERPRETER "/lib/ld-linux.so.2"
+# else
+#  define GNU_LD_INTERPRETER "/lib64/ld-linux-x86-64.so.2"
+# endif
+
+#elif LIBC_musl
+# define GNU_LD_INTERPTETER ("/lib/ld-musl-" BCC_FULL_ARCH ".so.1")
+
+#else
+# error "Unsupported C library"
 #endif
-   return strdup(GNU_LD_INTERPRETER);
-}
 
+#endif /* FILE_CONFIG_X86_LINUX_H */

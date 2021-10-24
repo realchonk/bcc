@@ -84,6 +84,8 @@ Support for operating systems can be added [here](https://github.com/Benni3D/bcc
 
 Support for libc's can be added [here](https://github.com/Benni3D/bcc/blob/master/util/m4/ax_check_libc.m4#L21) and in the ```src/%arch/config.c``` files. 
 
+When porting, please look into the [include/config](https://github.com/Benni3D/bcc/blob/master/include/config) directory.
+
 ## Contributing
 Feel free to create an [Issue](https://github.com/Benni3D/bcc/issues) or a [Pull Request](https://github.com/Benni3D/bcc/pulls).<br>
 Patches can also be send directly to <benni@stuerz.xyz>.<br>

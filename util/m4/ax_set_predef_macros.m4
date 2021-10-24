@@ -28,12 +28,14 @@ ac_macros="${ac_macros} __STDC_NO_THREADS__"
 # Support for new operating systems can be added here:
 case ${target_os} in
 linux*)
+   OS="linux"
    ac_has_libc=1
    ac_macros="${ac_macros} linux __linux __linux__"
    ac_macros="${ac_macros} unix __unix __unix__"
    ac_macros="${ac_macros} __ELF__"
    ;;
 elf*)
+   OS="elf"
    ac_has_libc=0
    ac_macros="${ac_macros} __ELF__"
    ;;
@@ -65,6 +67,7 @@ esac
 
 AC_DEFINE_UNQUOTED([CPP_MACROS], ["${ac_macros}"], [Predefined macros for the pre-processor])
 AC_DEFINE_UNQUOTED([HAS_LIBC], [${ac_has_libc}], [Does the operating system have a C library?])
+AC_SUBST([OS])
 
 if test x$ac_has_libc = x1; then
    AX_CHECK_LIBC
