@@ -324,6 +324,12 @@ ir_reg_t ir_get_target(const ir_node_t* n) {
       return n->lookup.reg;
    case IR_FPARAM:
       return n->fparam.reg;
+   case IR_FFPRD:
+      return n->ffprw.reg;
+   case IR_FGLRD:
+      return n->fglrw.reg;
+   case IR_FLURD:
+      return n->flurw.reg;
    default:
       return IRR_NONSENSE;
    }
@@ -334,8 +340,10 @@ bool ir_is_source(const ir_node_t* n, ir_reg_t r) {
          ||  (n->binary.b.type == IRT_REG && n->binary.b.reg == r);
    switch (n->type) {
    case IR_READ:
-   case IR_MOVE:  return n->move.src == r;
-   case IR_WRITE: return n->move.dest == r;
+   case IR_MOVE:
+      return n->move.src == r;
+   case IR_WRITE:
+      return n->move.dest == r;
    case IR_INEG:
    case IR_INOT:
    case IR_BNOT:
@@ -347,6 +355,12 @@ bool ir_is_source(const ir_node_t* n, ir_reg_t r) {
       return n->alloca.size.type == IRT_REG && n->alloca.size.reg == r;
    case IR_COPY:
       return n->copy.src == r || n->copy.dest == r;
+   case IR_FFPWR:
+      return n->ffprw.reg;
+   case IR_FGLWR:
+      return n->fglrw.reg;
+   case IR_FLUWR:
+      return n->flurw.reg;
    default:
       return false;
    }
