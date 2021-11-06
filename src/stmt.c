@@ -33,6 +33,8 @@ const char* stmt_type_str[NUM_STMTS] = {
    [STMT_BREAK]   = "break",
    [STMT_CONTINUE]= "continue",
    [STMT_SWITCH]  = "switch",
+   [STMT_LABEL]   = "label",
+   [STMT_GOTO]    = "goto",
 };
 
 void free_stmt(struct statement* s) {
@@ -171,6 +173,12 @@ void print_stmt(FILE* file, const struct statement* s) {
          }
       }
       fputc('}', file);
+      break;
+   case STMT_LABEL:
+      fprintf(file, "%s:\n", s->str);
+      break;
+   case STMT_GOTO:
+      fprintf(file, "goto %s;\n", s->str);
       break;
       
    case NUM_STMTS: break;
@@ -361,6 +369,12 @@ struct statement* parse_stmt(struct scope* scope) {
       }
       break;
    }
+   case KW_GOTO:
+      stmt->type = STMT_GOTO;
+      lexer_skip();
+      stmt->str = lexer_expect(TK_NAME).str;
+      stmt->end = lexer_expect(TK_SEMICOLON).end;
+      break;
    default: {
       struct value_type* base_type = parse_value_type(scope);
       if (base_type) {
@@ -460,6 +474,21 @@ struct statement* parse_stmt(struct scope* scope) {
          } while (lexer_match(TK_COMMA));
          stmt->end = lexer_expect(TK_SEMICOLON).end;
       } else {
+         if (tk.type == TK_NAME) {
+            lexer_skip();
+            if (lexer_matches(TK_COLON)) {
+               const char* label = tk.str;
+               lexer_skip();
+               stmt->type = STMT_LABEL;
+               stmt->str = label;
+               stmt->end = lexer_peek().end;
+               if (func_has_label(scope->func, label))
+                  parse_error(&stmt->begin, "redefinition of label '%s'", label);
+               buf_push(scope->func->labels, label);
+               return stmt;
+            }
+            lexer_unget(&tk);
+         }
          stmt->type = STMT_EXPR;
          stmt->expr = parse_expr(scope);
          stmt->end = lexer_expect(TK_SEMICOLON).end;
@@ -492,13 +521,15 @@ bool stmt_is_pure(const struct statement* s) {
    case STMT_WHILE:
    case STMT_DO_WHILE:
    case STMT_SWITCH:
-      // TODO: implement check if this is a infinite-loop
+      // TODO: implement check if this is an infinite-loop
       return false;
 
    case STMT_RETURN:
    case STMT_BREAK:
    case STMT_CONTINUE:
    case STMT_VARDECL:
+   case STMT_LABEL:
+   case STMT_GOTO:
       return false;
    case NUM_STMTS:
       break;

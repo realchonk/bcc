@@ -114,6 +114,7 @@ const char* token_type_str[NUM_TOKENS] = {
    [KW_NORETURN]  = "_Noreturn",
    [KW_STATIC_ASSERT] = "_Static_assert",
    [KW_INLINE]    = "inline",
+   [KW_GOTO]      = "goto",
 };
 
 void token_init(void) {

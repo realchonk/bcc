@@ -1,9 +1,5 @@
-
-
-int printf(const char*, ...);
-
-int a[10], b;
-
-int main(void) {
-   return a[0];
+static int add(int, int);
+extern int add(int a, int b) {
+   return a + b;
 }
+int main() {}

@@ -32,6 +32,8 @@ enum statement_type {
    STMT_BREAK,       //             | exit a loop
    STMT_CONTINUE,    //             | skip the current iteration in a loop
    STMT_SWITCH,      // .sw         | switch/case
+   STMT_LABEL,       // .str        | label
+   STMT_GOTO,        // .str        | label
 
    NUM_STMTS,
 };
@@ -45,6 +47,7 @@ struct statement {
    struct scope* parent;
    struct function* func;
    union {
+      const char* str;
       struct expression* expr;
       struct scope* scope;
       struct {

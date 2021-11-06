@@ -59,6 +59,7 @@ noreturn void parse_error(const struct source_pos* pos, const char* fmt, ...) {
 
    va_end(ap);
 
+   //abort();
    exit(1);
 }
 

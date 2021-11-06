@@ -1026,3 +1026,54 @@
       "}",
    .ret_val = 42,
 },
+{
+   .name = "ugly label-if",
+   .compiles = true,
+   .source =
+      "int main(void) {"
+      "  const int a = 42;"
+      "  if (a == 42) goto lbl;"
+      "  return 1;"
+      "  lbl:"
+      "  return 0;"
+      "}",
+   .ret_val = 0,
+},
+{
+   .name = "ugly label-loop",
+   .compiles = true,
+   .source =
+      "int printf(const char*, ...);"
+      "int main(void) {"
+      "  int a = 10;"
+      "  begin:"
+      "  if (a == 0)"
+      "     goto end;"
+      "  printf(\".\");"
+      "  --a;"
+      "  goto begin;"
+      "  end:"
+      "  return 0;"
+      "}",
+   .ret_val = 0,
+   .output = "..........",
+},
+{
+   .name = "redefinition of label",
+   .compiles = false,
+   .source =
+      "int main(void) {"
+      "  {"
+      "     a:;"
+      "  }"
+      "  a:;"
+      "}"
+},
+{
+   .name = "goto undefined label",
+   .compiles = false,
+   .source =
+      "int main() {"
+      "  goto label;"
+      "}",
+},

@@ -128,3 +128,10 @@ const struct variable* func_find_param(const struct function* func, const char* 
    return i == SIZE_MAX ? NULL : &func->params[i];
 }
 
+bool func_has_label(const struct function* f, istr_t lbl) {
+   for (size_t i = 0; i < buf_len(f->labels); ++i) {
+      if (f->labels[i] == lbl)
+         return true;
+   }
+   return false;
+}

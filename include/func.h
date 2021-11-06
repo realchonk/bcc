@@ -32,6 +32,7 @@ struct function {
    unsigned attrs;
    unsigned max_reg;
    struct ir_big_iload* big_iloads;
+   istr_t* labels;
 };
 
 void parse_func_part(struct function*);
@@ -40,5 +41,6 @@ void free_func(struct function*);
 
 size_t func_find_param_idx(const struct function*, const char*);
 const struct variable* func_find_param(const struct function*, const char*);
+bool func_has_label(const struct function*, istr_t);
 
 #endif /* FILE_FUNC_H */

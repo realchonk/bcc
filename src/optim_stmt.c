@@ -56,13 +56,17 @@ struct statement* optim_stmt(struct statement* s) {
          }
          struct statement* branch;
          if (cond) {
-            free_stmt(s->ifstmt.false_case);
+            if (s->ifstmt.false_case)
+               free_stmt(s->ifstmt.false_case);
             branch = s->ifstmt.true_case;
          } else {
             free_stmt(s->ifstmt.true_case);
             branch = s->ifstmt.false_case;
          }
          free_expr(s->ifstmt.cond);
+         if (!branch)
+            branch = make_nop(s);
+         free(s);
          return branch;
       }
 end_if:

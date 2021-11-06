@@ -15,6 +15,7 @@
 
 #include <stdarg.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <math.h>
@@ -25,7 +26,7 @@
 
 static FILE* file = NULL;
 static int peekd_ch = '\0';
-static struct token peekd_tk;
+static struct token peekd_tks[2];
 static struct source_pos pos;
 
 // INPUT STUFF
@@ -96,7 +97,8 @@ void lexer_init(FILE* f, const char* fn) {
    if (file) fclose(file);
    file = f;
    peekd_ch = '\0';
-   peekd_tk.type = TK_DUMMY;
+   for (size_t i = 0; i < arraylen(peekd_tks); ++i)
+      peekd_tks[i].type = TK_DUMMY;
    pos.file = fn;
    pos.line = 0;
    pos.column = 0;
@@ -111,29 +113,45 @@ void lexer_free(void) {
 static struct token lexer_impl(void);
 
 struct token lexer_peek(void) {
-   return peekd_tk.type ? peekd_tk : (peekd_tk = lexer_impl());
+   if (peekd_tks[0].type != TK_DUMMY) {
+      return peekd_tks[0];
+   } else {
+      peekd_tks[0] = lexer_impl();
+      peekd_tks[1].type = TK_DUMMY;
+      return peekd_tks[0];
+   }
+}
+static void shift_peekbuf(void) {
+   memmove(&peekd_tks[0], &peekd_tks[1], sizeof(peekd_tks) - sizeof(struct token));
+   peekd_tks[arraylen(peekd_tks) - 1].type = TK_DUMMY;
 }
 struct token lexer_next(void) {
-   if (peekd_tk.type) {
-      const struct token tk = peekd_tk;
-      peekd_tk.type = TK_DUMMY;
+   if (peekd_tks[0].type) {
+      const struct token tk = peekd_tks[0];
+      shift_peekbuf();
       return tk;
    } else return lexer_impl();
 }
 void lexer_skip(void) {
-   if (peekd_tk.type) peekd_tk.type = TK_DUMMY;
+   if (peekd_tks[0].type) shift_peekbuf();
    else lexer_impl();
+}
+void lexer_unget(const struct token* tk) {
+   if (peekd_tks[arraylen(peekd_tks) - 1].type != TK_DUMMY)
+      panic("not enough space in peekd_tks[%zu].", arraylen(peekd_tks));
+   memmove(&peekd_tks[1], &peekd_tks[0], sizeof(peekd_tks) - sizeof(struct token));
+   peekd_tks[0] = *tk;
 }
 
 bool lexer_eof(void) {
-   return feof(file) && !peekd_ch && !peekd_tk.type;
+   return feof(file) && !peekd_ch && !peekd_tks[0].type;
 }
 
 bool lexer_matches(enum token_type type) {
    return lexer_peek().type == type;
 }
 bool lexer_match(enum token_type type) {
-   if (lexer_matches(type)) return peekd_tk.type = TK_DUMMY, true;
+   if (lexer_matches(type)) return peekd_tks[0].type = TK_DUMMY, true;
    else return false;
 }
 struct token lexer_expect(enum token_type type) {

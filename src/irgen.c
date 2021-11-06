@@ -66,6 +66,13 @@ static istr_t make_label(size_t i) {
    return strint(buffer);
 }
 
+static istr_t make_named_label(const char* s) {
+   const size_t len = strlen(s) + 2;
+   char buffer[len];
+   snprintf(buffer, len, ".%s", s);
+   return strint(buffer);
+}
+
 static ir_node_t* make_iload(ir_reg_t reg, intmax_t val, enum ir_value_size irs, bool is_unsigned) {
    ir_node_t* n = new_node(IR_LOAD);
    if (val < target_info.min_iload || val > target_info.max_iload) {
@@ -1167,6 +1174,21 @@ ir_node_t* irgen_stmt(const struct statement* s) {
       tmp->str = make_label(end_lbl);
       ir_append(n, tmp);
       end_loop = old_end;
+      return n;
+   }
+   case STMT_LABEL:
+   {
+      n = new_node(IR_LABEL);
+      n->str = make_named_label(s->str);
+      return n;
+   }
+   case STMT_GOTO:
+   {
+      if (!func_has_label(s->func, s->str)) {
+         parse_error(&s->begin, "use of undeclared label '%s'", s->str);
+      }
+      n = new_node(IR_JMP);
+      n->str = make_named_label(s->str);
       return n;
    }
 

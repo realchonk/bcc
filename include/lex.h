@@ -30,5 +30,6 @@ bool lexer_matches(enum token_type);
 bool lexer_match(enum token_type);
 struct token lexer_expect(enum token_type);
 void lexer_skip(void);
+void lexer_unget(const struct token*);
 
 #endif /* FILE_LEX_H */

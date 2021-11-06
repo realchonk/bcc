@@ -4,7 +4,7 @@
 
 
 # Linking support
-- support for shared libraries
+- support for building shared libraries
 
 
 # libbcc
@@ -15,7 +15,6 @@
 
 # Language
 - proper switch/case
-- labels & goto
 - allow support for old C-style (function) pointers
 - add configure option to disable extensions
 - add support for strings containing '\0' values
