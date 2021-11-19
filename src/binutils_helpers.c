@@ -95,7 +95,7 @@ static void emit_end(void) {
             emit(".global %s", var->name);
 
          if (!is_clean_asm()) {
-            emit(".type %s, @object", var->name);
+            emit(".type %s, %cobject", var->name, binutils_info.type_prefix);
             emit(".size %s, %zu", var->name, sizeof_value(vt, false));
          }
 
@@ -133,7 +133,7 @@ static void emit_func(const struct function* func) {
    }
    
    if (!is_clean_asm()) {
-      emit(".type %s, @function", name);
+      emit(".type %s, %cfunction", name, binutils_info.type_prefix);
    }
 
    emit("%s:", name);
