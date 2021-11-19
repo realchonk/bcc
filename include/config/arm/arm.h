@@ -13,18 +13,13 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef FILE_CONFIG_BASE_H
-#define FILE_CONFIG_BASE_H
+#ifndef FILE_CONFIG_RISCV_ARM_H
+#define FILE_CONFIG_RISCV_ARM_H
 #include "config.h"
 
-#if ARCH_x86
-# include "config/x86/x86.h"
-#elif ARCH_riscv
-# include "config/riscv/riscv.h"
-#elif ARCH_arm
-# include "config/arm/arm.h"
-#else
-# error "invalid processor architecture"
+#if OS_linux
+# define HAS_INTERPRETER 1
 #endif
 
-#endif /* FILE_CONFIG_BASE_H */
+#endif /* FILE_CONFIG_RISCV_ARM_H */
+
