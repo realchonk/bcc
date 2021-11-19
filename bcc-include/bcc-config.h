@@ -28,9 +28,9 @@
 #elif defined(__x86_64__)
 #define __BCC_BITS 64
 #elif defined(__riscv)
-
 #define __BCC_BITS __riscv_xlen
-
+#elif defined(__arm__)
+#define __BCC_BITS 32
 #else
 #error Unsupported processor architecture
 #endif

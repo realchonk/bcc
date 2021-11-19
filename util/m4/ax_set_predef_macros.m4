@@ -60,6 +60,9 @@ riscv32)
 riscv64)
    ac_macros="${ac_macros} __riscv __riscv_xlen=64"
    ;;
+arm)
+   ac_macros="${ac_macros} __arm__"
+   ;;
 *)
    AC_MSG_ERROR([unsupported processor architecture, please look into util/m4/ax_set_predef_macros.m4}])
    ;;
