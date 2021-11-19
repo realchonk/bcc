@@ -46,6 +46,8 @@ struct binutils_info {
    const char* const init_bool;        // Initialization sequence for booleans
    const char* const init_string;      // Initialization sequence for strings    (typically: .string or .asciz)
    const char* const init_zero;        // Allocate zero-initialized memory       (typically: .zero)
+
+   const bool init_string_has_null;    // Does .init_string append a NUL-byte?
 };
 
 // Variables that must be defined by the target

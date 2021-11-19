@@ -81,27 +81,29 @@ const struct target_info target_info = {
 };
 
 const struct binutils_info binutils_info = {
-   .comment          = "#",
+   .comment                = "#",
 
-   .section_text     = ".text",
-   .section_data     = ".data",
-   .section_rodata   = ".rodata",
-   .section_bss      = ".bss",
+   .section_text           = ".text",
+   .section_data           = ".data",
+   .section_rodata         = ".rodata",
+   .section_bss            = ".bss",
    
-   .init_byte        = ".byte",
-   .init_char        = ".byte",
-   .init_short       = ".short",
-   .init_int         = ".long",
+   .init_byte              = ".byte",
+   .init_char              = ".byte",
+   .init_short             = ".short",
+   .init_int               = ".long",
 #if BITS == 32
-   .init_long        = ".long",
-   .init_ptr         = ".long",
+   .init_long              = ".long",
+   .init_ptr               = ".long",
 #else
-   .init_long        = ".quad",
-   .init_ptr         = ".quad",
+   .init_long              = ".quad",
+   .init_ptr               = ".quad",
 #endif
-   .init_float       = ".long",
-   .init_double      = ".quad",
-   .init_bool        = ".byte",
-   .init_string      = ".string",
-   .init_zero        = ".zero",
+   .init_float             = ".long",
+   .init_double            = ".quad",
+   .init_bool              = ".byte",
+   .init_string            = ".string",
+   .init_zero              = ".zero",
+
+   .init_string_has_null   = true,
 };

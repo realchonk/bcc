@@ -62,6 +62,9 @@ static void emit_end(void) {
             emitraw("\\%03o", ch);
          }
       }
+      if (!binutils_info.init_string_has_null) {
+         emitraw("\\000");
+      }
       emit("\"");
    }
 

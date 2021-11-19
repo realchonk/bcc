@@ -87,29 +87,31 @@ const struct target_info target_info = {
 };
 
 const struct binutils_info binutils_info = {
-   .comment          = "#",
+   .comment                = "#",
 
-   .section_text     = ".text",
-   .section_data     = ".data",
-   .section_rodata   = ".rodata",
-   .section_bss      = ".bss",
+   .section_text           = ".text",
+   .section_data           = ".data",
+   .section_rodata         = ".rodata",
+   .section_bss            = ".bss",
 
-   .init_byte        = ".byte",
-   .init_char        = ".byte",
-   .init_short       = ".half",
-   .init_int         = ".word",
+   .init_byte              = ".byte",
+   .init_char              = ".byte",
+   .init_short             = ".half",
+   .init_int               = ".word",
 #if BITS == 32
-   .init_long        = ".word",
-   .init_ptr         = ".word",
+   .init_long              = ".word",
+   .init_ptr               = ".word",
 #else
-   .init_long        = ".dword",
-   .init_ptr         = ".dword",
+   .init_long              = ".dword",
+   .init_ptr               = ".dword",
 #endif
-   .init_float       = ".word",
-   .init_double      = ".dword",
-   .init_bool        = ".byte",
-   .init_string      = ".string",
-   .init_zero        = ".zero",
+   .init_float             = ".word",
+   .init_double            = ".dword",
+   .init_bool              = ".byte",
+   .init_string            = ".string",
+   .init_zero              = ".zero",
+
+   .init_string_has_null   = true,
 };
 
 
