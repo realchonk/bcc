@@ -1,5 +1,5 @@
-static int add(int, int);
-extern int add(int a, int b) {
-   return a + b;
+
+
+int main(void) {
+   return 1;
 }
-int main() {}

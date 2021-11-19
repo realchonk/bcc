@@ -76,9 +76,9 @@ const struct target_info target_info = {
    .size_int64 = INT_LONG,
 
    .max_immed = 256,
-   .min_immed = 0,
-   .max_iload = INT32_MAX,
-   .min_iload = INT32_MIN,
+   .min_immed = -257,
+   .max_iload = 256,
+   .min_iload = -257,
 
    .fuse_fp_rw = false,
    .fuse_gl_rw = false,

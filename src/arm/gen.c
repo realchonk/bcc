@@ -15,6 +15,7 @@
 
 #include "binutils.h"
 
+bool emit_prepare(void) { return true; }
 void emit_begin_hook(void) {}
 void emit_builtin_funcs_hook(void) {}
 void emit_global_vars_hook(void) {}
