@@ -106,4 +106,5 @@ const struct binutils_info binutils_info = {
    .init_zero              = ".zero",
 
    .init_string_has_null   = true,
+   .type_prefix            = '@',
 };

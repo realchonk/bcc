@@ -48,6 +48,7 @@ struct binutils_info {
    const char* const init_zero;        // Allocate zero-initialized memory       (typically: .zero)
 
    const bool init_string_has_null;    // Does .init_string append a NUL-byte?
+   const char type_prefix;             // '@' for @function
 };
 
 // Variables that must be defined by the target
