@@ -16,8 +16,8 @@
 #include <string.h>
 #include "error.h"
 
-#define ARM_SF_DL "/lib/linux.so.3"
-#define ARM_HF_DL "/lib/linux-armhf.so.3"
+#define ARM_SF_DL "/lib/ld-linux.so.3"
+#define ARM_HF_DL "/lib/ld-linux-armhf.so.3"
 
 char* get_ld_abi(void) {
    return strdup("-marmelf_linux_eabi");

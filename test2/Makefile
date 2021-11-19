@@ -46,6 +46,8 @@ QLP=/usr/$(BCC_MACH)/
 BCC_FLAGS := $(BCC_FLAGS) -mabi=lp64
 endif
 
+QLP=/opt/cross/arm/arm-buildroot-linux-gnueabi/sysroot/
+
 all: test
 
 test.ir: test.c $(BCC)

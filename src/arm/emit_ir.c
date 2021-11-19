@@ -42,6 +42,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
 
    case IR_BEGIN_SCOPE:
    case IR_END_SCOPE:
+      emit("");
       return n->next;
 
 
