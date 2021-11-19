@@ -15,7 +15,12 @@
 
 
 
-bcc_SOURCES += src/arm/target.c			\
-					src/binutils_helpers.c
+bcc_SOURCES += src/binutils_helpers.c	\
+					src/arm/builtins.c		\
+					src/arm/target.c			\
+					src/arm/config.c			\
+					src/arm/common.c			\
+					src/arm/optim.c			\
+					src/arm/gen.c
 
 bcc_CPPFLAGS += -DUSE_BINUTILS=1
