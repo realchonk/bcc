@@ -17,6 +17,7 @@
 
 bcc_SOURCES += src/binutils_helpers.c	\
 					src/arm/builtins.c		\
+					src/arm/emit_ir.c			\
 					src/arm/target.c			\
 					src/arm/config.c			\
 					src/arm/common.c			\
