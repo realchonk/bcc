@@ -383,13 +383,13 @@ ir_node_t* emit_ir(const ir_node_t* n) {
             emit("andi %s, %s, 255", dest, src);
             break;
          case IRS_SHORT:
-            emit("slli %s, %s, 16", dest, src);
-            emit("srai %s, %s, 16", dest, dest);
+            emit("slli %s, %s, %d", dest, src, BITS - 16);
+            emit("srli %s, %s, %d", dest, dest, BITS - 16);
             break;
-#if BITS == 64
+#if BITS >= 64
          case IRS_INT:
-            emit("slli %s, %s, 32", dest, src);
-            emit("srai %s, %s, 32", dest, dest);
+            emit("slli %s, %s, %d", dest, src, BITS - 32);
+            emit("srli %s, %s, %d", dest, dest, BITS - 32);
             break;
 #endif
          default:
@@ -397,9 +397,26 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          }
       } else {
          if (n->iicast.sign_extend) {
-            // TODO: implement sign extension
+            switch (ss) {
+            case IRS_BYTE:
+            case IRS_CHAR:
+               emit("slli %s, %s, %d", dest, src, BITS - 8);
+               emit("srai %s, %s, %d", dest, dest, BITS - 8);
+               break;
+            case IRS_SHORT:
+               emit("slli %s, %s, %d", dest, src, BITS - 16);
+               emit("srai %s, %s, %d", dest, dest, BITS - 16);
+               break;
+#if BITS >= 64
+         case IRS_INT:
+            emit("slli %s, %s, %d", dest, src, BITS - 32);
+            emit("srai %s, %s, %d", dest, dest, BITS - 32);
+            break;
+#endif
+            }
+         } else {
+            emit("mv %s, %s", dest, src);
          }
-         emit("mv %s, %s", dest, src);
       }
       return n->next;
    }
