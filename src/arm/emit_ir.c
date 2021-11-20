@@ -260,6 +260,56 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    }
 
+   case IR_IICAST:
+   {
+      const char* dest = reg(n->iicast.dest);
+      const char* src = reg(n->iicast.src);
+      const enum ir_value_size ds = n->iicast.ds;
+      const enum ir_value_size ss = n->iicast.ss;
+      const size_t size_ds = sizeof_irs(ds);
+      const size_t size_ss = sizeof_irs(ss);
+      if (size_ds == size_ss) {
+         if (n->iicast.dest != n->iicast.src)
+            emit("mov %s, %s", dest, src);
+      } else if (size_ds < size_ss) {
+         switch (ds) {
+         case IRS_BYTE:
+         case IRS_CHAR:
+            emit("and %s, %s, #255", dest, src);
+            break;
+         case IRS_SHORT:
+            emit("lsl %s, %s, #16", dest, src);
+            emit("lsr %s, %s, #16", dest, dest);
+            break;
+#if BITS == 64
+         case IRS_INT:
+            emit("lsl %s, %s, #32", dest, src);
+            emit("lsr %s, %s, #32", dest, dest);
+            break;
+#endif
+         default:
+            panic("unreachable reached, ds=%s, ss=%s", ir_size_str[ds], ir_size_str[ss]);
+         }
+      } else {
+         if (n->iicast.sign_extend) {
+            switch (ss) {
+            case IRS_BYTE:
+            case IRS_CHAR:
+               emit("lsl %s, %s, #24", dest, src);
+               emit("asr %s, %s, #24", dest, src);
+               break;
+            case IRS_SHORT:
+               emit("lsl %s, %s, #16", dest, src);
+               emit("asr %s, %s, #16", dest, src);
+               break;
+            }
+         } else {
+            emit("mov %s, %s", dest, src);
+         }
+      }
+      return n->next;
+   }
+
 
    default:
       panic("unsupported ir_node type '%s'", ir_node_type_str[n->type]);
