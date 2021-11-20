@@ -18,6 +18,7 @@
 #include "emit_ir.h"
 #include "target.h"
 #include "regs.h"
+#include "bcc.h"
 #include "ir.h"
 
 static size_t stack_size;
@@ -183,6 +184,56 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       emit("cmp %s, #0", reg(n->cjmp.reg));
       emit("%s %s", instr, n->cjmp.label);
       return n->next;
+   }
+
+   case IR_ISTEQ:
+   case IR_ISTNE:
+   case IR_ISTGR:
+   case IR_ISTGE:
+   case IR_ISTLT:
+   case IR_ISTLE:
+   case IR_USTGR:
+   case IR_USTGE:
+   case IR_USTLT:
+   case IR_USTLE:
+   {
+      struct entry {
+         const char* cc;
+         enum ir_node_type negation;
+      };
+      const struct entry es[] = {
+         [IR_ISTEQ] = { "eq", IR_ISTNE },
+         [IR_ISTNE] = { "ne", IR_ISTEQ },
+         [IR_ISTGR] = { "gt", IR_ISTLE },
+         [IR_ISTGE] = { "ge", IR_ISTLT },
+         [IR_ISTLT] = { "lt", IR_ISTGE },
+         [IR_ISTLE] = { "le", IR_ISTGR },
+         [IR_USTGR] = { "hi", IR_USTLE },
+         [IR_USTGE] = { "hs", IR_USTLT },
+         [IR_USTLT] = { "lo", IR_USTGE },
+         [IR_USTLE] = { "ls", IR_USTGR },
+      };
+      const char* dest = reg(n->binary.dest);
+      const char* a = irv2str(&n->binary.a);
+      const char* b = irv2str(&n->binary.b);
+      ir_node_t* next = n->next;
+
+      emit("cmp %s, %s", a, b);
+      if (optim_level >= 1 && next
+         && (next->type == IR_JMPIF || next->type == IR_JMPIFN)) {
+         const char* cc;
+         if (next->type == IR_JMPIF) {
+            cc = es[n->type].cc;
+         } else {
+            cc = es[es[n->type].negation].cc;
+         }
+         emit("b%s %s", cc, next->str);
+         return next->next;
+      } else {
+         emit("mov%s %s, #0", es[es[n->type].negation].cc, dest);
+         emit("mov%s %s, #1", es[n->type].cc, dest);
+         return next;
+      }
    }
 
 

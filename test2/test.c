@@ -1,11 +1,9 @@
 
 
 int main(int argc) {
-   int x = 0;
-
-   if (x) {
+   int x = 10;
+   if (x < 9) {
       return 1;
-   } else {
-      return 2;
    }
+   return 0;
 }
