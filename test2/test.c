@@ -1,9 +1,11 @@
 
 
 int main(int argc) {
-   int x;
-   
-   x = 4;
+   int x = 0;
 
-   return x * argc;
+   if (x) {
+      return 1;
+   } else {
+      return 2;
+   }
 }

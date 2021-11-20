@@ -173,6 +173,19 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       emit("b %s", n->str);
       return n->next;
 
+   case IR_JMPIF:
+      instr = "bne";
+      goto ir_cjmp;
+   case IR_JMPIFN:
+      instr = "beq";
+   {
+   ir_cjmp:;
+      emit("cmp %s, #0", reg(n->cjmp.reg));
+      emit("%s %s", instr, n->cjmp.label);
+      return n->next;
+   }
+
+
    default:
       panic("unsupported ir_node type '%s'", ir_node_type_str[n->type]);
    }
