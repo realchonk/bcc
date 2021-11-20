@@ -17,12 +17,12 @@
 #include <string.h>
 #include "emit_ir.h"
 #include "target.h"
+#include "strdb.h"
 #include "regs.h"
 #include "bcc.h"
 #include "ir.h"
 
 static size_t stack_size;
-
 
 ir_node_t* emit_ir(const ir_node_t* n) {
    const char* instr;
@@ -35,6 +35,8 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       const size_t nrp = my_min(4, buf_len(n->func->params));
       emit("push {fp, lr}");
       emit("mov fp, sp");
+
+      buf_free(rel_syms);
 
       stack_size  = sizeof_scope(n->func->scope);
       stack_size += nrp * REGSIZE;
@@ -63,6 +65,13 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       emit("%s.ret:", n->func->name);
       emit("mov sp, fp");
       emit("pop {fp, pc}");
+
+      for (size_t i = 0; i < buf_len(rel_syms); ++i) {
+         const struct rel_sym sym = rel_syms[i];
+         emit(".LC%zu:", sym.id);
+         emit(".word %s", sym.text);
+      }
+
       return n->next;
    }
 
@@ -234,6 +243,14 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          emit("mov%s %s, #1", es[n->type].cc, dest);
          return next;
       }
+   }
+
+   case IR_LSTR:
+   {
+      const struct strdb_ptr* ptr;
+      strdb_add(n->lstr.str, &ptr);
+      emit("ldr %s, .LC%zu", reg(n->lstr.reg), add_rel_sym("__strings + %zu", ptr->idx));
+      return n->next;
    }
 
 

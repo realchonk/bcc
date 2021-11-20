@@ -1,9 +1,7 @@
 
 
-int main(int argc) {
-   int x = 10;
-   if (x < 9) {
-      return 1;
-   }
-   return 0;
+char main(int argc) {
+   const char* s = "Hello World";
+   const char* s2 = "H";
+   return *s - *s2;
 }

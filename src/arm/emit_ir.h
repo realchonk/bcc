@@ -19,6 +19,30 @@
 #include "target.h"
 #include "regs.h"
 
+// will be written as:
+// .LC$id:
+// .word $text
+struct rel_sym {
+   size_t id;
+   const char* text;
+};
+static struct rel_sym* rel_syms = NULL;
+static size_t next_rel_sym = 0;
+
+static size_t add_rel_sym(const char* text, ...) {
+   va_list ap;
+   va_start(ap, text);
+   char buffer[100];
+
+   vsnprintf(buffer, sizeof(buffer), text, ap);
+
+   struct rel_sym sym = { next_rel_sym++, strint(buffer) };
+   buf_push(rel_syms, sym);
+
+   va_end(ap);
+   return sym.id;
+}
+
 static size_t sizeof_scope(const struct scope* scope) {
    size_t num = 0;
    for (size_t i = 0; i < buf_len(scope->vars); ++i) {
