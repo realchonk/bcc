@@ -40,7 +40,7 @@ riscv64)
    ARCH=riscv
    BITS=64
    ;;
-arm)
+arm|armv7l)
    FULL_ARCH=arm
    ARCH=arm
    BITS=32
