@@ -1,6 +1,7 @@
 bcc
 test/tester
 test/*.log
+test/bcc_temp.s
 test2/test.s
 test2/test.asm
 test2/test.o
