@@ -19,7 +19,7 @@ AC_DEFUN([AX_CHECK_LIBC], [
 AC_MSG_CHECKING([for C library])
 
 case ${target_os} in
-linux|linux-gnu)
+linux|linux-gnu*)
    LIBC="glibc"
    ;;
 linux-musl)
