@@ -60,7 +60,7 @@ test.s: test.c $(BCC)
 	$(BCC) -S -o $@ $< $(BCC_FLAGS)
 
 clean:
-	rm -f *.s *.asm *.o test *.ir
+	rm -f *.s *.asm *.o test *.ir *.core
 
 run: test
 	@QEMU_LD_PREFIX=$(QLP) ./test; echo "Exit code: $$?"

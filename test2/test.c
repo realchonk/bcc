@@ -1,5 +1,9 @@
 
 
-int main(void) {
-   return 10;
+int main(int argc) {
+   int x;
+   
+   x = 4;
+
+   return x + argc;
 }
