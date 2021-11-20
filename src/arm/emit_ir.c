@@ -142,7 +142,34 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
 
    case IR_IADD:
+      instr = "add";
+      goto ir_binary;
+   case IR_ISUB:
+      instr = "sub";
+      goto ir_binary;
+   case IR_IAND:
+      instr = "and";
+      goto ir_binary;
+   case IR_IOR:
+      instr = "orr";
+      goto ir_binary;
+   case IR_IXOR:
+      instr = "eor";
+      goto ir_binary;
+   case IR_ILSL:
+      instr = "lsl";
+      goto ir_binary;
+   case IR_ILSR:
+      instr = "lsr";
+      goto ir_binary;
+   case IR_IASR:
+      instr = "asr";
+      goto ir_binary;
+   case IR_IMUL:
+   case IR_UMUL:
+      instr = "mul";
    {
+   ir_binary:;
       const char* dest = reg(n->binary.dest);
       struct ir_value av = n->binary.a;
       struct ir_value bv = n->binary.b;
@@ -155,10 +182,24 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          emit_iload(n->binary.dest, av.sVal);
       }
       if (bv.type == IRT_REG) {
-         emit("add %s, %s, %s", dest, a, reg(bv.reg));
+         emit("%s %s, %s, %s", instr, dest, a, reg(bv.reg));
       } else {
-         emit("add %s, %s, #%jd", dest, a, bv.sVal);
+         emit("%s %s, %s, #%jd", instr, dest, a, bv.sVal);
       }
+      return n->next;
+   }
+
+   case IR_INOT:
+      emit("mnv %s, %s", reg(n->unary.reg), reg(n->unary.reg));
+      return n->next;
+   case IR_INEG:
+      emit("rsb %s, %s, #0", reg(n->unary.reg), reg(n->unary.reg));
+      return n->next;
+   case IR_BNOT:
+   {
+      const char* r = reg(n->unary.reg);
+      emit("rsbs %s, %s, #1", r, r);
+      emit("movcc %s, #0", r);
       return n->next;
    }
 

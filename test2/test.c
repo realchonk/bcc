@@ -5,5 +5,5 @@ int main(int argc) {
    
    x = 4;
 
-   return x + argc;
+   return x * argc;
 }
