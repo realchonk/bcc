@@ -253,6 +253,13 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    }
 
+   case IR_FLOOKUP:
+   case IR_GLOOKUP:
+   {
+      emit("ldr %s, .LC%zu", reg(n->lstr.reg), add_rel_sym(n->lstr.str));
+      return n->next;
+   }
+
 
    default:
       panic("unsupported ir_node type '%s'", ir_node_type_str[n->type]);
