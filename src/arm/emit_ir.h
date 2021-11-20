@@ -40,5 +40,53 @@ static void assign_scope(struct scope* scope, int* sp) {
       assign_scope(scope->children[i], sp);
    }
 }
+static void emit_iload(ir_reg_t r, intmax_t val) {
+   if (val >= 0) {
+      emit("mov %s, #%jd", reg(r), val);
+   } else {
+      emit("mvn %s, #%jd", reg(r), -val - 1);
+   }
+}
+static void emit_lda(ir_reg_t r, int fpoff) {
+   if (fpoff >= 0) {
+      emit("add %s, fp, #%d", reg(r), fpoff);
+   } else {
+      emit("sub %s, fp, #%d", reg(r), -fpoff);
+   }
+}
+static void emit_rw(ir_reg_t dest, bool rw, enum ir_value_size irs, bool se, const char* addr, ...) {
+   va_list ap;
+   va_start(ap, addr);
+
+   const char* instr;
+
+   if (rw) {
+      switch (irs) {
+      case IRS_BYTE:
+      case IRS_CHAR:    instr = "strb"; break;
+      case IRS_SHORT:   instr = "strh"; break;
+      case IRS_INT:     
+      case IRS_LONG:    
+      case IRS_PTR:     instr = "str";  break;
+      default:          panic("unsupported IR value size '%s'", ir_size_str[irs]);
+      }
+   } else {
+      switch (irs) {
+      case IRS_BYTE:
+      case IRS_CHAR:    instr = se ? "ldrsb" : "ldrb"; break;
+      case IRS_SHORT:   instr = se ? "ldrsh" : "ldrh"; break;
+      case IRS_INT:     
+      case IRS_LONG:    
+      case IRS_PTR:     instr = "ldr";  break;
+      default:          panic("unsupported IR value size '%s'", ir_size_str[irs]);
+      }
+   }
+
+   emitraw("%s %s, ", instr, reg(dest));
+   vemitraw(addr, ap);
+   emit("");
+
+   va_end(ap);
+}
 
 #endif /* FILE_EMIT_IR_H */
