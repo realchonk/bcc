@@ -278,15 +278,9 @@ ir_node_t* emit_ir(const ir_node_t* n) {
             emit("and %s, %s, #255", dest, src);
             break;
          case IRS_SHORT:
-            emit("lsl %s, %s, #16", dest, src);
-            emit("lsr %s, %s, #16", dest, dest);
+            emit("lsl %s, %s, #%d", dest, src, BITS - 16);
+            emit("lsr %s, %s, #%d", dest, dest, BITS - 16);
             break;
-#if BITS == 64
-         case IRS_INT:
-            emit("lsl %s, %s, #32", dest, src);
-            emit("lsr %s, %s, #32", dest, dest);
-            break;
-#endif
          default:
             panic("unreachable reached, ds=%s, ss=%s", ir_size_str[ds], ir_size_str[ss]);
          }
@@ -295,12 +289,12 @@ ir_node_t* emit_ir(const ir_node_t* n) {
             switch (ss) {
             case IRS_BYTE:
             case IRS_CHAR:
-               emit("lsl %s, %s, #24", dest, src);
-               emit("asr %s, %s, #24", dest, src);
+               emit("lsl %s, %s, #%d", dest, src, BITS - 8);
+               emit("asr %s, %s, #%d", dest, src, BITS - 8);
                break;
             case IRS_SHORT:
-               emit("lsl %s, %s, #16", dest, src);
-               emit("asr %s, %s, #16", dest, src);
+               emit("lsl %s, %s, #%d", dest, src, BITS - 16);
+               emit("asr %s, %s, #%d", dest, src, BITS - 16);
                break;
             }
          } else {
