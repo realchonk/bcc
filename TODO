@@ -45,6 +45,7 @@ riscv:
 
 arm:
 - Support for big-endian
+- Add support armv5+
 
 # Pre-processor
 - more test cases for macro expansion
