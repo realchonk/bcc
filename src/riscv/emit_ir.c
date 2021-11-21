@@ -438,7 +438,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       const ir_reg_t dest = n->call.dest;
       struct ir_node** params = n->call.params;
       const size_t np = buf_len(params);
-      uintreg_t n_stack = ((flag2 ? dest : 0) + np) * REGSIZE;
+      uintreg_t n_stack = (dest + np) * REGSIZE;
       const uintreg_t saved_sp = n_stack;
       uintreg_t sp = saved_sp;
       n_stack = align_stack_size(n_stack);
@@ -454,17 +454,17 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       }
       const size_t params_sp = sp;
 
-      for (size_t i = 0; i < my_min(8, np); ++i) {
-         ir_node_t* tmp = params[i];
-         while ((tmp = emit_ir(tmp)) != NULL);
-         emit(SW " %s, %ju(sp)", reg(dest), (uintmax_t)(sp -= REGSIZE));
-      }
-
       if (np) {
+         for (size_t i = 0; i < my_min(8, np); ++i) {
+            ir_node_t* tmp = params[i];
+            while ((tmp = emit_ir(tmp)) != NULL);
+            emit(SW " %s, %ju(sp)", reg(dest), (uintmax_t)(sp -= REGSIZE));
+         }
+
          for (size_t i = np - 1; i >= 8; --i) {
             ir_node_t* tmp = params[i];
             while ((tmp = emit_ir(tmp)) != NULL);
-            emit(SW " %s, %ju", reg(dest), (uintmax_t)(sp -= REGSIZE));
+            emit(SW " %s, %ju(sp)", reg(dest), (uintmax_t)(sp -= REGSIZE));
          }
       }
 
