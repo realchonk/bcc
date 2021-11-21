@@ -29,4 +29,7 @@ bool target_optim_ir(struct ir_node**);
 // ... that are performed, after all other IR optimizations are done.
 bool target_post_optim_ir(struct ir_node**);
 
+// Common target-specific optimizaions
+bool copy_to_memcpy(ir_node_t**);
+
 #endif /* FILE_OPTIM_H */
