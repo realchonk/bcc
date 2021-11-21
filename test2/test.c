@@ -1,6 +1,9 @@
 
-short gl = 4;
+int get() {
+   return 4;
+}
 
 int main(int argc) {
-   return gl;
+   auto f = &get;
+   return f(4, 2, 1);
 }

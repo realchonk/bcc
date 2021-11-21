@@ -26,8 +26,11 @@ static size_t stack_size;
 
 ir_node_t* emit_ir(const ir_node_t* n) {
    const char* instr;
-   bool flag, flag2;
+   bool flag = false, flag2 = false;
    switch (n->type) {
+   case IR_NOP:
+      emit("nop");
+      return n->next;
    case IR_ASM:
       emit("%s", n->str);
       return n->next;
@@ -323,7 +326,69 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       const ir_reg_t dest = n->call.dest;
       ir_node_t** params = n->call.params;
       const size_t np = buf_len(params);
-      panic("function calls currently not implemented");
+      const size_t nrp = my_min(4, np);
+
+      size_t n_stack = (dest + np + 1) * REGSIZE;
+      const size_t saved_sp = n_stack;
+      size_t sp = saved_sp;
+
+      n_stack = align_stack_size(n_stack);
+
+      emit("sub sp, sp, #%zu", n_stack);
+
+      if (flag2) {
+         if (is_builtin_func(n->call.name)) {
+            request_builtin(n->call.name);
+         }
+      }
+      for (size_t i = 0; i < dest; ++i) {
+         emit_rw(i, true, IRS_PTR, false, "[sp, #%zu]", sp -= REGSIZE);
+      }
+
+      const size_t params_sp = sp;
+
+      if (np) {
+         for (size_t i = 0; i < nrp; ++i) {
+            ir_node_t* tmp = params[i];
+            while ((tmp = emit_ir(tmp)) != NULL);
+            emit_rw(dest, true, IRS_PTR, false, "[sp, #%zu]", sp -= REGSIZE);
+         }
+         for (size_t i = np - 1; i >= nrp; --i) {
+            ir_node_t* tmp = params[i];
+            while ((tmp = emit_ir(tmp)) != NULL);
+            emit_rw(dest, true, IRS_PTR, false, "[sp, #%zu]", sp -= REGSIZE);
+         }
+      }
+
+      if (flag) {
+         ir_node_t* tmp = n->call.addr;
+         while ((tmp = emit_ir(tmp)) != NULL);
+         emit("mov r4, r0");
+      }
+
+
+      sp = params_sp;
+      for (size_t i = 0; i < nrp; ++i) {
+         emit_rw(i, false, IRS_PTR, false, "[sp, #%zu]", sp -= REGSIZE);
+      }
+
+      if (flag) {
+         emit("mov lr, pc");
+         emit("mov pc, r4");
+      } else {
+         emit("bl %s", n->call.name);
+      }
+
+      if (flag2 && dest != 0) {
+         emit("mov %s, r0", reg(dest));
+         sp = saved_sp;
+         for (size_t i = 0; i < dest; ++i) {
+            emit_rw(i, false, IRS_PTR, false, "[sp, #%zu]", sp -= REGSIZE);
+         }
+      }
+
+      emit("add sp, sp, #%zu", n_stack);
+      return n->next;
    }
 
 
