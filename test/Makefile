@@ -19,6 +19,7 @@ all: tester
 
 tester: tester.c cases.h
 	gcc -o $@ $< -Wall -Wextra -std=c99 -Og -g
+	rm *.core
 
 clean:
 	rm -f tester bcc.log gcc.log
