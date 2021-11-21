@@ -47,7 +47,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       stack_size  = align_stack_size(stack_size);
       emit("sub sp, sp, #%zu", stack_size);
 
-      int fp = -(stack_size - (nrp * REGSIZE));
+      int fp = 0;
       for (size_t i = 0; i < nrp; ++i) {
          fp -= REGSIZE;
          emit("str r%u, [fp, #%d]", i, fp);
@@ -308,6 +308,17 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       return n->next;
    }
 
+   case IR_FLURD:
+   case IR_FLUWR:
+      emit_rw(n->flurw.reg,
+            n->type == IR_FLUWR,
+            n->flurw.size,
+            n->flurw.sign_extend,
+            "[fp, #%d]",
+            n->flurw.scope->vars[n->flurw.var_idx].addr);
+      return n->next;
+
+
    // flag: relative
    // flag2: has return value
 
@@ -328,7 +339,7 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       const size_t np = buf_len(params);
       const size_t nrp = my_min(4, np);
 
-      size_t n_stack = (dest + np + 1) * REGSIZE;
+      size_t n_stack = (dest + np) * REGSIZE;
       const size_t saved_sp = n_stack;
       size_t sp = saved_sp;
 

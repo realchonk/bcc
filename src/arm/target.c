@@ -82,7 +82,7 @@ const struct target_info target_info = {
 
    .fuse_fp_rw = false,
    .fuse_gl_rw = false,
-   .fuse_lu_rw = false,
+   .fuse_lu_rw = true,
 };
 
 const struct binutils_info binutils_info = {

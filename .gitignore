@@ -13,3 +13,4 @@ src/.dirstamp
 src/*/.dirstamp
 pkg/
 *autom4te.cache/
+*.core

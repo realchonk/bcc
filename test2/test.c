@@ -1,9 +1,10 @@
 
-int get() {
-   return 4;
+int printf(const char* fmt, ...);
+
+static void puti(int i) {
+   printf("%d\n", i);
 }
 
 int main(int argc) {
-   auto f = &get;
-   return f(4, 2, 1);
+   puti(42);
 }
