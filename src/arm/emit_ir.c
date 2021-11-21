@@ -26,6 +26,7 @@ static size_t stack_size;
 
 ir_node_t* emit_ir(const ir_node_t* n) {
    const char* instr;
+   bool flag, flag2;
    switch (n->type) {
    case IR_ASM:
       emit("%s", n->str);
@@ -302,6 +303,27 @@ ir_node_t* emit_ir(const ir_node_t* n) {
          }
       }
       return n->next;
+   }
+
+   // flag: relative
+   // flag2: has return value
+
+   case IR_RCALL:
+      flag = true;
+      goto ir_call;
+   case IR_IRCALL:
+      flag = flag2 = true;
+      goto ir_call;
+   case IR_IFCALL:
+      flag2 = true;
+      fallthrough;
+   case IR_FCALL:
+   {
+   ir_call:;
+      const ir_reg_t dest = n->call.dest;
+      ir_node_t** params = n->call.params;
+      const size_t np = buf_len(params);
+      panic("function calls currently not implemented");
    }
 
 
