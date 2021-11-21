@@ -22,7 +22,7 @@ case ${target_os} in
 linux|linux-gnu*)
    LIBC="glibc"
    ;;
-linux-musl)
+linux-musl*)
    LIBC="musl"
    ;;
 *)
