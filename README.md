@@ -62,7 +62,7 @@ This does not apply if you have a -elf target.
 | x86\_64 | amd64, EMT64 | Most tested |
 | riscv32 | RISC-V (32 bit) | Untested |
 | riscv64 | RISC-V (64 bit) | |
-| arm, armv* | 32 bit little-endian ARMv4 | | 
+| arm, armv* | 32 bit little-endian ARMv4+ | | 
 
 Alternative names for processor architectures can be added [here](https://github.com/Benni3D/bcc/blob/master/util/m4/ax_check_target.m4#L21).
 
