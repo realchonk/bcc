@@ -26,6 +26,8 @@
 
 struct flag_option mach_opts[] = {
    BINUTILS_MACH_OPTS,
+   { "cpu", "The target CPU (default: " DEF_CPU ")", 2, .sVal = DEF_CPU },
+   { "abi", "The target ABI (default: " DEF_ABI ")", 2, .sVal = DEF_ABI },
 };
 
 const size_t num_mach_opts = arraylen(mach_opts);

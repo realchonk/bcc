@@ -90,7 +90,7 @@ AC_ARG_ENABLE(bash-completions,
               ENABLE_BASHCOMP=1)
 AC_SUBST([ENABLE_BASHCOMP])
 
-def_cpu_abi=$(sh ./src/${ARCH}/detect_sys.sh ${FULL_ARCH} ${target_cpu})
+def_cpu_abi=$(sh ./src/${ARCH}/detect_sys.sh ${FULL_ARCH} ${target_cpu} ${target_os})
 if test x${def_cpu_abi} = x; then
    AC_MSG_ERROR([failed to determine default CPU and ABI])
 fi

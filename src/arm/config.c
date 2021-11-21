@@ -14,13 +14,27 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <string.h>
+#include "cmdline.h"
 #include "error.h"
 
 #define ARM_SF_DL "/lib/ld-linux.so.3"
 #define ARM_HF_DL "/lib/ld-linux-armhf.so.3"
 
+static bool has_hard_float(void) {
+   // 32-sf or 32-hf
+   const char* abi = get_mach_opt("abi")->sVal;
+   char c = abi[3];
+   return c == 'h';
+}
+
 char* get_ld_abi(void) {
-   return strdup("-marmelf_linux_eabi");
+   const char* abi;
+   if (has_hard_float()) {
+      abi = "-marmelf_linux_eabihf";
+   } else {
+      abi = "-marmelf_linux_eabi";
+   }
+   return strdup(abi);
 }
 
 char* get_interpreter(void) {
@@ -30,7 +44,7 @@ char* get_interpreter(void) {
 
 
 #if LIBC_glibc
-   return strdup(ARM_SF_DL);
+   return strdup(has_hard_float() ? ARM_HF_DL : ARM_SF_DL);
 #else
 #error "Unsupported C library"
 #endif
