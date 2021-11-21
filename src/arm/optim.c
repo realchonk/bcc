@@ -59,8 +59,6 @@ static bool copy_to_memcpy(ir_node_t** n) {
 // Turn IR_{U,I}{DIV,MOD} to IR_IFCALL
 // TODO: implement the functions in libbcc first
 static bool mul_to_func(ir_node_t** n) {
-   if (riscv_cpu.has_mult)
-      return false;
    bool success = false;
    ir_node_t* cur;
    for (cur = *n; cur; cur = cur->next) {

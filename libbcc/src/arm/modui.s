@@ -13,14 +13,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-crtbegin.o: src/arm/crtbegin.s
-	$(CC) -c -o $@ $<
-
-crtend.o: src/arm/crtend.s
-	$(CC) -c -o $@ $<
-
-libbcc_a_SOURCES += 	src/arm/divui.s	\
-							src/arm/divsi.s	\
-							src/arm/modui.s	\
-							src/arm/modsi.s
-						  	
+.global __modui2
+__modui2:
+cmp     r0, r1
+movcc   pc, lr
+.L3:
+sub     r0, r0, r1
+cmp     r1, r0
+bls     .L3
+mov     pc, lr
