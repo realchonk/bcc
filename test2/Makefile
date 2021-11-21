@@ -46,7 +46,9 @@ QLP=/usr/$(BCC_MACH)/
 BCC_FLAGS := $(BCC_FLAGS) -mabi=lp64
 endif
 
-QLP=/opt/cross/arm/arm-buildroot-linux-gnueabi/sysroot/
+ifneq ($(QEMU_LD_PREFIX),)
+	QLP=$(QEMU_LD_PREFIX)
+endif
 
 all: test
 

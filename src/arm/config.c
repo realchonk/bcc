@@ -17,8 +17,11 @@
 #include "cmdline.h"
 #include "error.h"
 
-#define ARM_SF_DL "/lib/ld-linux.so.3"
-#define ARM_HF_DL "/lib/ld-linux-armhf.so.3"
+#define GLIBC_SF_DL "/lib/ld-linux.so.3"
+#define GLIBC_HF_DL "/lib/ld-linux-armhf.so.3"
+
+#define MUSL_SF_DL "/lib/ld-musl-arm.so.1"
+#define MUSL_HF_DL "/lib/ld-musl-armhf.so.1"
 
 static bool has_hard_float(void) {
    // 32-sf or 32-hf
@@ -28,13 +31,7 @@ static bool has_hard_float(void) {
 }
 
 char* get_ld_abi(void) {
-   const char* abi;
-   if (has_hard_float()) {
-      abi = "-marmelf_linux_eabihf";
-   } else {
-      abi = "-marmelf_linux_eabi";
-   }
-   return strdup(abi);
+   return strdup("-marmelf_linux_eabi");
 }
 
 char* get_interpreter(void) {
@@ -44,7 +41,9 @@ char* get_interpreter(void) {
 
 
 #if LIBC_glibc
-   return strdup(has_hard_float() ? ARM_HF_DL : ARM_SF_DL);
+   return strdup(has_hard_float() ? GLIBC_HF_DL : GLIBC_SF_DL);
+#elif LIBC_musl
+   return strdup(has_hard_float() ? MUSL_HF_DL : MUSL_SF_DL);
 #else
 #error "Unsupported C library"
 #endif

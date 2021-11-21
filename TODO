@@ -43,6 +43,8 @@ riscv:
 - add VLAs
 - check detect_sys.sh
 
+arm:
+- Support for big-endian
 
 # Pre-processor
 - more test cases for macro expansion
