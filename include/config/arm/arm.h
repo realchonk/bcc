@@ -13,26 +13,13 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef __BCC_CONFIG_H__
-#define __BCC_CONFIG_H__
+#ifndef FILE_CONFIG_RISCV_ARM_H
+#define FILE_CONFIG_RISCV_ARM_H
+#include "config.h"
 
-
-#ifndef __bcc__
-#error Unsupported compiler
+#if OS_linux
+# define HAS_INTERPRETER 1
 #endif
 
-#undef __BCC_BITS
+#endif /* FILE_CONFIG_RISCV_ARM_H */
 
-#if defined(__i386__)
-#define __BCC_BITS 32
-#elif defined(__x86_64__)
-#define __BCC_BITS 64
-#elif defined(__riscv)
-#define __BCC_BITS __riscv_xlen
-#elif defined(__arm__)
-#define __BCC_BITS 32
-#else
-#error Unsupported processor architecture
-#endif
-
-#endif /* __BCC_CONFIG_H__ */

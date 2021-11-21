@@ -13,32 +13,47 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-clib_DATA = crtbegin.o crtend.o
-clib_LIBRARIES = libbcc.a
-
-libbcc_a_SOURCES = src/has_libbcc.c		\
-						 src/memcpy.c
-
-if ARCH_x86
-include $(srcdir)/src/x86/Makefile.am
-endif
-
-if ARCH_riscv
-include $(srcdir)/src/riscv/Makefile.am
-endif
-
-if ARCH_arm
-include $(srcdir)/src/arm/Makefile.am
-endif
-
-print-sources:
-	@echo $(libbcc_a_SOURCES)
-
-full-clean: clean
-	rm -f Makefile Makefile.in configure src/.dirstamp src/$(ARCH)/.dirstamp
-	rm -f config.h config.h.in config.h.in~ config.log config.status stamp-h1 aclocal.m4
-	rm -rf autom4te.cache build-aux src/.deps .deps src/$(ARCH)/.deps configure~
-
-clean-local:
-	rm -f crtbegin.o crtend.o
-
+.global __divsi2
+__divsi2:
+subs    r3, r0, #0
+blt     .L2
+cmp     r1, #0
+blt     .L3
+cmp     r3, r1
+blt     .L18
+.L17:
+mov     ip, #0
+.L4:
+mov     r0, #0
+.L8:
+sub     r3, r3, r1
+cmp     r3, r1
+mov     r2, r0
+add     r0, r0, #1
+bge     .L8
+cmp     ip, #0
+mvnne   r0, r2
+mov     pc, lr
+.L3:
+rsb     r1, r1, #0
+cmp     r3, r1
+movge   ip, #1
+bge     .L4
+.L18:
+mov     r0, #0
+mov     pc, lr
+.L2:
+cmp     r1, #0
+rsb     r2, r3, #0
+blt     .L6
+cmp     r2, r1
+blt     .L18
+mov     r3, r2
+mov     ip, #1
+b       .L4
+.L6:
+cmp     r3, r1
+movle   r3, r2
+rsb     r1, r1, #0
+ble     .L17
+b       .L18

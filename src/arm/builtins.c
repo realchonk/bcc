@@ -13,26 +13,12 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef __BCC_CONFIG_H__
-#define __BCC_CONFIG_H__
+#include "config.h"
+#include "target.h"
+#include "error.h"
 
 
-#ifndef __bcc__
-#error Unsupported compiler
-#endif
+struct builtin_func builtin_funcs[] = {
+};
 
-#undef __BCC_BITS
-
-#if defined(__i386__)
-#define __BCC_BITS 32
-#elif defined(__x86_64__)
-#define __BCC_BITS 64
-#elif defined(__riscv)
-#define __BCC_BITS __riscv_xlen
-#elif defined(__arm__)
-#define __BCC_BITS 32
-#else
-#error Unsupported processor architecture
-#endif
-
-#endif /* __BCC_CONFIG_H__ */
+const size_t num_builtin_funcs = arraylen(builtin_funcs);

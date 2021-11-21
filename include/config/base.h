@@ -21,6 +21,8 @@
 # include "config/x86/x86.h"
 #elif ARCH_riscv
 # include "config/riscv/riscv.h"
+#elif ARCH_arm
+# include "config/arm/arm.h"
 #else
 # error "invalid processor architecture"
 #endif

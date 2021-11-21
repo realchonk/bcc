@@ -1,5 +1,10 @@
-static int add(int, int);
-extern int add(int a, int b) {
-   return a + b;
+
+int printf(const char* fmt, ...);
+
+static void puti(int i) {
+   printf("%d\n", i);
 }
-int main() {}
+
+int main(int argc) {
+   puti(42);
+}

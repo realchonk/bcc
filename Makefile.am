@@ -44,6 +44,10 @@ if ARCH_riscv
 include $(srcdir)/src/riscv/Makefile.am
 endif
 
+if ARCH_arm
+include $(srcdir)/src/arm/Makefile.am
+endif
+
 
 print-config:
 	@echo targetdir: $(targetdir)

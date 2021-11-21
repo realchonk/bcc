@@ -40,6 +40,11 @@ riscv64)
    ARCH=riscv
    BITS=64
    ;;
+arm|armv*)
+   FULL_ARCH=arm
+   ARCH=arm
+   BITS=32
+   ;;
 *)
    AC_MSG_ERROR([invalid target architecture '${target_cpu}'])
    ;;
@@ -65,5 +70,6 @@ AC_SUBST([BITS])
 
 AM_CONDITIONAL([ARCH_x86], [test x${ARCH} = xx86])
 AM_CONDITIONAL([ARCH_riscv], [test x${ARCH} = xriscv])
+AM_CONDITIONAL([ARCH_arm], [test x${ARCH} = xarm])
 
 ])

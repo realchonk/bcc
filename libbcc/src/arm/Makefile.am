@@ -13,32 +13,14 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-clib_DATA = crtbegin.o crtend.o
-clib_LIBRARIES = libbcc.a
+crtbegin.o: src/arm/crtbegin.s
+	$(CC) -c -o $@ $<
 
-libbcc_a_SOURCES = src/has_libbcc.c		\
-						 src/memcpy.c
+crtend.o: src/arm/crtend.s
+	$(CC) -c -o $@ $<
 
-if ARCH_x86
-include $(srcdir)/src/x86/Makefile.am
-endif
-
-if ARCH_riscv
-include $(srcdir)/src/riscv/Makefile.am
-endif
-
-if ARCH_arm
-include $(srcdir)/src/arm/Makefile.am
-endif
-
-print-sources:
-	@echo $(libbcc_a_SOURCES)
-
-full-clean: clean
-	rm -f Makefile Makefile.in configure src/.dirstamp src/$(ARCH)/.dirstamp
-	rm -f config.h config.h.in config.h.in~ config.log config.status stamp-h1 aclocal.m4
-	rm -rf autom4te.cache build-aux src/.deps .deps src/$(ARCH)/.deps configure~
-
-clean-local:
-	rm -f crtbegin.o crtend.o
-
+libbcc_a_SOURCES += 	src/arm/divui.s	\
+							src/arm/divsi.s	\
+							src/arm/modui.s	\
+							src/arm/modsi.s
+						  	

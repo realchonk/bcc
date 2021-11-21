@@ -13,26 +13,21 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef __BCC_CONFIG_H__
-#define __BCC_CONFIG_H__
+#ifndef FILE_ARM_REGS_H
+#define FILE_ARM_REGS_H
+#include "config.h"
 
+#if BITS == 32
+typedef uint32_t uintreg_t;
+typedef int32_t  intreg_t;
+#define REGSIZE 4
 
-#ifndef __bcc__
-#error Unsupported compiler
 #endif
 
-#undef __BCC_BITS
+static const char* regs[5] = { "r0", "r1", "r2", "r3", "r12" };
 
-#if defined(__i386__)
-#define __BCC_BITS 32
-#elif defined(__x86_64__)
-#define __BCC_BITS 64
-#elif defined(__riscv)
-#define __BCC_BITS __riscv_xlen
-#elif defined(__arm__)
-#define __BCC_BITS 32
-#else
-#error Unsupported processor architecture
-#endif
+#define reg(r) ((const char*)((r) < arraylen(regs) ? regs[r] : (panic("register out of range"), NULL)))
 
-#endif /* __BCC_CONFIG_H__ */
+#define align_stack_size(sz) ((uintreg_t)(((uintreg_t)(sz) & 7) ? (((uintreg_t)(sz) & ~7) + 8) : (uintreg_t)(sz)))
+
+#endif /* FILE_ARM_REGS_H */

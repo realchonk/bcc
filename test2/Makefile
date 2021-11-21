@@ -46,6 +46,10 @@ QLP=/usr/$(BCC_MACH)/
 BCC_FLAGS := $(BCC_FLAGS) -mabi=lp64
 endif
 
+ifneq ($(QEMU_LD_PREFIX),)
+	QLP=$(QEMU_LD_PREFIX)
+endif
+
 all: test
 
 test.ir: test.c $(BCC)
@@ -58,7 +62,7 @@ test.s: test.c $(BCC)
 	$(BCC) -S -o $@ $< $(BCC_FLAGS)
 
 clean:
-	rm -f *.s *.asm *.o test *.ir
+	rm -f *.s *.asm *.o test *.ir *.core
 
 run: test
 	@QEMU_LD_PREFIX=$(QLP) ./test; echo "Exit code: $$?"
