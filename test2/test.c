@@ -6,5 +6,6 @@ static void puti(int i) {
 }
 
 int main(int argc) {
-   puti(42);
+   auto f = &puti;
+   f(1);
 }

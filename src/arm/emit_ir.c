@@ -20,6 +20,7 @@
 #include "strdb.h"
 #include "regs.h"
 #include "bcc.h"
+#include "cpu.h"
 #include "ir.h"
 
 static size_t stack_size;
@@ -260,7 +261,12 @@ ir_node_t* emit_ir(const ir_node_t* n) {
    case IR_FLOOKUP:
    case IR_GLOOKUP:
    {
-      emit("ldr %s, .LC%zu", reg(n->lstr.reg), add_rel_sym(n->lstr.str));
+      if (cpu_has_feature("movw/t")) {
+         emit("movw %s, :lower16:%s", reg(n->lstr.reg), n->lstr.str);
+         emit("movt %s, :upper16:%s", reg(n->lstr.reg), n->lstr.str);
+      } else {
+         emit("ldr %s, .LC%zu", reg(n->lstr.reg), add_rel_sym(n->lstr.str));
+      }
       return n->next;
    }
 
@@ -384,8 +390,12 @@ ir_node_t* emit_ir(const ir_node_t* n) {
       }
 
       if (flag) {
-         emit("mov lr, pc");
-         emit("mov pc, r4");
+         if (cpu_has_feature("blx")) {
+            emit("blx r4");
+         } else {
+            emit("mov lr, pc");
+            emit("mov pc, r4");
+         }
       } else {
          emit("bl %s", n->call.name);
       }

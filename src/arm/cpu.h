@@ -12,11 +12,20 @@
 //  
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 
-#include "binutils.h"
+#ifndef FILE_ARM_CPU_H
+#define FILE_ARM_CPU_H
+#include <stdbool.h>
 
-void emit_begin_hook(void) {}
-void emit_builtin_funcs_hook(void) {}
-void emit_global_vars_hook(void) {}
-void emit_end_hook(void) {}
+struct arm_cpu {
+   const char* name;
+   const char** features;
+};
 
+extern const struct arm_cpu arm_cpus[];
+extern const size_t num_arm_cpus;
+
+bool cpu_has_feature(const char*);
+
+#endif /* FILE_ARM_CPU_H */

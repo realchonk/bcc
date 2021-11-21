@@ -45,7 +45,7 @@ riscv:
 
 arm:
 - Support for big-endian
-- Add support armv5+
+- CPU detection in detect_sys.sh
 - Add support for aarch64/armv8+
 - Add VLAs
 

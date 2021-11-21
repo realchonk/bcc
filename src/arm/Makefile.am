@@ -22,6 +22,7 @@ bcc_SOURCES += src/binutils_helpers.c	\
 					src/arm/config.c			\
 					src/arm/common.c			\
 					src/arm/optim.c			\
-					src/arm/gen.c
+					src/arm/gen.c				\
+					src/arm/cpu.c
 
 bcc_CPPFLAGS += -DUSE_BINUTILS=1
