@@ -40,9 +40,6 @@ Just install to PREFIX (default: /usr/local)<br>
 Install to a different PREFIX:<br>
 <code>make DESTDIR=... install</code><br>
 
-Note: if bcc can't find the crt{1,i,n}.o files, please run ./util/fix\_crts.sh<br>
-Note 2: if linking against the GNU C library (glibc) fails, run ./util/fix\_crts.sh -af \<prefix\>, or use the musl C library.
-
 ## Testing
 Testing can be performed with:<br>
 <code>make check</code><br>
@@ -65,6 +62,7 @@ This does not apply if you have a -elf target.
 | x86\_64 | amd64, EMT64 | Most tested |
 | riscv32 | RISC-V (32 bit) | Untested |
 | riscv64 | RISC-V (64 bit) | |
+| arm, armv* | 32 bit little-endian ARMv4 | | 
 
 Alternative names for processor architectures can be added [here](https://github.com/Benni3D/bcc/blob/master/util/m4/ax_check_target.m4#L21).
 
