@@ -18,10 +18,128 @@
 #include "optim.h"
 #include "error.h"
 
+static bool copy_to_memcpy(ir_node_t** n) {
+   bool success = false;
+   for (ir_node_t* cur = *n; cur; cur = cur->next) {
+      if (cur->type != IR_COPY)
+         continue;
+      ir_node_t fcall;
+      fcall.type = IR_FCALL;
+      fcall.prev = cur->prev;
+      fcall.next = cur->next;
+      fcall.func = cur->func;
+
+      fcall.call.name = strint("__builtin_memcpy");
+      fcall.call.dest = cur->copy.dest;
+      fcall.call.params = NULL;
+      
+      ir_node_t* param = new_node(IR_MOVE);
+      param->move.dest = fcall.call.dest;
+      param->move.src  = cur->copy.dest;
+      param->move.size = IRS_PTR;
+      buf_push(fcall.call.params, param);
+
+      param = new_node(IR_MOVE);
+      param->move.dest = fcall.call.dest;
+      param->move.src  = cur->copy.src;
+      param->move.size = IRS_PTR;
+      buf_push(fcall.call.params, param);
+
+      param = new_node(IR_LOAD);
+      param->load.dest = fcall.call.dest;
+      param->load.value = cur->copy.len;
+      param->load.size = IRS_PTR;
+      buf_push(fcall.call.params, param);
+      *cur = fcall;
+      success = true;
+   }
+   return success;
+}
+
+// Turn IR_{U,I}{DIV,MOD} to IR_IFCALL
+// TODO: implement the functions in libbcc first
+static bool mul_to_func(ir_node_t** n) {
+   if (riscv_cpu.has_mult)
+      return false;
+   bool success = false;
+   ir_node_t* cur;
+   for (cur = *n; cur; cur = cur->next) {
+      const char* type;
+      char sign;
+      switch (cur->type) {
+      case IR_IDIV:
+         type = "div";
+         sign = 's';
+         break;
+      case IR_UDIV:
+         type = "div";
+         sign = 'u';
+         break;
+      case IR_IMOD:
+         type = "mod";
+         sign = 's';
+         break;
+      case IR_UMOD:
+         type = "mod";
+         sign = 'u';
+         break;
+      default:
+         continue;
+      }
+      char name[] = "__mulxi2";
+      memcpy(name + 2, type, 3);
+      name[5] = sign;
+
+      ir_node_t fc;
+      fc.type = IR_IFCALL;
+      fc.call.name = strint(name);
+      fc.call.dest = cur->binary.dest;
+      fc.call.params = NULL;
+
+      ir_node_t* tmp = new_node(IR_NOP);
+      if (cur->binary.a.type == IRT_REG) {
+         tmp->type = IR_MOVE;
+         tmp->move.dest = fc.call.dest;
+         tmp->move.src = cur->binary.a.reg;
+         tmp->move.size = cur->binary.size;
+      } else if (cur->binary.a.type == IRT_UINT) {
+         tmp->type = IR_LOAD;
+         tmp->load.dest = fc.call.dest;
+         tmp->load.size = cur->binary.size;
+         tmp->load.value = cur->binary.a.uVal;
+      } else panic("unreachable reached");
+      buf_push(fc.call.params, tmp);
+
+      tmp = new_node(IR_NOP);
+      if (cur->binary.b.type == IRT_REG) {
+         tmp->type = IR_MOVE;
+         tmp->move.dest = fc.call.dest;
+         tmp->move.src = cur->binary.b.reg;
+         tmp->move.size = cur->binary.size;
+      } else if (cur->binary.b.type == IRT_UINT) {
+         tmp->type = IR_LOAD;
+         tmp->load.dest = fc.call.dest;
+         tmp->load.size = cur->binary.size;
+         tmp->load.value = cur->binary.b.uVal;
+      } else panic("unreachable reached");
+      buf_push(fc.call.params, tmp);
+
+      *cur = fc;
+      success = true;
+   }
+   return success;
+}
+
 bool target_optim_ir(ir_node_t** n) {
-   return false;
+   bool success = false;
+   while (copy_to_memcpy(n))
+      success = true;
+   return success;
 }
 
 bool target_post_optim_ir(ir_node_t** n) {
-   return false;
+   bool success = false;
+   while (mul_to_func(n))
+      success = true;
+   return success;
 }
