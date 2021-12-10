@@ -116,6 +116,11 @@ AC_ARG_WITH([dl],
             [AS_HELP_STRING([--with-dl=PATH], [overwrite the default path to the dynamic linker])],
             [AC_DEFINE_UNQUOTED([PATH_DL], ["${withval}"], [path to the dynamic linker])])
 
+# --with-includes=
+AC_ARG_WITH([includes],
+            [AS_HELP_STRING([--with-includes=STRING], [overwrite the default include paths])],
+            [SYS_INCLUDES="$withval"])
+
 # Patch bcc.1
 sed "s/VERSION/$VERSION/g" ${srcdir}/src/bcc.1 >bcc.1 || AC_MSG_ERROR([failed to patch bcc.1])
 
@@ -125,6 +130,5 @@ ${srcdir}/util/read_doc.sh <bcc.1 >help_options.h || AC_MSG_ERROR([failed to gen
 
 # Generate a Makefile
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_SUBDIRS([cpp])
 
 AC_OUTPUT

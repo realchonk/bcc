@@ -13,8 +13,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-SUBDIRS = cpp
-
 tbin_PROGRAMS = bcc
 bcc_SOURCES = src/bcc.c src/cmdline.c src/cpp.c src/error.c src/expr.c src/func.c src/ir.c 	\
 				  src/irgen.c src/lex.c src/linker.c src/main.c src/optim_expr.c src/optim_ir.c	\
@@ -65,7 +63,7 @@ completionsdir = $(datadir)/bash-completion/completions
 transform = @program_transform_name@
 
 all-bcc: bcc
-all: all-recursive all-target-libbcc
+all: all-bcc all-bcpp all-target-libbcc
 
 install-completions:
 	[ $(ENABLE_BASHCOMP) = 0 ] || \
@@ -76,7 +74,7 @@ uninstall-completions:
 		rm -f $(DESTDIR)/$(completionsdir)/`echo bcc | sed '$(transform)'`
 
 
-install-data-local: install-target-libbcc install-completions
+install-data-local: install-bcpp install-target-libbcc install-completions
 	install -dm755 $(DESTDIR)/$(tbindir)
 	[ $(ENABLE_BCL) = 0 ] || install -m755 $(srcdir)/util/bcl $(DESTDIR)/$(tbindir)/`echo bcl | sed '$(transform)'`
 	install -dm755 $(DESTDIR)/$(bindir)
@@ -90,11 +88,10 @@ install-data-local: install-target-libbcc install-completions
 		[ $(ENABLE_BCL) = 0 ] || ln -sf `echo bcl  | sed '$(transform)'` $(DESTDIR)/$(tbindir)/bcl;	\
 	fi
 
-uninstall-local: uninstall-target-libbcc uninstall-completions
+uninstall-local: uninstall-bcpp uninstall-target-libbcc uninstall-completions
 	[ $(ENABLE_BCL) = 0 ] || rm -f $(DESTDIR)/$(bindir)/bcl
 
-full-clean: clean full-clean-target-libbcc
-	$(MAKE) -C cpp full-clean
+full-clean: clean full-clean-bcpp full-clean-target-libbcc
 	$(MAKE) -C test clean
 	$(MAKE) -C test2 clean
 	rm -f Makefile Makefile.in configure src/.dirstamp src/$(ARCH)/.dirstamp
@@ -102,6 +99,26 @@ full-clean: clean full-clean-target-libbcc
 	rm -rf autom4te.cache build-aux src/.deps .deps src/$(ARCH)/.deps
 	rm -f help_options.h bcc.1 configure~
 
+configure-bcpp:
+	cd $(srcdir)/cpp && ./configure --with-includes="$(SYS_INCLUDES)" --prefix="$(prefix)" --bindir="$(bindir)" --mandir="$(mandir)"
+
+all-bcpp: configure-bcpp
+	$(MAKE) -C cpp
+
+install-bcpp:
+	$(MAKE) -C cpp DESTDIR=$(DESTDIR) install
+
+uninstall-bcpp:
+	$(MAKE) -C cpp DESTDIR=$(DESTDIR) uninstall
+
+full-clean-bcpp:
+	if test -e cpp/Makefile; then						\
+		$(MAKE) -C cpp full-clean;						\
+	else														\
+		cd cpp;												\
+		rm -f Makefile.in aclocal.m4 configure;	\
+		rm -rf build-aux/ autom4te.cache;			\
+	fi
 
 if ENABLE_LIBBCC
 configure-target-libbcc: bcc
