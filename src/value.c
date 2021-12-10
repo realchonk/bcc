@@ -21,6 +21,7 @@
 #include "scope.h"
 #include "expr.h"
 #include "unit.h"
+#include "bcc.h"
 
 #if ENABLE_FP
 #define do_binary(t, op) \
@@ -72,6 +73,17 @@ bool try_eval_expr(struct expression* e, struct value* val, struct scope* scope)
    switch (e->type) {
    case EXPR_PAREN:
       return try_eval_expr(e->expr, val, scope);
+   case EXPR_NAME:
+   {
+      if (optim_level < 1 || !scope)
+         return false;
+      const struct variable* var = scope_find_var(scope, e->str);
+      if (!var || !var->has_const_value || var->type->is_volatile || !var->type->is_const)
+         return false;
+      *val = var->const_init;
+      val->type = copy_value_type(var->type);
+      return true;
+   }
    case EXPR_INT:
       val->type = copy_value_type(get_value_type(NULL, e));
       val->iVal = e->iVal;
@@ -288,4 +300,8 @@ bool var_is_declared(istr_t name, struct scope* scope) {
 void eval_expr(struct expression* e, struct value* v, struct scope* scope) {
    if (!try_eval_expr(e, v, scope))
       parse_error(&e->begin, "expected constant-expression");
+}
+void copy_value(struct value* dest, const struct value* src) {
+   *dest = *src;
+   dest->type = copy_value_type(src->type);
 }

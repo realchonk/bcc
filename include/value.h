@@ -232,6 +232,8 @@ struct structure* copy_struct(const struct structure*);
 // creates a copy of an enum
 struct enumeration* copy_enum(const struct enumeration*);
 
+// creates a copy of a value
+void copy_value(struct value*, const struct value*);
 
 /// getters
 

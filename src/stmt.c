@@ -388,7 +388,7 @@ struct statement* parse_stmt(struct scope* scope) {
          stmt->begin = base_type->begin;
          do {
             struct value_type* vtype = copy_value_type(base_type);
-            struct variable var;
+            struct variable var = { 0 };
             const struct token name_tk = lexer_expect(TK_NAME);
             var.name = name_tk.str;
             var.begin = base_type->begin;
@@ -438,6 +438,8 @@ struct statement* parse_stmt(struct scope* scope) {
             var.init = lexer_match(TK_EQ) ? parse_var_init(scope, &vtype) : NULL;
             var.end = var.init ? var.init->end : name_tk.end;
             var.type = vtype;
+
+            var.has_const_value = var.init && !vt_is_array(var.type) && try_eval_expr(var.init, &var.const_init, scope);
 
             if (var.type->type == VAL_AUTO) {
                parse_error(&var.begin, "auto variable expects initializer");

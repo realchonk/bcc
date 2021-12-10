@@ -1077,3 +1077,25 @@
       "  goto label;"
       "}",
 },
+{
+   .name = "check constant variable propagation",
+   .compiles = true,
+   .source =
+      "int main() {"
+      "  const int x = 42;"
+      "  *(int*)&x = 69;"
+      "  return x;"
+      "}",
+   .ret_val = 42,
+},
+{
+   .name = "make sure that constant variable propagation only works on const variables",
+   .compiles = true,
+   .source =
+      "int main() {"
+      "  int x = 42;"
+      "  x = 69;"
+      "  return x;"
+      "}",
+   .ret_val = 69,
+},

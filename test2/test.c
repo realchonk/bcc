@@ -6,6 +6,7 @@ static void puti(int i) {
 }
 
 int main(int argc) {
-   auto f = &puti;
-   f(1);
+   const int x = 42;
+   *(int*)&x = 69;
+   return x;
 }

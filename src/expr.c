@@ -165,7 +165,7 @@ static struct expression* expr_prim(void) {
          tmp->fcall.params = NULL;
          if (!lexer_matches(TK_RPAREN)) {
             do {
-               buf_push(tmp->fcall.params, optim_expr(expr_assign(), scope));
+               buf_push(tmp->fcall.params, expr_assign());
             } while (lexer_match(TK_COMMA));
          }
          tmp->end = lexer_expect(TK_RPAREN).end;
@@ -177,7 +177,7 @@ static struct expression* expr_prim(void) {
          add->type = EXPR_BINARY;
          add->binary.op.type = TK_PLUS;
          add->binary.left = expr;
-         add->binary.right = optim_expr(expr_comma(), scope);
+         add->binary.right = expr_comma();
          add->begin = expr->begin;
          add->end = lexer_expect(TK_RBRACK).end;
          
@@ -237,7 +237,7 @@ static struct expression* expr_prim(void) {
       expr = tmp;
    }
 
-   return optim_expr(expr, scope);
+   return expr;
 }
 
 static struct expression* expr_unary(void) {
