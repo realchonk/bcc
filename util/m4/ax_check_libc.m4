@@ -25,6 +25,9 @@ linux|linux-gnu*)
 linux-musl*)
    LIBC="musl"
    ;;
+haiku)
+   LIBC="libroot"
+   ;;
 *)
    AC_MSG_ERROR([unsupported combination of OS and C library, please look into util/m4/ax_check_libc.m4])
    ;;

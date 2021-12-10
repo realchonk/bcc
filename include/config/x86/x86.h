@@ -21,6 +21,8 @@
 # include "config/x86/elf.h"
 #elif OS_linux
 # include "config/x86/linux.h"
+#elif OS_haiku
+# include "config/x86/haiku.h"
 #else
 # error "unsupported operating system"
 #endif

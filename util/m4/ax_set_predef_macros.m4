@@ -34,13 +34,18 @@ linux*)
    ac_macros="${ac_macros} unix __unix __unix__"
    ac_macros="${ac_macros} __ELF__"
    ;;
+haiku)
+   OS="haiku"
+   ac_has_libc=1
+   ac_macros="${ac_macros} __HAIKU__ __ELF__"
+   ;;
 elf*)
    OS="elf"
    ac_has_libc=0
    ac_macros="${ac_macros} __ELF__"
    ;;
 *)
-   AC_MSG_ERROR([unsupported operating system, please look into util/m4/ax_set_predef_macros.m4])
+   AC_MSG_ERROR([unsupported operating system '${target_os}', please look into util/m4/ax_set_predef_macros.m4])
    ;;
 esac
 
