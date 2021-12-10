@@ -35,18 +35,21 @@ AC_CHECK_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 AC_C_INLINE
 
-# TODO: --with-includes=
-SYS_INCLUDES="/usr/include:/usr/local/include"
-
-AC_DEFINE_UNQUOTED([SYS_INCLUDES], ["$SYS_INCLUDES"], [The default system-wide includes])
 
 
 # Option to disable the installation of bash-completions
-AC_ARG_ENABLE(bash-completions,
+AC_ARG_ENABLE([bash-completions],
               [AS_HELP_STRING([--disable-bash-completions], [disable the installation of bash-completions])],
               [if test x$enableval = xyes; then ENABLE_BASHCOMP=1; else ENABLE_BASHCOMP=0; fi],
               ENABLE_BASHCOMP=1)
 AC_SUBST([ENABLE_BASHCOMP])
+
+AC_ARG_WITH([includes],
+            [AS_HELP_STRING([--with-includes=STRING], [default include paths])],
+            [SYS_INCLUDES=$withval],
+            SYS_INCLUDES=/usr/include:/usr/local/include)
+
+AC_DEFINE_UNQUOTED([SYS_INCLUDES], ["$SYS_INCLUDES"], [The default system-wide includes])
 
 
 # Patch bcpp.1
