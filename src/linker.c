@@ -79,7 +79,7 @@ int run_linker(const char* output_name, const char** objects) {
       buf_push(args, "-lbcc");
 #endif
 
-#if HAS_LIBC
+#if HAS_INTERPRETER || defined(PATH_DL)
    if (linker_mode == 1) {
       buf_push(args, "-I");
 #ifdef PATH_DL
