@@ -29,6 +29,8 @@ static struct directive dirs[] = {
    { .name = "error",   .handler = dir_error,   true  },
    { .name = "if",      .handler = dir_if,      false },
    { .name = "elif",    .handler = dir_elif,    false },
+   { .name = "elifdef", .handler = dir_elifdef, false },
+   { .name = "elifndef",.handler = dir_elifndef,false },
    { .name = "warning", .handler = dir_warning, false },
 };
 

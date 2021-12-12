@@ -99,7 +99,7 @@ bool dir_else(size_t linenum, const char* line, struct token* tokens, size_t num
       if_layer->value = !if_layer->prev && !if_layer->value;
       break;
    default:
-      warn(linenum, "#else has to come after #if or #elif");
+      warn(linenum, "#else has to come after #if or #elif or #elifdef or #elifndef");
       return false;
    }
    if_layer->type = LAY_ELSE;
@@ -148,4 +148,45 @@ bool dir_elif(size_t linenum, const char* line, struct token* tokens, size_t num
    if_layer->value = eval(linenum, tokens[0].begin);
    update_suppress();
    return true;
+}
+
+static bool elifdef_impl(size_t linenum, struct token* tokens, size_t num_tks, bool negate) {
+   if (buf_len(if_layers) < 1) {
+      warn(linenum, "invalid #elifdef");
+      return false;
+   }
+   if (num_tks < 1) {
+      warn(linenum, "expected macro name");
+      return false;
+   }
+
+   istr_t name = strrint(tokens[0].begin, tokens[0].end);
+   struct if_layer* if_layer = &buf_last(if_layers);
+   switch (if_layer->type) {
+   case LAY_IF:
+      if_layer->prev = if_layer->value;
+      break;
+   case LAY_ELIF:
+      if_layer->prev |= if_layer->value;
+      break;
+   default:
+      warn(linenum, "#elifdef has to come after #if or #elif or #elifdef or #elifndef");
+      return false;
+   }
+   if_layer->type = LAY_ELIF;
+   if_layer->value = negate ^ (get_macro(name) != NULL);
+   update_suppress();
+   return true;
+}
+
+bool dir_elifdef(size_t linenum, const char* line, struct token* tokens, size_t num_tks, FILE* out) {
+   (void)line;
+   (void)out;
+   return elifdef_impl(linenum, tokens, num_tks, false);
+}
+
+bool dir_elifndef(size_t linenum, const char* line, struct token* tokens, size_t num_tks, FILE* out) {
+   (void)line;
+   (void)out;
+   return elifdef_impl(linenum, tokens, num_tks, true);
 }

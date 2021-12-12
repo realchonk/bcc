@@ -41,6 +41,8 @@ define_dir(else);
 define_dir(error);
 define_dir(if);
 define_dir(elif);
+define_dir(elifdef);
+define_dir(elifndef);
 define_dir(warning);
 
 // other stuff
