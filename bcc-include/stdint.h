@@ -111,4 +111,26 @@ typedef uintmax_t          uintptr_t;
 #define PTRDIFF_MIN        INTMAX_MIN
 #define PTRDIFF_MAX        INTMAX_MAX
 
+
+#define INT8_WIDTH         8
+#define INT16_WIDTH        16
+#define INT32_WIDTH        32
+
+#define INT_FAST8_WIDTH    8
+#define INT_FAST16_WIDTH   16
+#define INT_FAST32_WIDTH   32
+
+#define INT_LEAST8_WIDTH   8
+#define INT_LEAST16_WIDTH  16
+#define INT_LEAST32_WIDTH  32
+
+#define INTMAX_WIDTH       __BCC_BITS
+#define INTPTR_WIDTH       __BCC_BITS
+
+#if __BCC_BITS >= 64
+#define INT64_WIDTH        64
+#define INT_FAST64_WIDTH   64
+#define INT_LEAST64_WIDTH  64
+#endif
+
 #endif /* __STDINT_H__ */

@@ -21,6 +21,7 @@
 - implement constant propagation
 - <stdarg.h> header
 - long long & long double
+- <stdint.h>: UINTN_C()
 
 
 # IR-generation
