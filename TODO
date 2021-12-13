@@ -1,6 +1,7 @@
 # Major things
 - floating-point support
-- libbcc
+- multi-word integer arithmetic (eg. uint64_t on 32bit arch)
+- passing & returning structs in function calls
 
 
 # Linking support
@@ -26,13 +27,11 @@
 
 # IR-generation
 - more advanced optimization techniques
-- support for 64bit integers on 32bit systems
 - fix remove_unreferenced() for function call arguments
 
 
 # Architecture-specific related
 General:
-- passing/returning structs/unions
 - replace `builtin functions` with `inlinable intrinsics`
 
 x86:
@@ -42,7 +41,7 @@ x86:
 riscv:
 - more simple optimizations
 - add VLAs
-- check detect_sys.sh
+- check detect_sys.sh on real hardware
 
 arm:
 - Support for big-endian
@@ -67,12 +66,15 @@ arm:
    - 'pass struct'
 - multi-core `make` may be broken
 
+# Documentation
+- update and finish the manual
+- add comments describing the code
+- add a guide on how to port this project to a new arch
+
+
 # Other
-- find and fix/document bugs
-- document the code & add comments
-- options: -g, --sysroot=, -fuse-gcc
+- options: -g, --sysroot=
 - add zsh-completions
-- update the man pages
 - retire the preliminary bcl wrapper
 
 # Helpful Resources/Websites
