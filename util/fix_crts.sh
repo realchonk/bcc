@@ -15,8 +15,10 @@ gcc_find() {
    echo "${file}"
 }
 fix() {
+   local file
    if [ ! -e "${libdir}/$1" -o "${force}" = "1" ]; then
-      ln -sfv "$(gcc_find "$1")" "${libdir}/$1" || exit 1
+      file="$(gcc_find "$1")" || return 1
+      ln -sfv "${file}" "${libdir}/$1" || exit 1
       fixed="${fixed} $1"
    fi
 }
@@ -32,8 +34,8 @@ args=$(getopt -o "ahg:t:fF:G" -- "$@") || exit 1
 eval set -- "${args}"
 unset args
 
-target="${MACHTYPE}"
-GCC="${MACHTYPE}-gcc"
+target="$(bcc -dumpmachine)"
+GCC="gcc"
 BCC="bcc"
 force=0
 fix_all=0
